@@ -35,6 +35,7 @@ Edit skills live: most SKILL.md edits apply without restarting (`/reload-skills`
 3. `npm run package` builds `dist/vz-skills-<version>.zip` and verifies its integrity (listing, byte counts, required files).
 4. Re-read `docs/testing-and-evaluation.md` and update it with the observed results of this release's checks.
 5. Tag with `claude plugin tag ./plugins/vz-skills` if you publish through a git marketplace (it creates `vz-skills--v<version>`); push only with the owner's authorization.
+6. Publish to npm (owner only): set `repository` and `homepage` in `package.json` once the repo has a public URL, then `npm pack` (runs `prepack`: catalog check and structural validation), inspect the tarball list (plugin + CLI only, no tests/fixtures/docs), test it with `npx --yes ./vz-skills-<version>.tgz doctor`, and `npm publish`. The npm version must equal `plugin.json` `version` (`tests/cli.test.js` checks this).
 
 ## Reporting issues
 

@@ -12,7 +12,29 @@ Every command below was taken from the official Claude Code plugin documentation
 
 No npm packages are installed by VZ Skills. Nothing is downloaded at runtime.
 
-## Option A: try it for one session (no install) - *verified*
+## Option A: npm, one command - *verified in an isolated config directory*
+
+```bash
+npx vz-skills install                # user scope (default)
+npx vz-skills install --scope project
+npx vz-skills install --scope local
+```
+
+What it does, in order: checks that `claude` is on PATH; copies the bundled plugin to `~/.vz-skills/marketplace/plugins/vz-skills` (and the marketplace manifest beside it); runs `claude plugin marketplace add ~/.vz-skills/marketplace` (or refreshes it if already registered); runs `claude plugin install vz-skills@vz-skills-marketplace --scope <scope>`. The copy exists because `npx` caches are temporary and a marketplace added from a directory is read in place.
+
+Observed output on Claude Code 2.1.259 (run against an isolated `CLAUDE_CONFIG_DIR`, so the developer's own settings were untouched):
+
+```text
+Copied plugin 0.1.0 to ...\.vz-skills\marketplace\plugins\vz-skills
+✔ Successfully added marketplace: vz-skills-marketplace (declared in user settings)
+✔ Successfully installed plugin: vz-skills@vz-skills-marketplace (scope: user)
+```
+
+Other commands: `npx vz-skills try` (one session, nothing written), `npx vz-skills doctor`, `npx vz-skills@latest update`, `npx vz-skills uninstall [--purge]`, `npx vz-skills path`, `npx vz-skills validate`. `tests/cli.test.js` exercises the whole install/update/uninstall cycle in isolation whenever the `claude` CLI is available.
+
+Until the package is published to npm, the same commands work from a packed tarball: `npm pack` in a clone, then `npx --yes ./vz-skills-0.1.0.tgz install`.
+
+## Option B: try it for one session from a clone (no install) - *verified*
 
 From any project directory:
 
@@ -29,7 +51,7 @@ claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin details vz-skill
 
 Observed output on 2.1.259: `vz-skills@inline ... Status: ✔ loaded`, and `details` lists 19 skills, 3 agents, and 2 hook events.
 
-## Option B: install from the local marketplace - *add step verified; install step verified*
+## Option C: install from a clone as a local marketplace - *verified in an isolated config directory (same commands the npm CLI runs)*
 
 The repository root is a marketplace (`.claude-plugin/marketplace.json`, name `vz-skills-marketplace`).
 
@@ -50,7 +72,7 @@ claude plugin list
 
 Expect `vz-skills@vz-skills-marketplace` with `Status: ✔ loaded`. In a session, type `/vz-skills:` and the skills should autocomplete; run `/vz-skills:status` for a read-only self-check.
 
-## Option C: from a git host
+## Option D: from a git host
 
 Push this repository to a git host and add it as a marketplace by URL, for example `claude plugin marketplace add your-org/vz-skills` for GitHub or the full clone URL for other hosts. Then install as in Option B. Not exercised during the build (no remote was configured): **NOT VERIFIED**.
 
@@ -62,6 +84,7 @@ Push this repository to a git host and add it as a marketplace by URL, for examp
 
 ## Update
 
+- npm: `npx vz-skills@latest update` (copies the new version into `~/.vz-skills/marketplace`, refreshes the marketplace, updates the plugin).
 - Session-only (`--plugin-dir`): pull the repository; the next session uses the new files.
 - Marketplace install: `claude plugin marketplace update vz-skills-marketplace` then `claude plugin update vz-skills@vz-skills-marketplace`, or **Update now** in `/plugin`. Local marketplaces do not auto-update by default.
 
@@ -69,8 +92,9 @@ Push this repository to a git host and add it as a marketplace by URL, for examp
 
 `plugin.json` carries a `version`. To pin an older version: check out the matching git tag or commit in the VZ-skills clone and run the update commands above (a directory marketplace is read in place). To go back to no plugin, uninstall.
 
-## Uninstall - *verified for the session-only form; marketplace form documented from the official reference*
+## Uninstall - *verified (npm and marketplace forms, isolated config directory)*
 
+- npm: `npx vz-skills uninstall` removes the plugin; `--purge` also removes the marketplace registration and `~/.vz-skills/marketplace`.
 - Session-only: stop passing `--plugin-dir`. Nothing was written to your settings.
 - Marketplace install: `claude plugin uninstall vz-skills@vz-skills-marketplace [--scope ...]`; to remove the marketplace too, `claude plugin marketplace remove vz-skills-marketplace` (this also uninstalls its plugins). Delete `.vz-skills/` from projects if you no longer want the config and cache.
 

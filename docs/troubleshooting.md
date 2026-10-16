@@ -2,6 +2,8 @@
 
 | Symptom | Likely cause | What to do |
 |---|---|---|
+| `npx vz-skills install` says it could not register the marketplace | a `vz-skills-marketplace` already exists from a different path (for example a clone) | `claude plugin marketplace remove vz-skills-marketplace` (uninstalls its plugins), then run the install again; or keep the clone and skip npm |
+| `npx vz-skills` says Claude Code CLI not found | `claude` is not on PATH in that shell | install Claude Code or open a shell where `claude --version` works |
 | `/vz-skills:...` does not autocomplete | plugin not loaded for this session | `claude plugin list` (add `--plugin-dir <path>` in front if you use the session-only form); check `/plugin` **Errors** tab; run `/reload-plugins` |
 | `claude plugin validate` warns about an unknown field | a frontmatter or manifest key not in the official list | run `node plugins/vz-skills/scripts/vz-validate.js` for the exact file; remove or rename the field |
 | Session starts without the VZ brief | `hooks.session_context: false`, hooks disabled platform-wide (`disableAllHooks`), or the hook failed | run `/vz-skills:status`; run the hook by hand: `echo '{"hook_event_name":"SessionStart","cwd":"."}' \| node plugins/vz-skills/scripts/hooks/session-context.js` and read stderr |

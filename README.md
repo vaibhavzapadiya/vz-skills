@@ -41,13 +41,13 @@ VZ Skills is a Claude Code plugin that adds a disciplined development lifecycle 
 
 Prerequisites: Claude Code 2.1.233 or later (2.1.259+ recommended) and Node.js 18+.
 
-**1. Try it for one session, without installing anything**
+**1. Install with one command**
 
 ```bash
-git clone <this repository> VZ-skills
-cd your-project
-claude --plugin-dir ../VZ-skills/plugins/vz-skills
+npx vz-skills install
 ```
+
+That copies the plugin to `~/.vz-skills/marketplace`, registers it as a Claude Code marketplace, and installs it for your user. Add `--scope project` to enable it for everyone in the current repository, or `--scope local` for just you in this repository. Prefer to look before installing? `npx vz-skills try` starts Claude Code with the plugin loaded for one session and writes nothing to your settings.
 
 **2. See what VZ knows about your repository**
 
@@ -65,7 +65,7 @@ That writes `.vz-skills/config.json`. Commit it so your team shares the same rig
 
 **4. Give Claude a task.** The `using-vz-skills` skill routes it through the lifecycle automatically, or call any step directly: `/vz-skills:discover`, `/vz-skills:clarify`, `/vz-skills:plan`, `/vz-skills:implement`, `/vz-skills:test`, `/vz-skills:review`, `/vz-skills:verify`.
 
-To install permanently (user, project, or local scope) see [Install, update, uninstall](#install-update-uninstall).
+`npx vz-skills doctor` checks Node, Claude Code, the marketplace registration, the installed plugin, and the project config in one go. Other install methods (from a clone, from a git host) are in [Install, update, uninstall](#install-update-uninstall).
 
 ---
 
@@ -183,6 +183,8 @@ node plugins/vz-skills/scripts/vz-config.js --profiles             # the full pr
 
 Context cost (from `claude plugin details`): about 1.8k always-on tokens for the skill and agent listing; hooks cost nothing in context; each skill loads 0.5-1.1k tokens when invoked.
 
+The npm package ships only the plugin and the `vz-skills` CLI (`bin/`, `plugins/vz-skills/`, the marketplace manifest, README, LICENSE, CHANGELOG: 58 files, about 80 kB). Tests, fixtures, and this repository's docs stay on GitHub.
+
 ---
 
 ## Configuration
@@ -231,13 +233,15 @@ The threat model, mitigations, test evidence, and residual risks are in `docs/se
 
 | Method | Command | Notes |
 |---|---|---|
-| One session (try it) | `claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills` | Loads as `vz-skills@inline`; touches no settings |
-| Local marketplace | `claude plugin marketplace add /path/to/VZ-skills` then `claude plugin install vz-skills@vz-skills-marketplace --scope user` | Scopes: `user`, `project` (commit `.claude/settings.json`), `local` |
+| **npm (recommended)** | `npx vz-skills install [--scope user\|project\|local]` | Copies the plugin to `~/.vz-skills/marketplace`, registers the marketplace, installs. Pin a version with `npx vz-skills@0.1.0 install` |
+| Try for one session | `npx vz-skills try` or `claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills` | Loads as `vz-skills@inline`; touches no settings |
+| Update | `npx vz-skills@latest update` | Refreshes the managed copy, then `claude plugin update`; restart or `/reload-plugins` |
+| Uninstall | `npx vz-skills uninstall` (add `--purge` to also remove the marketplace and the copy) | `.vz-skills/config.json` in your projects is yours and stays |
+| From a clone (no npm) | `claude plugin marketplace add /path/to/VZ-skills` then `claude plugin install vz-skills@vz-skills-marketplace --scope user` | Same marketplace name; do not mix with the npm copy |
 | From a git host | `claude plugin marketplace add <owner>/VZ-skills` then the same install command | Once this repository is published |
-| Update | `claude plugin marketplace update vz-skills-marketplace && claude plugin update vz-skills@vz-skills-marketplace` | |
-| Uninstall | `claude plugin uninstall vz-skills@vz-skills-marketplace` | `.vz-skills/config.json` in your projects is yours and stays |
+| Health check | `npx vz-skills doctor` | Node, Claude Code, marketplace, plugin, project config |
 
-Verify with `claude plugin list` (status `loaded`) or type `/vz-skills:` in a session. Details, rollback, and troubleshooting: `docs/install.md`, `docs/troubleshooting.md`.
+Verify with `claude plugin list` (status `enabled`/`loaded`) or type `/vz-skills:` in a session. The `npx` installer never edits your project files and never touches `CLAUDE.md`; its own copy lives under `~/.vz-skills/` and is overwritten on update. Details, rollback, and troubleshooting: `docs/install.md`, `docs/troubleshooting.md`.
 
 ---
 

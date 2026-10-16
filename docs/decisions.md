@@ -4,6 +4,16 @@ Architecture decisions for the plugin, newest first. Do not silently change an a
 
 Prior art studied before the design (all MIT, accessed 2026-10-16; ideas only, no code or text copied): obra/superpowers, addyosmani/agent-skills, mattpocock/skills. Platform conventions were verified against the official Claude Code documentation pages for plugins (manifest reference, components, CLI reference, marketplace reference, install), skills, commands, hooks, sub-agents, and plugin evals, accessed 2026-10-16.
 
+### DEC-014 - npm distribution through a managed local marketplace
+
+- **Status:** ACCEPTED
+- **Date:** 2026-10-16
+- **Context:** Users should install with one command. Claude Code (docs accessed 2026-10-16) cannot add a marketplace *from* npm ("NPM marketplace sources not yet implemented"), although a marketplace entry may point at an npm package. Any route still needs `claude plugin marketplace add` plus `claude plugin install`. `npx` caches are temporary, so a marketplace must not point into them.
+- **Decision:** Publish the repository's root package to npm as `vz-skills` with a `bin` CLI. `npx vz-skills install` copies the bundled plugin to `~/.vz-skills/marketplace` (a directory marketplace, read in place), registers it, and installs the plugin at the requested scope. `update` refreshes the copy; `uninstall --purge` removes everything the installer created. `try` wraps `claude --plugin-dir`. The npm `files` whitelist ships only `bin/`, `plugins/vz-skills/`, `.claude-plugin/`, README, LICENSE, CHANGELOG.
+- **Alternatives considered:** marketplace entry with an `npm` plugin source (still needs a hosted marketplace to add first); `command` plugin source running `npx vz-skills path` (same prerequisite; also prompts the user to accept a command); global `npm install -g` (unnecessary, `npx` suffices).
+- **Evidence/source:** marketplace reference (plugin and marketplace source tables), install reference; `tests/cli.test.js` runs the real cycle against an isolated `CLAUDE_CONFIG_DIR`.
+- **Consequences/trade-offs:** Two install channels (npm copy vs clone) must not both register `vz-skills-marketplace`; the CLI detects a registration pointing elsewhere and says how to switch. Publishing requires the owner's npm credentials and is a separate, authorized step.
+
 ### DEC-013 - Plugin repository holds only the plugin; the build kit lives beside it
 
 - **Status:** ACCEPTED

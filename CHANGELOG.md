@@ -25,6 +25,9 @@ First implementation, built from the specification kit against Claude Code 2.1.2
 - A config value that failed validation could still appear in the effective configuration summary; rejected values are now never applied (regression-tested).
 - Release archive built with PowerShell `Compress-Archive` had backslash entry names (unusable on macOS/Linux); the packager now uses bsdtar and rejects any backslash entry, with a regression test.
 
+### Added (distribution)
+- npm package `vz-skills` with a CLI: `npx vz-skills install|update|uninstall|try|doctor|path|validate`. The installer keeps a managed copy under `~/.vz-skills/marketplace`, registers it as a Claude Code marketplace, and installs the plugin at the chosen scope. The package ships only the plugin and the CLI. Verified end to end against an isolated `CLAUDE_CONFIG_DIR` (`tests/cli.test.js`). Not yet published to the registry.
+
 ### Changed
 - Repository split: the specification kit and all process/tracker files moved out of the repository (DEC-013); `docs/decisions.md` keeps the decision log. Added a GitHub Actions workflow.
 

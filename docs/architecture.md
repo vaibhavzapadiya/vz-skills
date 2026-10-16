@@ -3,6 +3,8 @@
 ```
 VZ-skills/                         repository = local marketplace root
 ├── .claude-plugin/marketplace.json  marketplace "vz-skills-marketplace" -> ./plugins/vz-skills
+├── bin/vz-skills.js                 npm CLI: install/update/uninstall/try/doctor (DEC-014)
+├── package.json                     publishable as `vz-skills`; `files` ships bin + plugin + manifest only
 ├── plugins/vz-skills/               the installable plugin (everything a user receives)
 │   ├── .claude-plugin/plugin.json   manifest (name, version, description, author, keywords)
 │   ├── skills/<name>/SKILL.md       19 skills (see docs/skills-catalog.md)
