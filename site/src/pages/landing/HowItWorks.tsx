@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Container, Section, SectionHeading } from '@/components/Section';
 import { Label } from '@/components/Label';
+import { trackSpotlight } from '@/lib/spotlight';
 import {
   IconArrowRight,
   IconCode,
@@ -38,9 +39,9 @@ export function HowItWorks() {
             title="Seven small steps."
             lead="The router picks the steps a request needs. A one-line fix skips most of them; a change to auth gets all of them."
           />
-          <ol className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ol onPointerMove={trackSpotlight} className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((s, i) => (
-              <li key={s.name} className="panel panel-hover group relative flex flex-col overflow-hidden p-5">
+              <li key={s.name} data-spot className="panel panel-hover group relative flex flex-col overflow-hidden p-5">
                 <span
                   aria-hidden="true"
                   className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-accent transition-transform duration-slow ease-out group-hover:scale-x-100"

@@ -9,8 +9,10 @@ const baseClass =
   'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-[background-color,border-color,color,box-shadow,transform] duration-fast ease-out select-none disabled:opacity-50 disabled:pointer-events-none motion-safe:active:scale-[0.985]';
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-accent text-accent-fg hover:bg-accent-hover shadow-sm',
-  secondary: 'bg-bg-raised text-fg border border-border-strong hover:border-fg/40 hover:bg-bg-sunken',
+  primary:
+    'bg-gradient-to-b from-accent to-accent-hover text-accent-fg shadow-[inset_0_1px_0_rgb(255_255_255/0.22),0_1px_2px_rgb(0_0_0/0.18),0_8px_20px_-10px_var(--accent)] hover:brightness-110',
+  secondary:
+    'bg-bg-raised text-fg border border-border-strong shadow-[inset_0_1px_0_var(--panel-highlight),0_1px_2px_rgb(0_0_0/0.05)] hover:border-fg/40 hover:bg-bg-sunken',
   ghost: 'text-fg-muted hover:text-fg hover:bg-bg-sunken',
   inverse: 'bg-bg-inverse text-fg-inverse hover:opacity-90',
 };

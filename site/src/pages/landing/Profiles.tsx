@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { Container, Section, SectionHeading } from '@/components/Section';
 import { IconArrowRight } from '@/components/Icons';
+import { cn } from '@/lib/utils';
 import { profileHighlights, profileNames } from '@/data/profiles';
 
 const shown = ['Write a plan when risk is', 'Tests to run', 'Independent reviewer agent', 'Final report'];
@@ -25,8 +26,9 @@ export function Profiles() {
                   Setting
                 </th>
                 {profileNames.map((p) => (
-                  <th key={p} scope="col" className="px-5 py-3.5 font-mono text-xs font-medium tracking-[0.04em] text-fg">
+                  <th key={p} scope="col" className={cn('px-5 py-3.5 font-mono text-xs font-medium tracking-[0.04em] text-fg', p === 'BALANCED' && 'bg-accent-soft/50')}>
                     {p}
+                    {p === 'BALANCED' && <span className="ml-2 rounded-full bg-accent px-1.5 py-px text-[0.5625rem] font-medium uppercase tracking-[0.08em] text-accent-fg">default</span>}
                   </th>
                 ))}
               </tr>
@@ -38,7 +40,7 @@ export function Profiles() {
                     {row.label}
                   </th>
                   {profileNames.map((p) => (
-                    <td key={p} className="px-5 py-4 text-fg-muted">
+                    <td key={p} className={cn('px-5 py-4', p === 'BALANCED' ? 'bg-accent-soft/30 text-fg' : 'text-fg-muted')}>
                       {row[p]}
                     </td>
                   ))}

@@ -21,8 +21,11 @@ export function Why() {
       <Container>
         <SectionHeading number="01" eyebrow="Why" title="Confidence is not evidence." />
         <ul className="panel mt-12 divide-y divide-border px-6 sm:px-8">
-          {rows.map((r) => (
-            <li key={r.problem} className="grid gap-3 py-6 md:grid-cols-2 md:gap-12">
+          {rows.map((r, i) => (
+            <li key={r.problem} className="grid items-baseline gap-3 py-7 md:grid-cols-[4.5rem_minmax(0,1fr)_minmax(0,1fr)] md:gap-10">
+              <span aria-hidden="true" className="font-display text-5xl leading-none text-fg-faint/50">
+                0{i + 1}
+              </span>
               <p className="text-[1.0625rem] leading-relaxed text-fg">{r.problem}</p>
               <p className="leading-relaxed text-fg-muted">{r.answer}</p>
             </li>

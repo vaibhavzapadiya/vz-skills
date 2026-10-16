@@ -2,6 +2,7 @@ import { useId, useState, type ReactNode } from 'react';
 import { Cat } from '@/components/Cat';
 import { Label } from '@/components/Label';
 import { cn } from '@/lib/utils';
+import { trackSpotlight } from '@/lib/spotlight';
 import { profileNames, type ProfileName } from '@/data/profiles';
 
 /**
@@ -134,9 +135,9 @@ export function ReportCard() {
   const name = useId();
 
   return (
-    <figure className="relative mx-auto w-full max-w-[34rem] [filter:drop-shadow(0_18px_28px_rgb(26_25_21/0.12))] dark:[filter:drop-shadow(0_18px_28px_rgb(0_0_0/0.55))]">
+    <figure onPointerMove={trackSpotlight} className="relative mx-auto w-full max-w-[34rem] [filter:drop-shadow(0_18px_28px_rgb(26_25_21/0.12))] dark:[filter:drop-shadow(0_18px_28px_rgb(0_0_0/0.55))]">
       <Cat className="pointer-events-none absolute -top-[50px] right-8 z-10 sm:right-12" />
-      <div className="receipt rounded-t-xl border border-b-0 border-border px-5 pt-5 sm:px-7 sm:pt-6">
+      <div data-spot className="receipt rounded-t-xl border border-b-0 border-border px-5 pt-5 sm:px-7 sm:pt-6">
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
           <div className="min-w-0">
             <p className="eyebrow">Completion report</p>

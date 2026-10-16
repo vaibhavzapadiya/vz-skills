@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { cn } from '@/lib/utils';
 import { Wordmark } from './Logo';
@@ -18,7 +18,45 @@ const landingLinks = [
 export function SiteHeader({ variant = 'landing', onOpenSearch }: { variant?: 'landing' | 'docs'; onOpenSearch?: () => void }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [active, setActive] = useState('');
+  const bar = useRef<HTMLDivElement>(null);
   const location = useLocation();
+
+  // Scroll progress hairline: written straight to the element, so scrolling never re-renders the header.
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      if (bar.current) bar.current.style.transform = `scaleX(${p})`;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [location.pathname]);
+
+  // Highlight the landing section nearest the middle of the viewport.
+  useEffect(() => {
+    if (variant !== 'landing' || location.pathname !== '/' || typeof IntersectionObserver === 'undefined') return;
+    const els = landingLinks.map((l) => document.getElementById(l.href.slice(1))).filter((e): e is HTMLElement => !!e);
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) setActive(e.target.id);
+      },
+      { rootMargin: '-45% 0px -50% 0px', threshold: 0 },
+    );
+    els.forEach((e) => io.observe(e));
+    return () => io.disconnect();
+  }, [variant, location.pathname]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -63,9 +101,17 @@ export function SiteHeader({ variant = 'landing', onOpenSearch }: { variant?: 'l
                 <a
                   key={l.href}
                   href={onHome ? l.href : `/${l.href}`}
-                  className="rounded-md px-3 py-1.5 text-sm text-fg-muted transition-colors duration-fast hover:bg-bg-sunken hover:text-fg"
+                  aria-current={active === l.href.slice(1) ? 'true' : undefined}
+                  className={cn(
+                    'relative rounded-md px-3 py-1.5 text-sm transition-colors duration-fast hover:bg-bg-sunken hover:text-fg',
+                    active === l.href.slice(1) ? 'text-fg' : 'text-fg-muted',
+                  )}
                 >
                   {l.label}
+                  <span
+                    aria-hidden="true"
+                    className={cn('absolute inset-x-3 -bottom-px h-px bg-accent transition-opacity duration-base', active === l.href.slice(1) ? 'opacity-100' : 'opacity-0')}
+                  />
                 </a>
               ))}
             </nav>
@@ -110,6 +156,9 @@ export function SiteHeader({ variant = 'landing', onOpenSearch }: { variant?: 'l
           </button>
         </div>
       </Container>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 -bottom-px h-px">
+        <div ref={bar} className="h-full origin-left scale-x-0 bg-accent" />
+      </div>
 
       {/* Mobile navigation */}
       <div

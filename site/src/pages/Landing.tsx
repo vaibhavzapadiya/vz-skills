@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
+import { Reveal } from '@/components/Reveal';
 import { Hero } from './landing/Hero';
 import { Why } from './landing/Why';
 import { HowItWorks } from './landing/HowItWorks';
@@ -19,12 +20,24 @@ export function Landing() {
       <SiteHeader variant="landing" />
       <main id="main" className="flex-1">
         <Hero />
-        <Why />
-        <HowItWorks />
-        <Profiles />
-        <Safety />
-        <Install />
-        <Faq />
+        <Reveal>
+          <Why />
+        </Reveal>
+        <Reveal>
+          <HowItWorks />
+        </Reveal>
+        <Reveal>
+          <Profiles />
+        </Reveal>
+        <Reveal>
+          <Safety />
+        </Reveal>
+        <Reveal>
+          <Install />
+        </Reveal>
+        <Reveal>
+          <Faq />
+        </Reveal>
       </main>
       <SiteFooter />
     </div>
