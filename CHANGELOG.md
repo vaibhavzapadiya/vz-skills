@@ -22,6 +22,7 @@ First implementation, built from the specification kit against Claude Code 2.1.2
 - Nested test runners inherited `NODE_TEST_CONTEXT` and masked failures in baseline runs.
 - Write guard's test-artifact exemption matched absolute paths.
 - Directory walker skipped `.github`.
+- Release archive built with PowerShell `Compress-Archive` had backslash entry names (unusable on macOS/Linux); the packager now uses bsdtar and rejects any backslash entry, with a regression test.
 
 ### Known limitations
 - No license chosen yet (owner decision).

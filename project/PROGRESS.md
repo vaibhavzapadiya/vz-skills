@@ -41,13 +41,14 @@
 | 2026-10-16 ~17:50 | 18 more skills, 3 agents, references | `skills/**`, `agents/*`, `references/*` | both validators pass; `plugin details`: 19 skills, 3 agents, ~1.8k always-on tokens | TESTED (structure) |
 | 2026-10-16 ~18:00 | Docs, catalog generator, docs tests, eval cases, packaging | `docs/**`, `scripts/*`, `tests/docs.test.js`, `evals/**` | docs tests 7/7; eval run BLOCKED (see log) | TESTED / BLOCKED |
 | 2026-10-16 ~18:10 | Headless scenarios | `tests/.tmp/scenario/*` (ignored) | both runs: `Failed to authenticate: OAuth session expired` | BLOCKED |
-| 2026-10-16 ~18:20 | Trackers, audit, package | `project/*`, `tracking/*`, `quality/*`, `docs/release-audit.md`, `dist/*` | `npm test` 67/67; package integrity verified | VERIFIED |
+| 2026-10-16 ~18:20 | Trackers, audit, package | `project/*`, `tracking/*`, `quality/*`, `docs/release-audit.md`, `dist/*` | `npm test` 67/67; package integrity verified by the packager | VERIFIED |
+| 2026-10-16 ~18:30 | Independent `unzip -l` of the archive found backslash entry names (PKG-001); packager rewritten to bsdtar with a backslash check; regression test added | `scripts/package-release.js`, `tests/package.test.js`, `CHANGELOG.md`, `project/known-issues.md` | `npm run package` -> verified:true, 172 entries, forward slashes; `unzip -t` clean; `npm test` 68/68 | VERIFIED |
 
 ## Commands/checks log
 
 | Command | Purpose | Result | Evidence/location |
 |---|---|---|---|
-| `npm test` (cwd repo root) | full automated suite | exit 0; 67 pass, 0 fail, 0 skipped | `docs/testing-and-evaluation.md` |
+| `npm test` (cwd repo root) | full automated suite | exit 0; 68 pass, 0 fail, 0 skipped (67 before the packaging test was added) | `docs/testing-and-evaluation.md` |
 | `claude plugin validate ./plugins/vz-skills --strict` | official structural validation | exit 0; "Validation passed" | same |
 | `claude plugin validate ./plugins/vz-skills --strict --json` | JSON report | `success: true`, no errors/warnings | same |
 | `claude plugin validate . --strict` | marketplace manifest | exit 0 | same |

@@ -15,14 +15,14 @@ Everything below was executed on 2026-10-16 on the build machine (Windows 11 Pro
 | Documentation accuracy | `tests/docs.test.js` | 7 | PASS |
 | Regression | TC-008 (`NODE_TEST_CONTEXT`), write-guard exemption, `.github` walk | within the above | PASS |
 | Scenario (live model) | `plugins/vz-skills/evals/` and headless runs | 3 cases | BLOCKED (see below) |
-| Release | `npm run package` integrity check | 1 | see release section |
+| Release | `tests/package.test.js` + `npm run package` integrity check (bsdtar, backslash-free entries, sizes, SHA-256) | 1 | PASS |
 
 ## Observed results
 
 ```
 > npm test            (node --test tests/*.test.js)
-# tests 67
-# pass 67
+# tests 68
+# pass 68
 # fail 0
 # skipped 0
 ```

@@ -19,6 +19,7 @@ Keep this file factual. Do not leave resolved issues open, and do not erase unre
 | SEC-001 | medium | Baseline runner inherited `NODE_TEST_CONTEXT` from a parent `node --test`, masking a failing suite as exit 0 | env scrubbed in `runBaseline`; regression test TC-008 |
 | SEC-002 | low | Write guard exempted any path containing `test`, including whole projects under `tests/` | exemption now uses the project-relative path; test added |
 | SEC-003 | low | Walker skipped `.github`, hiding CI evidence | fixed; TC-004 asserts CI corroboration |
+| PKG-001 | medium | First release archive (PowerShell `Compress-Archive`) used backslash entry names; `unzip` on other platforms would extract literal `a\b\c` file names. Found by an independent `unzip -l` during the audit. | packager switched to bsdtar; verification rejects backslashes; `tests/package.test.js` (TC-019) |
 
 ## Deferred work
 

@@ -25,7 +25,7 @@ Conducted 2026-10-16 following `prompts/03-final-audit-prompt.md`, by re-inspect
 
 ## Package contents (from `npm run package`)
 
-See `dist/vz-skills-0.1.0.manifest.json` for the file list, byte count, entry count, and SHA-256. The packager verifies every file's size inside the archive against disk and fails on any missing or unexpected entry. Excluded: `.git`, `node_modules`, `tests/.tmp`, eval `results/`, `dist`, caches. No secrets, local absolute paths, or generated artifacts are included (the fixture `_env` file contains a fake value and is intentionally shipped as test data).
+See `dist/vz-skills-0.1.0.manifest.json` for the file list, byte count, entry count, and SHA-256. The packager (bsdtar) verifies every file's size inside the archive against disk, fails on any missing or unexpected entry, and rejects backslash entry names; an independent `unzip -l` and `unzip -t` confirmed forward-slash names and a clean archive. The first build with PowerShell `Compress-Archive` failed this independent check (PKG-001) and was replaced. Excluded: `.git`, `node_modules`, `tests/.tmp`, eval `results/`, `dist`, caches. No secrets, local absolute paths, or generated artifacts are included (the fixture `_env` file contains a fake value and is intentionally shipped as test data).
 
 ## Tests run / not run
 
