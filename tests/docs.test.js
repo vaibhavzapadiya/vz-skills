@@ -31,8 +31,8 @@ test('README, install and hooks docs state the real component counts', () => {
   const skills = fs.readdirSync(path.join(PLUGIN_ROOT, 'skills')).length;
   const agents = fs.readdirSync(path.join(PLUGIN_ROOT, 'agents')).length;
   const readme = fs.readFileSync(path.join(REPO_ROOT, 'README.md'), 'utf8');
-  assert.match(readme, new RegExp(`Skills \\(${skills}\\)`));
-  assert.match(readme, new RegExp(`Agents \\(${agents}\\)`));
+  assert.match(readme, new RegExp(`${skills} skills`));
+  assert.match(readme, new RegExp(`${agents} agents`));
   const install = fs.readFileSync(path.join(REPO_ROOT, 'docs', 'install.md'), 'utf8');
   assert.match(install, new RegExp(`${skills} skills, ${agents} agents`));
 });
