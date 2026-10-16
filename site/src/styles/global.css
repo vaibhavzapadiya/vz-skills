@@ -606,3 +606,48 @@
   background-repeat: repeat-x;
   border-inline: 1px solid var(--border);
 }
+
+/* Cat: blinks now and then, twitches an ear when the card is hovered. */
+.cat .cat-eye,
+.cat .cat-ear {
+  transform-box: fill-box;
+}
+.cat .cat-eye {
+  transform-origin: center;
+}
+.cat .cat-ear-l {
+  transform-origin: 100% 100%;
+}
+.cat .cat-ear-r {
+  transform-origin: 0% 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cat .cat-eye {
+    animation: cat-blink 5.5s infinite;
+  }
+  figure:hover .cat .cat-ear-r {
+    animation: cat-ear 0.45s ease-in-out 1;
+  }
+  @keyframes cat-blink {
+    0%,
+    93%,
+    100% {
+      transform: scaleY(1);
+    }
+    96% {
+      transform: scaleY(0.08);
+    }
+  }
+  @keyframes cat-ear {
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+    40% {
+      transform: rotate(-12deg);
+    }
+    70% {
+      transform: rotate(4deg);
+    }
+  }
+}
