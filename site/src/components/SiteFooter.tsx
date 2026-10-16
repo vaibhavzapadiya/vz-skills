@@ -1,6 +1,9 @@
 import { Link } from 'react-router';
 import { Container } from './Section';
 import { Wordmark } from './Logo';
+import { LinkButton } from './Button';
+import { CommandLine } from './CodeBlock';
+import { IconArrowRight } from './Icons';
 import { SITE } from '@/lib/utils';
 
 const columns: Array<{ title: string; links: Array<{ to: string; label: string }> }> = [
@@ -33,25 +36,61 @@ const columns: Array<{ title: string; links: Array<{ to: string; label: string }
   },
 ];
 
-export function SiteFooter() {
+const facts = [`v${SITE.version}`, `Claude Code ${SITE.minClaude}+`, `Node ${SITE.minNode}+`, 'MIT'];
+
+function BackToTop() {
+  return (
+    <button
+      type="button"
+      onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}
+      className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-fg-muted transition-colors duration-fast hover:bg-bg-sunken hover:text-fg"
+    >
+      Back to top
+      <span aria-hidden="true">↑</span>
+    </button>
+  );
+}
+
+/** `compact` drops the install call to action; the docs pages use it. */
+export function SiteFooter({ compact = false }: { compact?: boolean }) {
   return (
     <footer className="border-t border-border bg-bg-sunken/60">
-      <Container className="py-14">
-        <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+      <Container>
+        {!compact && (
+          <div className="grid items-center gap-8 border-b border-border py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-16">
+            <div>
+              <h2 className="font-display text-title text-fg [text-wrap:balance]">Start with a read-only check.</h2>
+              <p className="mt-3 max-w-[30rem] text-fg-muted [text-wrap:pretty]">
+                Install it, run <code className="font-mono text-fg">/vz-status</code>, and see what it sees. Nothing changes until you ask.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <CommandLine command={SITE.install} />
+              <div className="flex flex-wrap gap-3">
+                <LinkButton to="/docs/getting-started">
+                  Getting started <IconArrowRight size={16} />
+                </LinkButton>
+                <LinkButton to="/docs/commands" variant="secondary">
+                  Commands
+                </LinkButton>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid gap-10 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] md:gap-16">
           <div className="max-w-xs">
             <Wordmark />
             <p className="mt-4 text-sm leading-relaxed text-fg-muted">{SITE.tagline}</p>
-            <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 font-mono text-xs text-fg-faint">
-              <dt>Version</dt>
-              <dd className="text-fg-muted tabular">{SITE.version}</dd>
-              <dt>Claude Code</dt>
-              <dd className="text-fg-muted tabular">{SITE.minClaude}+</dd>
-              <dt>Node.js</dt>
-              <dd className="text-fg-muted tabular">{SITE.minNode}+</dd>
-              <dt>License</dt>
-              <dd className="text-fg-muted">MIT</dd>
-            </dl>
+            <ul className="mt-5 flex flex-wrap gap-1.5" aria-label="At a glance">
+              {facts.map((f) => (
+                <li key={f} className="rounded-full border border-border bg-bg-raised px-2.5 py-0.5 font-mono text-[0.6875rem] text-fg-muted">
+                  {f}
+                </li>
+              ))}
+            </ul>
           </div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3">
           {columns.map((c) => (
             <nav key={c.title} aria-label={c.title}>
               <h2 className="eyebrow">{c.title}</h2>
@@ -66,10 +105,13 @@ export function SiteFooter() {
               </ul>
             </nav>
           ))}
+          </div>
         </div>
-        <p className="mt-12 border-t border-border pt-6 text-xs text-fg-faint">
-          MIT License. A plugin for Claude Code; not affiliated with Anthropic.
-        </p>
+
+        <div className="flex flex-col gap-2 border-t border-border py-5 text-xs text-fg-faint sm:flex-row sm:items-center sm:justify-between">
+          <p>MIT License. A plugin for Claude Code; not affiliated with Anthropic.</p>
+          <BackToTop />
+        </div>
       </Container>
     </footer>
   );

@@ -651,3 +651,28 @@
     }
   }
 }
+
+/* Container card: a large recessed surface that groups a whole section; panels sit inside it. */
+:root {
+  --well-top: #f3f1eb;
+  --well-bottom: #ece9e1;
+}
+:root[data-theme='dark'] {
+  --well-top: #131311;
+  --well-bottom: #0d0d0c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --well-top: #131311;
+    --well-bottom: #0d0d0c;
+  }
+}
+@utility container-card {
+  background-image: linear-gradient(180deg, var(--well-top), var(--well-bottom));
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  box-shadow:
+    inset 0 1px 0 var(--panel-highlight),
+    inset 0 -1px 0 var(--panel-edge),
+    var(--shadow-sm);
+}

@@ -15,8 +15,9 @@ const points = [
 
 export function Safety() {
   return (
-    <Section id="safety" bleed>
+    <Section id="safety">
       <Container>
+        <div className="container-card p-6 sm:p-10 lg:p-12">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-16">
           <div>
             <SectionHeading
@@ -25,7 +26,7 @@ export function Safety() {
               title="Advisory guards, not a sandbox."
               lead="Hooks ask or deny risky commands and writes. They fail open, and Claude Code's own permissions remain the boundary."
             />
-            <ul className="mt-8 space-y-4">
+            <ul className="panel mt-8 space-y-4 p-5">
               {points.map((p) => (
                 <li key={p.title} className="text-[0.9375rem] leading-relaxed text-fg-muted">
                   <span className="font-medium text-fg">{p.title}</span> {p.body}
@@ -44,6 +45,7 @@ export function Safety() {
             </div>
             <CodeBlock code={pretty(guardAsk)} language="json" title="command-guard.js output" wrap />
           </div>
+        </div>
         </div>
       </Container>
     </Section>

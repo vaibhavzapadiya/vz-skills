@@ -14,8 +14,9 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <Section id="how-it-works" bleed>
+    <Section id="how-it-works">
       <Container>
+        <div className="container-card p-6 sm:p-10 lg:p-12">
         <SectionHeading
           number="02"
           eyebrow="How it works"
@@ -37,6 +38,7 @@ export function HowItWorks() {
             </Link>
           </li>
         </ol>
+        </div>
       </Container>
     </Section>
   );

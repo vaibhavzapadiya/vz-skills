@@ -166,7 +166,7 @@ export default function DocsLayout() {
           </aside>
         </div>
       </Container>
-      <SiteFooter />
+      <SiteFooter compact />
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
