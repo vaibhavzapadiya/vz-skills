@@ -43,7 +43,7 @@ export function SiteFooter() {
         <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div className="max-w-xs">
             <Wordmark />
-            <p className="mt-4 text-sm leading-relaxed text-fg-muted">{SITE.tagline} Evidence before claims, from discovery to the final report.</p>
+            <p className="mt-4 text-sm leading-relaxed text-fg-muted">{SITE.tagline}</p>
             <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 font-mono text-xs text-fg-faint">
               <dt>Version</dt>
               <dd className="text-fg-muted tabular">{SITE.version}</dd>
@@ -51,8 +51,6 @@ export function SiteFooter() {
               <dd className="text-fg-muted tabular">{SITE.minClaude}+</dd>
               <dt>Node.js</dt>
               <dd className="text-fg-muted tabular">{SITE.minNode}+</dd>
-              <dt>Runtime deps</dt>
-              <dd className="text-fg-muted tabular">0</dd>
               <dt>License</dt>
               <dd className="text-fg-muted">MIT</dd>
             </dl>
@@ -72,10 +70,9 @@ export function SiteFooter() {
             </nav>
           ))}
         </div>
-        <div className="mt-12 flex flex-col gap-3 border-t border-border pt-6 text-xs text-fg-faint sm:flex-row sm:items-center sm:justify-between">
-          <p>VZ Skills is a plugin for Claude Code. Claude Code and Claude are products of Anthropic; this project is not affiliated with Anthropic.</p>
-          <p>MIT License. Design ideas drawn from obra/superpowers, addyosmani/agent-skills, and mattpocock/skills; no code or text copied.</p>
-        </div>
+        <p className="mt-12 border-t border-border pt-6 text-xs text-fg-faint">
+          MIT License. A plugin for Claude Code; not affiliated with Anthropic.
+        </p>
       </Container>
     </footer>
   );

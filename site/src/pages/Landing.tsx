@@ -4,14 +4,10 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { Hero } from './landing/Hero';
 import { Why } from './landing/Why';
 import { HowItWorks } from './landing/HowItWorks';
-import { Labels } from './landing/Labels';
 import { Profiles } from './landing/Profiles';
 import { Safety } from './landing/Safety';
-import { Catalog } from './landing/Catalog';
 import { Install } from './landing/Install';
-import { Status } from './landing/Status';
 import { Faq } from './landing/Faq';
-import { FinalCta } from './landing/FinalCta';
 
 export function Landing() {
   useEffect(() => {
@@ -25,14 +21,10 @@ export function Landing() {
         <Hero />
         <Why />
         <HowItWorks />
-        <Labels />
         <Profiles />
         <Safety />
-        <Catalog />
         <Install />
-        <Status />
         <Faq />
-        <FinalCta />
       </main>
       <SiteFooter />
     </div>

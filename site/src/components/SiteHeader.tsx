@@ -12,7 +12,6 @@ const landingLinks = [
   { href: '#how-it-works', label: 'How it works' },
   { href: '#profiles', label: 'Profiles' },
   { href: '#safety', label: 'Safety' },
-  { href: '#skills', label: 'Skills' },
   { href: '#faq', label: 'FAQ' },
 ];
 
