@@ -47,7 +47,16 @@ Prerequisites: Claude Code 2.1.233 or later (2.1.259+ recommended) and Node.js 1
 npx vz-skills install
 ```
 
-That copies the plugin to `~/.vz-skills/marketplace`, registers it as a Claude Code marketplace, and installs it for your user. Add `--scope project` to enable it for everyone in the current repository, or `--scope local` for just you in this repository. Prefer to look before installing? `npx vz-skills try` starts Claude Code with the plugin loaded for one session and writes nothing to your settings.
+That copies the plugin to `~/.vz-skills/marketplace`, registers it as a Claude Code marketplace, and installs it for your user. Commands then appear as `/vz-skills:<name>`. Add `--scope project` to enable it for everyone in the current repository, or `--scope local` for just you in this repository. Prefer to look before installing? `npx vz-skills try` starts Claude Code with the plugin loaded for one session and writes nothing to your settings.
+
+Want `/plan` instead of `/vz-skills:plan`? Claude Code prefixes every plugin's commands, so install the skills unprefixed instead:
+
+```bash
+npx vz-skills install --flat            # /discover, /plan, /review, ... for your user
+npx vz-skills install --flat --scope project   # into this repo's .claude/, committable
+```
+
+Flat mode copies the skills, agents, scripts, and hooks into your Claude config (or the project's `.claude/`) with every reference rewritten. One rename: `/status` becomes `/vz-status`, so Claude Code's own `/status` keeps working. `/review` replaces Claude Code's bundled review command in that scope. Remove it with `npx vz-skills uninstall --flat`; your settings file is backed up before every change.
 
 **2. See what VZ knows about your repository**
 
@@ -147,7 +156,7 @@ Safety never scales down: catastrophic commands are refused and secrets stay unr
 
 ## What is inside
 
-**Skills (19)**, invoked as `/vz-skills:<name>` or picked automatically by Claude from their descriptions:
+**Skills (19)**, invoked as `/vz-skills:<name>` (plugin install) or `/<name>` (flat install), or picked automatically by Claude from their descriptions:
 
 | Group | Skills |
 |---|---|
@@ -233,7 +242,8 @@ The threat model, mitigations, test evidence, and residual risks are in `docs/se
 
 | Method | Command | Notes |
 |---|---|---|
-| **npm (recommended)** | `npx vz-skills install [--scope user\|project\|local]` | Copies the plugin to `~/.vz-skills/marketplace`, registers the marketplace, installs. Pin a version with `npx vz-skills@0.1.0 install` |
+| **npm (recommended)** | `npx vz-skills install [--scope user\|project\|local]` | Copies the plugin to `~/.vz-skills/marketplace`, registers the marketplace, installs as `/vz-skills:<name>`. Pin a version with `npx vz-skills@0.1.0 install` |
+| **npm, unprefixed** | `npx vz-skills install --flat [--scope user\|project\|local] [--force]` | Installs as personal or project skills so commands are `/<name>`; `/status` becomes `/vz-status`. Update with `npx vz-skills@latest update --flat`, remove with `uninstall --flat` |
 | Try for one session | `npx vz-skills try` or `claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills` | Loads as `vz-skills@inline`; touches no settings |
 | Update | `npx vz-skills@latest update` | Refreshes the managed copy, then `claude plugin update`; restart or `/reload-plugins` |
 | Uninstall | `npx vz-skills uninstall` (add `--purge` to also remove the marketplace and the copy) | `.vz-skills/config.json` in your projects is yours and stays |

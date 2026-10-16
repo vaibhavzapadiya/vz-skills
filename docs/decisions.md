@@ -4,6 +4,15 @@ Architecture decisions for the plugin, newest first. Do not silently change an a
 
 Prior art studied before the design (all MIT, accessed 2026-10-16; ideas only, no code or text copied): obra/superpowers, addyosmani/agent-skills, mattpocock/skills. Platform conventions were verified against the official Claude Code documentation pages for plugins (manifest reference, components, CLI reference, marketplace reference, install), skills, commands, hooks, sub-agents, and plugin evals, accessed 2026-10-16.
 
+### DEC-015 - Unprefixed commands via a flat install, not via the plugin
+
+- **Status:** ACCEPTED
+- **Date:** 2026-10-16
+- **Context:** The owner wants `/plan`, not `/vz-skills:plan`. Claude Code namespaces every plugin skill and provides no opt-out (skills reference, accessed 2026-10-16). Personal and project skills are not namespaced.
+- **Decision:** Keep the plugin as the primary artifact and add `npx vz-skills install --flat`, which installs skills/agents/runtime/hooks into `$CLAUDE_CONFIG_DIR` (user) or `.claude/` (project/local) with references rewritten (`bin/lib/flat.js`). `status` is renamed `vz-status` to avoid hiding the built-in `/status`; `review` is allowed to replace the built-in `/review` because it is a review command. Managed files carry markers; settings are backed up; uninstall removes only what was installed.
+- **Alternatives considered:** renaming the plugin to a one-letter name (still a prefix); asking users to copy skills by hand (loses hooks, scripts, and updates); shipping only flat (loses the plugin's single-unit install, versioning, and `plugin details` cost reporting).
+- **Consequences/trade-offs:** Two layouts to keep in sync; the flat layout depends on `${CLAUDE_PROJECT_DIR}` substitution in skill bodies and settings hooks (documented platform behaviour). Hooks in the user scope use absolute paths and must be reinstalled if the config directory moves.
+
 ### DEC-014 - npm distribution through a managed local marketplace
 
 - **Status:** ACCEPTED

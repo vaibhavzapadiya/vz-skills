@@ -1,6 +1,6 @@
 # VZ Skills catalog
 
-Generated from the plugin frontmatter by `node scripts/gen-catalog.js`; do not edit by hand. Invoke any skill as `/vz-skills:<name>`. Skills marked *user-run* have `disable-model-invocation: true` and are never auto-loaded by Claude.
+Generated from the plugin frontmatter by `node scripts/gen-catalog.js`; do not edit by hand. Invoke any skill as `/vz-skills:<name>` after a plugin install, or as `/<name>` after `npx vz-skills install --flat` (where `status` is `/vz-status`). Skills marked *user-run* have `disable-model-invocation: true` and are never auto-loaded by Claude.
 
 ## User-run commands
 

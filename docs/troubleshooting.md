@@ -3,6 +3,9 @@
 | Symptom | Likely cause | What to do |
 |---|---|---|
 | `npx vz-skills install` says it could not register the marketplace | a `vz-skills-marketplace` already exists from a different path (for example a clone) | `claude plugin marketplace remove vz-skills-marketplace` (uninstalls its plugins), then run the install again; or keep the clone and skip npm |
+| `install --flat` stops with "already exist ... not created by vz-skills" | you have your own skill with the same name (for example `plan`) | rename yours, or pass `--force` to replace it (your settings file is backed up, your skill is not) |
+| After `install --flat`, `/vz-status` exists but `/status` shows Claude's own status | expected: `status` is renamed to avoid hiding the built-in command | use `/vz-status` for VZ, `/status` for Claude Code |
+| Skills appear twice (`/plan` and `/vz-skills:plan`) | both a flat install and a plugin install are active in the same scope | remove one: `npx vz-skills uninstall --flat` or `npx vz-skills uninstall` |
 | `npx vz-skills` says Claude Code CLI not found | `claude` is not on PATH in that shell | install Claude Code or open a shell where `claude --version` works |
 | `/vz-skills:...` does not autocomplete | plugin not loaded for this session | `claude plugin list` (add `--plugin-dir <path>` in front if you use the session-only form); check `/plugin` **Errors** tab; run `/reload-plugins` |
 | `claude plugin validate` warns about an unknown field | a frontmatter or manifest key not in the official list | run `node plugins/vz-skills/scripts/vz-validate.js` for the exact file; remove or rename the field |

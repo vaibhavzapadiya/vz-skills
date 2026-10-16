@@ -34,6 +34,20 @@ Other commands: `npx vz-skills try` (one session, nothing written), `npx vz-skil
 
 Until the package is published to npm, the same commands work from a packed tarball: `npm pack` in a clone, then `npx --yes ./vz-skills-0.1.0.tgz install`.
 
+### Unprefixed commands (`--flat`) - *verified in an isolated config directory and a temporary project*
+
+Claude Code namespaces plugin skills as `/<plugin>:<skill>` and offers no setting to disable that. Skills in the personal skills directory (`~/.claude/skills`, or `$CLAUDE_CONFIG_DIR/skills`) or a project's `.claude/skills` load as plain `/<name>`. `npx vz-skills install --flat` installs that way:
+
+| Scope | Skills and agents | Runtime (scripts, policy, references) | Hooks |
+|---|---|---|---|
+| `user` (default) | `~/.claude/skills/<name>/`, `~/.claude/agents/` | `~/.claude/vz-skills/` | merged into `~/.claude/settings.json` with absolute paths |
+| `project` | `.claude/skills/`, `.claude/agents/` | `.claude/vz-skills/` | merged into `.claude/settings.json` using `${CLAUDE_PROJECT_DIR}` (portable, commit it) |
+| `local` | same as project | same as project | merged into `.claude/settings.local.json` (personal) |
+
+Rewrites: `${CLAUDE_PLUGIN_ROOT}` becomes the runtime path; `/vz-skills:<name>` becomes `/<name>`; agent references lose the prefix; `status` is renamed `vz-status` because a skill named `status` would replace Claude Code's built-in `/status` (custom skills override bundled commands of the same name; `/review` is intentionally allowed to override). Each installed skill carries a `.vz-skills-managed` marker; an existing skill of the same name without the marker stops the install unless `--force` is given. `settings.json` is backed up beside itself before every write, and `uninstall --flat` removes only the hook groups whose commands point into the runtime directory.
+
+Do not combine a flat install and a plugin install in the same scope: you would get every skill twice in the listing.
+
 ## Option B: try it for one session from a clone (no install) - *verified*
 
 From any project directory:

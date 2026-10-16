@@ -60,6 +60,93 @@ test('doctor reports a broken project config without touching it', () => {
   } finally { rmrf(dir); }
 });
 
+test('flat (unprefixed) install at user scope: skills/agents/runtime/hooks created, references rewritten, uninstall restores settings', { skip: skipLive, timeout: 300000 }, () => {
+  const dir = tmpDir('flat-user');
+  const cfg = path.join(dir, 'cfg');
+  fs.mkdirSync(cfg, { recursive: true });
+  const existing = { theme: 'dark', hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'echo user-hook' }] }] } };
+  fs.writeFileSync(path.join(cfg, 'settings.json'), JSON.stringify(existing));
+  const env = { CLAUDE_CONFIG_DIR: cfg, VZ_SKILLS_HOME: path.join(dir, 'home') };
+  try {
+    let r = cli(['install', '--flat'], env, 120000);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const skills = fs.readdirSync(path.join(cfg, 'skills')).sort();
+    assert.equal(skills.length, 19);
+    assert.ok(skills.includes('vz-status') && !skills.includes('status'), 'status renamed to vz-status');
+    assert.ok(skills.includes('plan') && skills.includes('discover'));
+    const plan = fs.readFileSync(path.join(cfg, 'skills', 'plan', 'SKILL.md'), 'utf8');
+    assert.doesNotMatch(plan, /CLAUDE_PLUGIN_ROOT|\/vz-skills:/, 'plugin references rewritten');
+    assert.match(plan, /references\/risk-tiers\.md/);
+    assert.match(fs.readFileSync(path.join(cfg, 'skills', 'vz-status', 'SKILL.md'), 'utf8'), /^name: vz-status$/m);
+    assert.match(fs.readFileSync(path.join(cfg, 'skills', 'using-vz-skills', 'SKILL.md'), 'utf8'), /`\/discover`|\/discover\b/);
+    assert.equal(fs.readdirSync(path.join(cfg, 'agents')).length, 3);
+    assert.doesNotMatch(fs.readFileSync(path.join(cfg, 'skills', 'review', 'SKILL.md'), 'utf8'), /vz-skills:independent-reviewer/);
+    const settings = JSON.parse(fs.readFileSync(path.join(cfg, 'settings.json'), 'utf8'));
+    assert.equal(settings.theme, 'dark', 'unrelated settings preserved');
+    assert.equal(settings.hooks.PreToolUse[0].hooks[0].command, 'echo user-hook', 'existing hook preserved and first');
+    assert.equal(settings.hooks.PreToolUse.length, 3);
+    assert.equal(settings.hooks.SessionStart.length, 1);
+    const guard = settings.hooks.PreToolUse[1].hooks[0];
+    assert.equal(guard.command, 'node');
+    assert.ok(fs.existsSync(guard.args[0]), 'hook script path exists');
+    // the official validator accepts the installed skills and agents
+    for (const d of ['skills', 'agents']) {
+      const v = spawnSync('claude', ['plugin', 'validate', path.join(cfg, d), '--strict'], { encoding: 'utf8', shell: process.platform === 'win32', timeout: 120000, windowsHide: true });
+      assert.equal(v.status, 0, `${d}: ${v.stdout}${v.stderr}`);
+    }
+    // the relocated session hook works from the runtime directory
+    const hook = spawnSync(process.execPath, [path.join(cfg, 'vz-skills', 'scripts', 'hooks', 'session-context.js')], { input: JSON.stringify({ hook_event_name: 'SessionStart', cwd: path.join(REPO_ROOT, 'fixtures', 'ts-app') }), encoding: 'utf8', windowsHide: true });
+    const ctx = JSON.parse(hook.stdout).hookSpecificOutput.additionalContext;
+    assert.match(ctx, /VZ Skills core policy/);
+    assert.match(ctx, /`\/discover`/, 'policy text rewritten to unprefixed command');
+    // doctor sees it; a second install without --force refuses nothing (managed markers), update works
+    r = cli(['doctor'], env, 120000);
+    assert.match(r.stdout, /Unprefixed \(flat\) user install: \d+\.\d+\.\d+ \(19 skills, 3 agents\)/);
+    r = cli(['update', '--flat'], env, 120000);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    // a foreign skill with the same name is protected unless --force
+    fs.rmSync(path.join(cfg, 'skills', 'plan', '.vz-skills-managed'));
+    r = cli(['install', '--flat'], env, 120000);
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /not created by vz-skills: plan/);
+    r = cli(['install', '--flat', '--force'], env, 120000);
+    assert.equal(r.status, 0);
+    // uninstall
+    r = cli(['uninstall', '--flat'], env, 120000);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.ok(!fs.existsSync(path.join(cfg, 'skills')), 'empty skills dir removed');
+    assert.ok(!fs.existsSync(path.join(cfg, 'vz-skills')));
+    const after = JSON.parse(fs.readFileSync(path.join(cfg, 'settings.json'), 'utf8'));
+    assert.deepEqual(after, existing, 'settings restored to the pre-install content');
+    assert.ok(fs.readdirSync(cfg).some((f) => f.startsWith('settings.json.vz-backup-')), 'backup kept');
+  } finally { rmrf(dir); }
+});
+
+test('flat install at project scope is portable: ${CLAUDE_PROJECT_DIR} paths, validator passes on .claude, uninstall cleans', { skip: skipLive, timeout: 300000 }, () => {
+  const dir = tmpDir('flat-proj');
+  fs.cpSync(path.join(REPO_ROOT, 'fixtures', 'ts-app'), dir, { recursive: true });
+  const env = { CLAUDE_CONFIG_DIR: path.join(dir, '..', `flat-proj-cfg-${process.pid}`), VZ_SKILLS_HOME: path.join(dir, 'home') };
+  fs.mkdirSync(env.CLAUDE_CONFIG_DIR, { recursive: true });
+  try {
+    let r = spawnSync(process.execPath, [BIN, 'install', '--flat', '--scope', 'project'], { encoding: 'utf8', cwd: dir, env: Object.assign({}, process.env, env), timeout: 120000, windowsHide: true });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const settings = JSON.parse(fs.readFileSync(path.join(dir, '.claude', 'settings.json'), 'utf8'));
+    assert.equal(settings.hooks.PreToolUse[0].hooks[0].args[0], '${CLAUDE_PROJECT_DIR}/.claude/vz-skills/scripts/hooks/command-guard.js');
+    const discover = fs.readFileSync(path.join(dir, '.claude', 'skills', 'discover', 'SKILL.md'), 'utf8');
+    assert.match(discover, /\$\{CLAUDE_PROJECT_DIR\}\/\.claude\/vz-skills\/scripts\/vz-discover\.js/);
+    assert.doesNotMatch(JSON.stringify(settings) + discover, /[A-Z]:\\|\/Users\//, 'no machine-specific absolute paths in committed files');
+    const v = spawnSync('claude', ['plugin', 'validate', dir, '--strict'], { encoding: 'utf8', shell: process.platform === 'win32', timeout: 120000, windowsHide: true });
+    assert.equal(v.status, 0, v.stdout + v.stderr);
+    const guard = spawnSync(process.execPath, [path.join(dir, '.claude', 'vz-skills', 'scripts', 'hooks', 'command-guard.js')], { input: JSON.stringify({ hook_event_name: 'PreToolUse', tool_name: 'Bash', cwd: dir, tool_input: { command: 'rm -rf /' } }), encoding: 'utf8', windowsHide: true });
+    assert.match(guard.stdout, /"permissionDecision":"deny"/);
+    r = spawnSync(process.execPath, [BIN, 'uninstall', '--flat', '--scope', 'project'], { encoding: 'utf8', cwd: dir, env: Object.assign({}, process.env, env), timeout: 120000, windowsHide: true });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.ok(!fs.existsSync(path.join(dir, '.claude', 'skills')));
+    assert.ok(!fs.existsSync(path.join(dir, '.claude', 'vz-skills')));
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, '.claude', 'settings.json'), 'utf8')), {});
+  } finally { rmrf(dir); rmrf(env.CLAUDE_CONFIG_DIR); }
+});
+
 test('install, list, update, uninstall --purge against an isolated Claude config directory', { skip: skipLive, timeout: 300000 }, () => {
   const dir = tmpDir('npx');
   const env = { CLAUDE_CONFIG_DIR: path.join(dir, 'cfg'), VZ_SKILLS_HOME: path.join(dir, 'home') };

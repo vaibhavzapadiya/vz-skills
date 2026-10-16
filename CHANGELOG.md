@@ -26,6 +26,7 @@ First implementation, built from the specification kit against Claude Code 2.1.2
 - Release archive built with PowerShell `Compress-Archive` had backslash entry names (unusable on macOS/Linux); the packager now uses bsdtar and rejects any backslash entry, with a regression test.
 
 ### Added (distribution)
+- Unprefixed install: `npx vz-skills install --flat [--scope user|project|local]` places the skills, agents, runtime, and hooks into the Claude config or the project's `.claude/` so commands are `/<name>` instead of `/vz-skills:<name>` (`status` becomes `vz-status`). Project scope uses `${CLAUDE_PROJECT_DIR}` paths and is committable. Verified against an isolated config directory and a temporary project (`tests/cli.test.js`).
 - npm package `vz-skills` with a CLI: `npx vz-skills install|update|uninstall|try|doctor|path|validate`. The installer keeps a managed copy under `~/.vz-skills/marketplace`, registers it as a Claude Code marketplace, and installs the plugin at the chosen scope. The package ships only the plugin and the CLI. Verified end to end against an isolated `CLAUDE_CONFIG_DIR` (`tests/cli.test.js`). Not yet published to the registry.
 
 ### Changed

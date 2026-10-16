@@ -5,8 +5,11 @@
  *
  *   npx vz-skills install [--scope user|project|local]   copy the plugin to ~/.vz-skills/marketplace,
  *                                                         register it as a Claude Code marketplace, install it
- *   npx vz-skills update                                   refresh the copy and update the installed plugin
- *   npx vz-skills uninstall [--scope ...] [--purge]        uninstall; --purge also removes the marketplace and the copy
+ *                                                         -> commands appear as /vz-skills:<name>
+ *   npx vz-skills install --flat [--scope ...] [--force]   unprefixed: install as personal (user) or project skills
+ *                                                         -> commands appear as /<name> (status becomes /vz-status)
+ *   npx vz-skills update [--flat]                          refresh the installed copy
+ *   npx vz-skills uninstall [--flat] [--scope ...] [--purge]   uninstall; --purge also removes the marketplace and the copy
  *   npx vz-skills try [claude args...]                     start Claude Code with the plugin loaded for one session
  *   npx vz-skills doctor                                   check Node, Claude Code, marketplace, plugin, project config
  *   npx vz-skills path                                     print the plugin directory (for --plugin-dir)
@@ -20,6 +23,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const flat = require('./lib/flat');
 
 const PKG_ROOT = path.resolve(__dirname, '..');
 const PLUGIN_SRC = path.join(PKG_ROOT, 'plugins', 'vz-skills');
@@ -82,7 +86,23 @@ function pluginInstalled() {
   return { installed: text.includes(PLUGIN_ID), loaded: /vz-skills@vz-skills-marketplace[\s\S]{0,300}?Status:\s*\S*\s*loaded/.test(text), raw: text };
 }
 
+function cmdInstallFlat(argv) {
+  const scope = parseScope(argv);
+  const cv = requireClaude();
+  log(`Claude Code ${cv}`);
+  let manifest;
+  try { manifest = flat.installFlat({ pluginRoot: PLUGIN_SRC, scope, projectDir: process.cwd(), version: version(), force: argv.includes('--force'), log }); }
+  catch (e) { fail(e.message); }
+  log('');
+  log(`Done. Commands are unprefixed: /${manifest.skills.filter((s) => s !== 'vz-status').slice(0, 4).join(', /')}, ... and /vz-status (renamed so Claude Code's own /status stays available).`);
+  log("Note: /review replaces Claude Code's bundled /review command in this scope. Uninstall with: npx vz-skills uninstall --flat" + (scope === 'user' ? '' : ` --scope ${scope}`));
+  log('Start (or restart) Claude Code, then type / to see them. Run /vz-status to confirm.');
+  if (scope === 'project') log('Project scope wrote .claude/skills, .claude/agents, .claude/vz-skills and hooks in .claude/settings.json using ${CLAUDE_PROJECT_DIR}; commit them to share with collaborators.');
+  if (scope === 'local') log('Local scope: skills, agents and runtime are in .claude/ (shared if committed); hooks went to .claude/settings.local.json (personal).');
+}
+
 function cmdInstall(argv) {
+  if (argv.includes('--flat')) return cmdInstallFlat(argv);
   const scope = parseScope(argv);
   const cv = requireClaude();
   log(`Claude Code ${cv}`);
@@ -112,7 +132,8 @@ function cmdInstall(argv) {
   if (scope === 'project') log('  - Scope "project" wrote .claude/settings.json; commit it so collaborators get the plugin (they run the same install once).');
 }
 
-function cmdUpdate() {
+function cmdUpdate(argv = []) {
+  if (argv.includes('--flat')) return cmdInstallFlat([...argv, '--force']);
   requireClaude();
   copyPlugin();
   log(`Copied plugin ${version()} to ${MARKET_DIR}`);
@@ -127,6 +148,11 @@ function cmdUpdate() {
 function cmdUninstall(argv) {
   const scope = parseScope(argv);
   const purge = argv.includes('--purge');
+  if (argv.includes('--flat')) {
+    flat.uninstallFlat({ scope, projectDir: process.cwd(), log });
+    log('Uninstalled the unprefixed skills. Project files (.vz-skills/config.json) were left untouched.');
+    return;
+  }
   requireClaude();
   const r = claude(['plugin', 'uninstall', PLUGIN_ID, '--scope', scope]);
   process.stdout.write(r.stdout + r.stderr);
@@ -163,6 +189,10 @@ function cmdDoctor() {
     log(`${inst.installed ? 'ok  ' : 'info'} Plugin ${PLUGIN_ID} ${inst.installed ? (inst.loaded ? 'installed and loaded' : 'installed') : 'not installed'}`);
     log(`info Managed copy: ${fs.existsSync(MARKET_DIR) ? MARKET_DIR : '(none yet)'}`);
   }
+  const fu = flat.flatStatus('user');
+  log(`${fu.installed ? 'ok  ' : 'info'} Unprefixed (flat) user install: ${fu.installed ? `${fu.version} (${fu.skills} skills, ${fu.agents} agents) in ${fu.base}` : 'none (npx vz-skills install --flat)'}`);
+  const fp = flat.flatStatus('project', process.cwd());
+  if (fp.installed) log(`ok   Unprefixed (flat) project install: ${fp.version} in ${fp.base}`);
   const cfg = path.join(process.cwd(), '.vz-skills', 'config.json');
   if (fs.existsSync(cfg)) {
     const r = spawnSync(process.execPath, [path.join(PLUGIN_SRC, 'scripts', 'vz-config.js'), '--project', process.cwd(), '--no-user'], { encoding: 'utf8', windowsHide: true });
@@ -180,7 +210,7 @@ function cmdValidate() {
 }
 
 function help() {
-  log(fs.readFileSync(__filename, 'utf8').split('\n').slice(3, 18).join('\n').replace(/^ \* ?/gm, ''));
+  log(fs.readFileSync(__filename, 'utf8').split('\n').slice(3, 21).join('\n').replace(/^ \* ?/gm, ''));
 }
 
 function main() {
