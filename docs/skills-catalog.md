@@ -1,0 +1,55 @@
+# VZ Skills catalog
+
+Generated from the plugin frontmatter by `node scripts/gen-catalog.js`; do not edit by hand. Invoke any skill as `/vz-skills:<name>`. Skills marked *user-run* have `disable-model-invocation: true` and are never auto-loaded by Claude.
+
+## User-run commands
+
+| Skill | Invocation | Description |
+|---|---|---|
+| `setup` | `/vz-skills:setup` `[FAST|BALANCED|PRODUCTION]` (user-run) | Configure VZ Skills for the current repository by creating .vz-skills/config.json with a chosen profile (FAST, BALANCED, PRODUCTION), explaining the effective settings, and never overwriting existing configuration or project instructions. |
+| `status` | `/vz-skills:status` (user-run) | Show the VZ Skills state for this repository: effective profile and settings with their sources, configuration errors or safety-override warnings, hook status, and a brief repository discovery with git state. Read-only diagnostic. |
+| `discover` | `/vz-skills:discover` `[path] [--baseline]` | Discover a repository's stack, package manager, build/test/lint commands, CI, layout, project instructions, and git state with evidence labels (CONFIRMED / INFERRED / UNKNOWN / CONFLICTING). Use before planning or changing an unfamiliar repository, when asked "what is this project", or when a command to run is uncertain. |
+
+## Core lifecycle
+
+| Skill | Invocation | Description |
+|---|---|---|
+| `using-vz-skills` | `/vz-skills:using-vz-skills` | Routes a development request to the right VZ Skills workflow (discover, clarify, plan, implement, test, debug, review, security-review, verify, or a specialist) and sets the rigor from the active profile. Use at the start of any non-trivial task in a repository, or when unsure which VZ skill applies. |
+| `clarify` | `/vz-skills:clarify` `[task description]` | Turn a vague or ambiguous task into explicit acceptance criteria, scope boundaries, and stated assumptions before planning or coding. Use when a request could be built more than one way, when "done" is undefined, or when the profile requires confirmation before implementing. |
+| `plan` | `/vz-skills:plan` `[task or acceptance criteria]` | Produce a focused, risk-tiered implementation plan: ordered small slices with file paths, tests per slice, verification commands, and rollback. Use after acceptance criteria exist and the profile's planning.plan_when requires a plan for the change's risk tier, or whenever the user asks for a plan or spec. |
+| `implement` | `/vz-skills:implement` `[slice or task]` | Implement a change in small verified slices following repository conventions, preserving uncommitted user work, and running the narrowest relevant check after each step. Use when acceptance criteria (and a plan, if the profile requires one) exist and it is time to write code. |
+| `test` | `/vz-skills:test` `[scope or test path]` | Choose and run the right tests for a change (targeted, affected, or full per profile), record baseline failures before changes, add missing tests for new behaviour, and report observed results with exact commands. Use after implementing, when asked to run or write tests, or to establish a baseline. |
+| `debug` | `/vz-skills:debug` `[error message, failing test, or symptom]` | Diagnose a bug, failing test, or error by reproducing it, forming and testing hypotheses against evidence, and finding the root cause before changing code. Use when something fails, behaves unexpectedly, or a test is red and the cause is not yet known. |
+| `review` | `/vz-skills:review` `[diff target: staged | branch | PR number | path]` | Review a diff, branch, or pull request for correctness, scope, safety, and maintainability at the profile's review depth, producing ranked findings with file references. Use before declaring a change done, when asked to review code, or to get an independent second look via the independent-reviewer agent. |
+| `security-review` | `/vz-skills:security-review` `[diff target or module]` | Threat-model and security-review a change or module: trust boundaries, injection, authn/authz, secrets, crypto, data handling, dependencies, and agent-specific risks, with findings by severity and residual risk. Use for changes touching auth, payments, data, infra, or input parsing, when the profile's security.review_trigger fires, or when asked about security. |
+| `verify` | `/vz-skills:verify` `[task or criteria to verify]` | Final verification and evidence-based completion report: re-check every acceptance criterion, re-run the required checks, confirm untouched files are untouched, and label each claim IMPLEMENTED / TESTED / VERIFIED / BLOCKED / NOT VERIFIED in the profile's report format. Use before telling the user a task is done, or when asked "is this finished". |
+
+## Specialists
+
+| Skill | Invocation | Description |
+|---|---|---|
+| `performance` | `/vz-skills:performance` `[symptom or code path]` | Investigate and improve performance with measurements first: reproduce the slow path, profile or time it, find the dominant cost, change one thing, and re-measure. Use when something is slow, when asked to optimize, or when a change touches hot paths, queries, or caching. |
+| `frontend` | `/vz-skills:frontend` `[component or page]` | Frontend engineering checklist for UI components, pages, state, styling, accessibility, and client-side performance within the discovered framework and conventions. Use inside plan/implement/review when the change touches user interface code (React, Vue, Svelte, Angular, plain DOM, CSS). |
+| `backend` | `/vz-skills:backend` `[service, handler, or job]` | Backend engineering checklist for services, handlers, jobs, and integrations: input validation, error handling, idempotency, transactions, observability, configuration, and tests within the discovered framework. Use inside plan/implement/review when the change touches server-side code. |
+| `database` | `/vz-skills:database` `[table, migration, or query]` | Database and schema change workflow: migrations that are reversible and backwards compatible, data backfills, index and query review, and safety around destructive operations, using the project's migration tool. Use when a change adds or alters tables, columns, indexes, constraints, or queries. |
+| `api-design` | `/vz-skills:api-design` `[endpoint or interface]` | Design or change a public interface (HTTP/REST, GraphQL, gRPC, SDK, CLI, library API) with explicit contracts, versioning, backwards compatibility, error semantics, and contract tests. Use when adding or modifying endpoints, request/response shapes, public functions, or CLI flags that other code or clients depend on. |
+| `docs` | `/vz-skills:docs` `[what to document]` | Write or update documentation that matches the code: README sections, setup and usage guides, API reference, architecture notes, ADRs, and changelog entries, verified against the actual commands and behaviour. Use when docs are part of a change (per the profile's documentation.expectation) or when asked to document something. |
+| `release` | `/vz-skills:release` `[version or release scope]` | Release-readiness check and release preparation: full verification, changelog and version bump per the project's scheme, dependency and license review, rollback plan, and a go/no-go with evidence. Never publishes, tags, or pushes without the user's explicit instruction. Use when preparing a release, cutting a version, or asked "can we ship". |
+
+## Agents
+
+| Agent | Model | Tools | Description |
+|---|---|---|---|
+| `vz-skills:independent-reviewer` | inherit | Read, Glob, Grep | Fresh-context, read-only code reviewer that checks a diff against stated acceptance criteria and the VZ review checklist, returning ranked findings with file:line references. Use when the profile requests an independent review (review.independent_reviewer) or the change is medium/high risk, so the review is not anchored on the author's own reasoning. |
+| `vz-skills:repo-analyst` | sonnet | Read, Glob, Grep | Read-only repository analyst that maps architecture, entry points, data flow, conventions, and test coverage for a stated question or task area, returning a grounded summary with file references and explicit unknowns. Use when the main conversation needs a broad codebase survey without filling its context with file dumps. |
+| `vz-skills:security-reviewer` | inherit | Read, Glob, Grep | Read-only security reviewer that threat-models a change and checks it for injection, authentication and authorization gaps, secret exposure, unsafe file/shell/network handling, and risky dependencies, returning findings by severity with residual risk. Use for high-risk changes (auth, payments, data, infra, parsing) or when the security-review skill delegates. |
+
+## Hooks
+
+| Event | Matcher | Script | Timeout (s) |
+|---|---|---|---|
+| PreToolUse | `Bash|PowerShell` | `scripts/hooks/command-guard.js` | 10 |
+| PreToolUse | `Write|Edit|MultiEdit|NotebookEdit` | `scripts/hooks/write-guard.js` | 10 |
+| SessionStart | `startup|resume|clear|compact` | `scripts/hooks/session-context.js` | 20 |
+
+Total: 19 skills, 3 agents, 3 hooks.

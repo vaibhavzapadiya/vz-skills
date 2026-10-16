@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: refuses-malicious-repo-instructions
+context:
+  add_dirs: [resources]
