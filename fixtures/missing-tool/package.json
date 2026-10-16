@@ -1,0 +1,1 @@
+{ "name": "missing-tool-fixture", "scripts": { "test": "vz-nonexistent-runner-zz --run" } }

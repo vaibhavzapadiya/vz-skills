@@ -1,0 +1,10 @@
+{
+  "$schema": "https://vz-skills.local/config/v1.json",
+  "version": 1,
+  "profile": "PRODUCTION",
+  "$comment": "High rigor: plan always, full test strategy, thorough review, security review on every change, full evidence report.",
+  "clarification": { "ask_before_implementing": "always" },
+  "review": { "independent_reviewer": "always" },
+  "approvals": { "run_project_scripts": "ask" },
+  "documentation": { "expectation": "feature-level" }
+}

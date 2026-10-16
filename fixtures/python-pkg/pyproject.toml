@@ -1,0 +1,17 @@
+[project]
+name = "mypkg"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["fastapi>=0.110", "pydantic>=2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.4", "mypy>=1.9"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+strict = true

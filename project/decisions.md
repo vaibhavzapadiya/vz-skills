@@ -1,10 +1,10 @@
-# VZ Skills — Decision Log
+# VZ Skills - Decision Log
 
 Record consequential design decisions. Add new decisions at the top. Do not silently change an accepted decision; supersede it with a new entry and rationale.
 
 ## Decision template
 
-### DEC-XXX — Short title
+### DEC-XXX - Short title
 
 - **Status:** PROPOSED / ACCEPTED / REJECTED / SUPERSEDED
 - **Date:**
@@ -15,31 +15,115 @@ Record consequential design decisions. Add new decisions at the top. Do not sile
 - **Consequences/trade-offs:**
 - **Follow-up/test required:**
 
-## Initial decisions to verify
+## Decisions
 
-### DEC-001 — Claude Code is the only v1 runtime
+### DEC-012 - Hooks fail open; native permissions remain the boundary
 
 - **Status:** ACCEPTED
-- **Context:** Initial product scope.
-- **Decision:** Build and validate for Claude Code only. Keep internal boundaries maintainable, but do not implement other runtimes.
-- **Alternatives considered:** Multi-runtime from the start.
-- **Consequences/trade-offs:** Faster validation and fewer compatibility branches; portability is not guaranteed.
-- **Follow-up/test required:** Confirm all shipped structures and instructions match current Claude Code conventions.
+- **Date:** 2026-10-16
+- **Context:** A hook that crashes or times out must not block every shell command, and the docs say a timed-out PreToolUse hook does not block by default (S-05). `onFailure: "block"` needs CLI >= 2.1.295, newer than the local 2.1.259.
+- **Decision:** All VZ hooks exit 0 with no decision on malformed input or internal error, log a one-line reason to stderr, and never claim enforcement. Catastrophic shell patterns return `deny`; risky ones return `ask`; everything else is silent.
+- **Alternatives considered:** exit 2 on error (fail closed) - rejected as a usability hazard; no hooks at all - rejected because cheap deterministic checks catch common accidents.
+- **Evidence/source:** S-05, S-07; hook tests in `tests/hooks.test.js`.
+- **Consequences/trade-offs:** The guard is advisory. Documentation states this explicitly (docs/hooks.md, docs/security.md).
+- **Follow-up/test required:** Tests for normal, malformed, catastrophic, risky, idempotent cases.
 
-### DEC-002 — BALANCED is the default profile
+### DEC-011 - Node.js is the only script runtime
 
-- **Status:** PROPOSED
-- **Context:** Need useful defaults without mandatory configuration.
-- **Decision:** Evaluate BALANCED as the default, with FAST and PRODUCTION options.
-- **Alternatives considered:** No profiles; user-configured settings only.
-- **Consequences/trade-offs:** Profiles improve usability but must avoid hidden complexity.
-- **Follow-up/test required:** Implement only if profile behavior is concrete, documented, and testable.
+- **Status:** ACCEPTED
+- **Date:** 2026-10-16
+- **Context:** Hooks and discovery need a cross-platform runtime. Claude Code itself is distributed via npm and runs on Node.
+- **Decision:** All executable pieces (hooks, discovery, config resolver, validators, tests) are dependency-free Node.js (>= 18, tested on 22.21.1) using `node:test`. No npm dependencies.
+- **Alternatives considered:** Bash scripts (not portable to Windows PowerShell-only setups); Python (not guaranteed present).
+- **Evidence/source:** Local tooling inspection 2026-10-16; S-05 Windows notes.
+- **Consequences/trade-offs:** Hook commands use exec form `"command": "node", "args": [...]`, which needs no shell quoting and works on both shells.
+- **Follow-up/test required:** `npm test` runs the whole suite with zero installs.
 
-### DEC-003 — Native platform permissions remain authoritative
+### DEC-010 - Project license left to the owner
+
+- **Status:** PROPOSED (needs owner input)
+- **Date:** 2026-10-16
+- **Context:** `LICENSE-NOTICE.md` from the kit defers the license choice to the project owner. Reference projects are MIT but nothing was copied.
+- **Decision:** Ship without a `LICENSE` file and without a `license` field in `plugin.json`; document the gap in README and the release audit. Not a release blocker for private/internal use; a blocker for public distribution.
+- **Alternatives considered:** Defaulting to MIT - rejected because it is the owner's call.
+- **Follow-up/test required:** Owner picks a license; then add `LICENSE` and `"license"` to `plugin.json`.
+
+### DEC-009 - Configuration lives in `.vz-skills/config.json`, not in `.claude/`
+
+- **Status:** ACCEPTED
+- **Date:** 2026-10-16
+- **Context:** The master prompt suggests `.vz-skills/` unless platform conventions require otherwise. Claude Code reads `.claude/settings.json` for its own settings and would ignore (and `claude plugin validate` would not understand) foreign keys there.
+- **Decision:** Project config at `<project>/.vz-skills/config.json`; optional user config at `~/.vz-skills/config.json`; `VZ_SKILLS_PROFILE` environment variable overrides `profile` only. Precedence: defaults < user < project < env. Safety-sensitive keys have floors that cannot be lowered without an explicit `safety.acknowledged_overrides` entry, and every applied override is printed as a warning.
+- **Alternatives considered:** plugin `userConfig` (only prompts for scalar values and is user-scoped, not per-repo); `.claude/settings.json` keys (not a supported extension point).
+- **Evidence/source:** S-02 (userConfig semantics), S-10 (settings scopes).
+- **Consequences/trade-offs:** Config is read by VZ scripts only; Claude Code itself does not read it. Skills instruct Claude to run `vz-config.js` (or rely on the SessionStart summary) rather than parse JSON by hand.
+- **Follow-up/test required:** `tests/config.test.js`.
+
+### DEC-008 - Three subagents, all read-only
+
+- **Status:** ACCEPTED
+- **Date:** 2026-10-16
+- **Context:** Plugin agents ignore `permissionMode`/`hooks` but honor `tools` (S-06, S-07). Fresh-context review is the one benefit of delegation that has a clear rationale.
+- **Decision:** Ship `repo-analyst`, `independent-reviewer`, `security-reviewer`, each restricted with `tools:` to read-only tools (Read, Glob, Grep, Bash for read-only git/discovery commands is **not** granted; discovery output is passed in by the caller). Reject performance, docs, test-strategist agents for v1.
+- **Alternatives considered:** No agents (loses independent review); many personas (orchestration cost without evidence).
+- **Follow-up/test required:** Structural validation of agent frontmatter against the supported-field list; scenario notes in docs/agents.md.
+
+### DEC-007 - Three hooks only
+
+- **Status:** ACCEPTED
+- **Date:** 2026-10-16
+- **Context:** Hooks fire on every event for every project once the plugin is enabled (S-07). Each one must earn its cost.
+- **Decision:** `PreToolUse` on `Bash|PowerShell` (command guard), `PreToolUse` on `Write|Edit|MultiEdit` (write guard: sensitive paths + obvious secrets), `SessionStart` (profile + discovery brief as `additionalContext`). No Stop, UserPromptSubmit, PostToolUse, or network hooks.
+- **Alternatives considered:** Stop hook that re-runs verification (loop risk, native cap of 8); formatter hooks (project-specific).
+- **Follow-up/test required:** `tests/hooks.test.js`; latency measured in tests (< 2 s budget asserted, typical < 200 ms).
+
+### DEC-006 - Commands are user-invocable skills
+
+- **Status:** ACCEPTED
+- **Date:** 2026-10-16
+- **Context:** Official docs: "Custom commands have been merged into skills"; new plugins should prefer `skills/` (S-03, S-04, S-02 layout table).
+- **Decision:** No `commands/` directory. User-facing entry points (`setup`, `status`, `discover`, `plan`, `review`, `verify`, ...) are skills; `setup` and `status` set `disable-model-invocation: true` so only the user runs them. Namespace is `/vz-skills:<skill>` as the platform assigns it.
+- **Alternatives considered:** Legacy `commands/*.md` duplicates (rejected: duplication, documented as legacy).
+
+### DEC-005 - Repository layout: marketplace root + `plugins/vz-skills`
+
+- **Status:** ACCEPTED
+- **Date:** 2026-10-16
+- **Context:** A local directory marketplace needs `.claude-plugin/marketplace.json` at its root with relative plugin sources (S-09). Keeping the plugin under `plugins/vz-skills` keeps specification, tests, fixtures, and docs out of the installed plugin.
+- **Decision:** Repo root = marketplace root (`name: vz-skills-marketplace`). Plugin at `plugins/vz-skills/` with its own manifest. Tests at `tests/`, fixtures at `fixtures/`, docs at `docs/`, kit control files kept at `project/`, `spec/`, `quality/`, `tracking/`, `prompts/`, `templates/`, `research/`.
+- **Alternatives considered:** Plugin at repo root (would ship tests/fixtures/docs into every install).
+
+### DEC-004 - Tracker location stays at `project/` (kit layout), research at `docs/research/`
+
+- **Status:** ACCEPTED
+- **Date:** 2026-10-16
+- **Context:** The kit's protocol text references `docs/project/*.md` while the kit itself (and the build instructions) ship and name `project/*.md`.
+- **Decision:** `project/` remains the single source of truth; `docs/project/README.md` points there to satisfy the resume/audit prompts. Research outputs go to `docs/research/` as the master prompt requires.
+- **Alternatives considered:** Moving the kit files (breaks the instructions the owner pasted).
+
+### DEC-003 - Native platform permissions remain authoritative
 
 - **Status:** ACCEPTED
 - **Context:** Skills and hooks cannot be treated as complete security boundaries.
 - **Decision:** Do not imply VZ configuration can override platform permissions or sandbox policy.
 - **Alternatives considered:** Plugin-level approval framework that claims enforcement.
 - **Consequences/trade-offs:** Safety messaging stays accurate; enforcement depends on supported native controls.
-- **Follow-up/test required:** Audit docs and risky-action workflows.
+- **Follow-up/test required:** Audit docs and risky-action workflows. (Done in Phase 8; see docs/security.md.)
+
+### DEC-002 - BALANCED is the default profile
+
+- **Status:** ACCEPTED (was PROPOSED; accepted 2026-10-16 once profile fields became concrete, see docs/configuration.md)
+- **Context:** Need useful defaults without mandatory configuration.
+- **Decision:** BALANCED is the default; FAST and PRODUCTION change resolved fields (planning threshold, test scope, review depth, security trigger, report format, clarification tolerance).
+- **Alternatives considered:** No profiles; user-configured settings only.
+- **Consequences/trade-offs:** Profiles improve usability but must avoid hidden complexity.
+- **Follow-up/test required:** `tests/config.test.js` asserts the resolved differences.
+
+### DEC-001 - Claude Code is the only v1 runtime
+
+- **Status:** ACCEPTED
+- **Context:** Initial product scope.
+- **Decision:** Build and validate for Claude Code only. Keep internal boundaries maintainable, but do not implement other runtimes.
+- **Alternatives considered:** Multi-runtime from the start.
+- **Consequences/trade-offs:** Faster validation and fewer compatibility branches; portability is not guaranteed.
+- **Follow-up/test required:** Confirm all shipped structures and instructions match current Claude Code conventions. (Phase 1 validation.)

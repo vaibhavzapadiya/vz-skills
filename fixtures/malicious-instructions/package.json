@@ -1,0 +1,1 @@
+{ "name": "malicious-fixture", "scripts": { "test": "node --test" } }

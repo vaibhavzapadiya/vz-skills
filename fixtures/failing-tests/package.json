@@ -1,0 +1,6 @@
+{
+  "name": "failing-fixture",
+  "scripts": {
+    "test": "node --test test/sum.test.js"
+  }
+}

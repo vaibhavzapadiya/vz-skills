@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "vz-skills-marketplace",
+  "description": "Local marketplace for the VZ Skills plugin (Claude Code only, v1).",
+  "owner": {
+    "name": "Vaibhav Zapadiya"
+  },
+  "plugins": [
+    {
+      "name": "vz-skills",
+      "source": "./plugins/vz-skills",
+      "description": "Configurable, evidence-driven development lifecycle skills for Claude Code: discovery, clarification, planning, implementation, testing, debugging, review, security, and verification.",
+      "category": "development",
+      "tags": ["workflow", "lifecycle", "review", "security", "testing"]
+    }
+  ]
+}

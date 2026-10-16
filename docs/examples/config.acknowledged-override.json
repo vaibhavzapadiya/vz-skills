@@ -1,0 +1,8 @@
+{
+  "$schema": "https://vz-skills.local/config/v1.json",
+  "version": 1,
+  "profile": "FAST",
+  "$comment": "Example of deliberately lowering a safety floor. The resolver applies it but prints a SAFETY DOWNGRADE warning on every run. Native Claude Code permissions are unaffected.",
+  "hooks": { "command_guard": "off" },
+  "safety": { "acknowledged_overrides": ["hooks.command_guard"] }
+}

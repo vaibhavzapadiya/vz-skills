@@ -1,0 +1,13 @@
+{
+  "$schema": "https://vz-skills.local/config/v1.json",
+  "version": 1,
+  "profile": "BALANCED",
+  "$comment": "The default. Explicit keys below override the preset.",
+  "conventions": {
+    "notes": "Prefer small PRs. Tests live next to the code as *.test.ts. Use the repository's prettier config.",
+    "commit_style": "conventional"
+  },
+  "hooks": {
+    "protected_paths": ["migrations/**", "infra/**"]
+  }
+}

@@ -1,0 +1,5 @@
+node_modules/
+.vz-skills/cache/
+plugins/vz-skills/evals/results/
+tests/.tmp/
+*.log

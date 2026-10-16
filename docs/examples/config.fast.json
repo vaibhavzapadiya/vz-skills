@@ -1,0 +1,7 @@
+{
+  "$schema": "https://vz-skills.local/config/v1.json",
+  "version": 1,
+  "profile": "FAST",
+  "$comment": "Low ceremony for prototypes and personal projects. Guards stay on.",
+  "response": { "style": "concise" }
+}

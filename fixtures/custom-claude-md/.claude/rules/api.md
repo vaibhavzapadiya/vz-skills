@@ -1,0 +1,1 @@
+- All API handlers must validate input with zod.
