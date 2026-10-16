@@ -1,0 +1,45 @@
+{
+  "description": "VZ Skills advisory guards: ask before risky shell commands and sensitive writes, deny catastrophic ones, and inject the core policy plus a repository brief at session start. Hooks fail open and are not a security boundary; Claude Code permissions remain authoritative. Configure via .vz-skills/config.json (hooks.*).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/hooks/command-guard.js"],
+            "timeout": 10,
+            "statusMessage": "vz-skills: checking command"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/hooks/write-guard.js"],
+            "timeout": 10,
+            "statusMessage": "vz-skills: checking write target"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-context.js"],
+            "timeout": 20,
+            "statusMessage": "vz-skills: loading profile and repository brief"
+          }
+        ]
+      }
+    ]
+  }
+}
