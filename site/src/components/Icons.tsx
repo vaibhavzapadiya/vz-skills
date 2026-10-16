@@ -171,3 +171,9 @@ export const IconShieldCheck = (p: IconProps) => (
     <path d="m8.5 12 2.5 2.5 4.5-5" />
   </svg>
 );
+export const IconReplay = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M3 12a9 9 0 1 0 3-6.7" />
+    <path d="M3 4v5h5" />
+  </svg>
+);

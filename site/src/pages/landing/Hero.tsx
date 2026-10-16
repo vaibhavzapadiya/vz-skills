@@ -4,7 +4,7 @@ import { LinkButton } from '@/components/Button';
 import { CommandLine } from '@/components/CodeBlock';
 import { IconArrowRight } from '@/components/Icons';
 import { SITE } from '@/lib/utils';
-import { ReportCard } from './ReportCard';
+import { RunCard } from './RunCard';
 
 /** A hand-drawn style underline that draws itself once (CSS, see .draw-underline). */
 function Underline() {
@@ -65,7 +65,7 @@ export function Hero() {
           </div>
 
           <div className="motion-safe:animate-fade-up [animation-delay:120ms]">
-            <ReportCard />
+            <RunCard />
           </div>
         </div>
       </Container>
