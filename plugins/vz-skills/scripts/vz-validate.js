@@ -60,15 +60,18 @@ function validatePlugin(root) {
   if (fs.existsSync(path.join(root, 'CLAUDE.md'))) warn('CLAUDE.md', 'a CLAUDE.md at the plugin root is not loaded by Claude Code');
   if (fs.existsSync(path.join(root, 'commands'))) warn('commands/', 'legacy commands/ directory present; docs recommend skills/ for new plugins');
 
-  // skills
-  const skillsDir = path.join(root, 'skills');
+  // skills (mirrors the platform scan: skills/<name>/SKILL.md plus every directory listed in manifest "skills")
+  const { listSkills } = require('./lib/skills');
+  const scan = listSkills(root);
+  for (const u of scan.unreachable) err(u.rel, `skill would not load: ${u.reason}`);
+  for (const g of scan.groups) if (g.count === 0) warn(g.rel, 'group directory contains no skills');
   const names = new Map();
-  if (fs.existsSync(skillsDir)) {
-    for (const ent of fs.readdirSync(skillsDir, { withFileTypes: true })) {
-      if (!ent.isDirectory()) { warn(`skills/${ent.name}`, 'stray file in skills/ (each skill is a directory with SKILL.md)'); continue; }
-      const file = path.join(skillsDir, ent.name, 'SKILL.md');
-      const rel = `skills/${ent.name}/SKILL.md`;
-      if (!fs.existsSync(file)) { err(rel, 'SKILL.md missing'); continue; }
+  if (scan.skills.length === 0 && scan.unreachable.length === 0) warn('skills/', 'no skills found');
+  {
+    for (const s of scan.skills) {
+      const ent = { name: s.name };
+      const file = path.join(s.dir, 'SKILL.md');
+      const rel = `${s.rel}/SKILL.md`;
       const text = fs.readFileSync(file, 'utf8');
       const { data, body, warnings: fmWarn, hasFrontmatter } = parseFrontmatter(text);
       if (!hasFrontmatter) { err(rel, 'frontmatter missing or malformed (must start with --- on line 1)'); continue; }
@@ -103,9 +106,9 @@ function validatePlugin(root) {
       }
       if (names.has(ent.name)) err(rel, 'duplicate skill name');
       names.set(ent.name, rel);
-      info.skills.push({ name: ent.name, description: data.description, userInvocableOnly: data['disable-model-invocation'] === true, hidden: data['user-invocable'] === false, lines: lineCount });
+      info.skills.push({ name: ent.name, group: s.group, description: data.description, userInvocableOnly: data['disable-model-invocation'] === true, hidden: data['user-invocable'] === false, lines: lineCount });
     }
-  } else warn('skills/', 'no skills directory');
+  }
 
   // agents
   const agentsDir = path.join(root, 'agents');

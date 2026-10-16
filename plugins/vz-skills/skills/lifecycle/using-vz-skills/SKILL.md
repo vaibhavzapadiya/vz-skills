@@ -31,6 +31,11 @@ VZ Skills is a set of small workflows. This skill picks the path; it does not do
 | Docs/README/ADR | `docs` | |
 | "Ready to ship / release / cut a version" | `release` | Checklist, no publishing without authorization. |
 | Configure VZ for this repo | `/vz-skills:setup` | User-run. |
+| Context is running out / "continue where we left off" | `checkpoint` | Save before stopping; resume verifies the file against the repository first. |
+| "Open a PR / write the PR description" | `pr` | Built from the `verify` evidence; creates nothing without an explicit request. |
+| "What happened / status update / handover" | `standup` | Read-only summary from git, working tree, checkpoint. |
+| "How does X work / explain this diff" | `explain` | Read-only, `file:line` references, unknowns stated. |
+| "What slowed us down / how to make this repo easier" | `retro` | Proposes small improvements with evidence; applies nothing. |
 
 Skills are invoked as `/vz-skills:<name>`. Invoke them explicitly rather than paraphrasing their content.
 

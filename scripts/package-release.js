@@ -24,7 +24,7 @@ const NAME = `vz-skills-${manifest.version}`;
 const DIST = process.env.VZ_PACKAGE_DIST ? path.resolve(process.env.VZ_PACKAGE_DIST) : path.join(ROOT, 'dist');
 const STAGE = path.join(os.tmpdir(), `vz-skills-stage-${process.pid}`);
 const EXCLUDE_DIRS = new Set(['node_modules', '.git', 'dist', '.tmp', 'results', 'cache']);
-const REQUIRED = ['README.md', 'CHANGELOG.md', 'LICENSE', 'package.json', '.claude-plugin/marketplace.json', 'plugins/vz-skills/.claude-plugin/plugin.json', 'plugins/vz-skills/LICENSE', 'plugins/vz-skills/hooks/hooks.json', 'plugins/vz-skills/skills/discover/SKILL.md', 'plugins/vz-skills/scripts/vz-discover.js', 'plugins/vz-skills/scripts/vz-config.js', 'docs/install.md', 'docs/decisions.md', 'tests/structure.test.js'];
+const REQUIRED = ['README.md', 'CHANGELOG.md', 'LICENSE', 'package.json', '.claude-plugin/marketplace.json', 'plugins/vz-skills/.claude-plugin/plugin.json', 'plugins/vz-skills/LICENSE', 'plugins/vz-skills/hooks/hooks.json', 'plugins/vz-skills/skills/entry/discover/SKILL.md', 'plugins/vz-skills/scripts/lib/skills.js', 'plugins/vz-skills/scripts/vz-discover.js', 'plugins/vz-skills/scripts/vz-config.js', 'docs/install.md', 'docs/decisions.md', 'tests/structure.test.js'];
 
 function collect(dir, rel = '') {
   const out = [];

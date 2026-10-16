@@ -46,7 +46,7 @@ Why two layouts: Claude Code prefixes every plugin's commands with the plugin na
 | Review | `review`, `security-review` | Ranked findings with `file:line`; optional fresh-context review by a read-only agent. |
 | Verify | `verify` | A report where every claim is `IMPLEMENTED`, `TESTED`, `VERIFIED`, `BLOCKED`, or `NOT VERIFIED`, with evidence. |
 
-`using-vz-skills` routes a request through these steps automatically. `debug` handles failures with root-cause analysis before any fix. Specialists (`performance`, `frontend`, `backend`, `database`, `api-design`, `docs`, `release`) plug into the same flow.
+`using-vz-skills` routes a request through these steps automatically. `debug` handles failures with root-cause analysis before any fix. Specialists (`performance`, `frontend`, `backend`, `database`, `api-design`, `docs`, `release`) plug into the same flow, and productivity skills (`checkpoint`, `pr`, `standup`, `explain`, `retro`) cover the work around it.
 
 ### Example: discovery brief
 
@@ -141,6 +141,18 @@ Overlays that plug into `plan`, `implement`, and `review` when the change touche
 | `docs` | `/docs [topic]` | Auto | Writes documentation that matches the code: verifies every command before writing it, points behaviour claims at code or tests, updates the right existing file (README, docs, ADR, changelog) in the project's voice, checks links and the docs build. |
 | `release` | `/release [version]` | Auto | Release readiness: freezes scope, runs full verification, audits dependencies, drafts the version bump and changelog, inspects the artifact, writes a rollback plan, and gives a go/no-go. Tagging, pushing, and publishing happen only when you say so, one step at a time. |
 
+### Productivity
+
+Skills for the work around the work: continuity, handover, communication. All are read-only except `checkpoint`, which writes one file under `.vz-skills/`.
+
+| Skill | Command | Runs | What it does |
+|---|---|---|---|
+| `checkpoint` | `/checkpoint [save \| resume \| show]` | Auto | Saves the task state (criteria, slices with status labels, last commands and results, blockers, exact next action) to `.vz-skills/checkpoint.md`, and resumes from it in a new session after checking that the branch, files, and last check still match reality. |
+| `pr` | `/pr [base] [--create]` | Auto | Writes a PR title and description from the task's evidence: summary, criteria table with status, checks run, baseline failures, risk and rollback, review notes, what is not verified. Prints the `gh pr create` command; creates the PR only when you ask. |
+| `standup` | `/standup [since]` | Auto | "Done / in progress / blocked / next" from git history, the working tree, and the checkpoint, in 10-15 lines. |
+| `explain` | `/explain [path, symbol, diff, or question]` | Auto | Explains code or a diff for a human reader with `file:line` references, the flow, the recorded reasons, inferences labelled as such, and what was not read. |
+| `retro` | `/retro [task]` | Auto | Lists what slowed the task (unknown commands, missing tests, flaky checks, guard prompts) with evidence, and proposes one small fix per item for the repo, `CLAUDE.md`, VZ config, or tests. Applies nothing. |
+
 ### Agents and hooks
 
 | Component | Name | What it does |
@@ -152,7 +164,7 @@ Overlays that plug into `plan`, `implement`, and `review` when the change touche
 | Hook | write guard | Before every file write: asks on secrets files, `CLAUDE.md`, lockfiles, paths outside the project, protected paths, credential-looking content; denies `.git/` internals, `~/.ssh`, OS directories. |
 | Hook | session brief | At session start: injects the nine-rule core policy, your effective profile, and a short repository discovery. |
 
-In total: 19 skills, 3 agents, 3 hooks. The same list, generated from the plugin's own files, is in the [catalog](docs/skills-catalog.md).
+In total: 24 skills, 3 agents, 3 hooks. The same list, generated from the plugin's own files, is in the [catalog](docs/skills-catalog.md).
 
 ---
 

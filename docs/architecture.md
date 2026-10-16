@@ -7,7 +7,8 @@ VZ-skills/                         repository = local marketplace root
 ├── package.json                     publishable as `vz-skills`; `files` ships bin + plugin + manifest only
 ├── plugins/vz-skills/               the installable plugin (everything a user receives)
 │   ├── .claude-plugin/plugin.json   manifest (name, version, description, author, keywords)
-│   ├── skills/<name>/SKILL.md       19 skills (see docs/skills-catalog.md)
+│   ├── skills/<group>/<name>/SKILL.md   24 skills in entry/, lifecycle/, specialists/, productivity/ (see docs/skills-catalog.md);
+│   │                                every group folder is listed in plugin.json "skills" or its skills would not load (DEC-016)
 │   ├── agents/*.md                  3 read-only subagents
 │   ├── hooks/hooks.json             3 hooks (PreToolUse x2, SessionStart)
 │   ├── policy/core-policy.md        shared operating rules injected at session start

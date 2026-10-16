@@ -28,7 +28,8 @@ test('docs/skills-catalog.md is generated from the current frontmatter', () => {
 });
 
 test('README, install and hooks docs state the real component counts', () => {
-  const skills = fs.readdirSync(path.join(PLUGIN_ROOT, 'skills')).length;
+  const { listSkillDirs } = require('./helpers');
+  const skills = listSkillDirs().length;
   const agents = fs.readdirSync(path.join(PLUGIN_ROOT, 'agents')).length;
   const readme = fs.readFileSync(path.join(REPO_ROOT, 'README.md'), 'utf8');
   assert.match(readme, new RegExp(`${skills} skills`));
@@ -65,11 +66,14 @@ test('license is MIT in the manifest, workspace package, and LICENSE files', () 
 });
 
 test('skills reference only scripts and references that exist', () => {
-  const skillsDir = path.join(PLUGIN_ROOT, 'skills');
-  for (const d of fs.readdirSync(skillsDir)) {
-    const text = fs.readFileSync(path.join(skillsDir, d, 'SKILL.md'), 'utf8');
+  const { listSkillDirs } = require('./helpers');
+  const skills = listSkillDirs();
+  const names = new Set(skills.map((s) => s.name));
+  for (const s of skills) {
+    const d = s.name;
+    const text = fs.readFileSync(path.join(s.dir, 'SKILL.md'), 'utf8');
     for (const m of text.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([A-Za-z0-9_./-]+)/g)) assert.ok(fs.existsSync(path.join(PLUGIN_ROOT, m[1])), `${d}: ${m[1]}`);
-    for (const m of text.matchAll(/\/vz-skills:([a-z-]+)/g)) assert.ok(fs.existsSync(path.join(skillsDir, m[1])) || ['<name>', '<skill>'].includes(m[1]), `${d}: references unknown skill ${m[1]}`);
+    for (const m of text.matchAll(/\/vz-skills:([a-z-]+)/g)) assert.ok(names.has(m[1]) || ['<name>', '<skill>'].includes(m[1]), `${d}: references unknown skill ${m[1]}`);
     for (const m of text.matchAll(/vz-skills:(repo-analyst|independent-reviewer|security-reviewer)/g)) assert.ok(fs.existsSync(path.join(PLUGIN_ROOT, 'agents', `${m[1]}.md`)));
   }
 });

@@ -22,7 +22,7 @@ Edit skills live: most SKILL.md edits apply without restarting (`/reload-skills`
 
 ## Adding a skill
 
-1. `mkdir plugins/vz-skills/skills/<kebab-name>` and write `SKILL.md` with frontmatter (`name` equal to the directory, a specific `description` that starts with the key use case; `disable-model-invocation: true` for user-only commands).
+1. `mkdir plugins/vz-skills/skills/<group>/<kebab-name>` (groups: `entry`, `lifecycle`, `specialists`, `productivity`) and write `SKILL.md` with frontmatter (`name` equal to the directory, a specific `description` that starts with the key use case; `disable-model-invocation: true` for user-only commands). A new group folder must also be added to the `skills` array in `.claude-plugin/plugin.json`; otherwise its skills load nowhere, and `vz-validate.js` and the structure tests will say so.
 2. Body: purpose, inputs, workflow with decision points, output shape, safety, failure behaviour, validation scenarios.
 3. `node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills && claude plugin validate ./plugins/vz-skills --strict`.
 4. `node scripts/gen-catalog.js`, and add a changelog entry.
