@@ -1,0 +1,15 @@
+import { CommandReference } from '../CommandReference';
+
+<Lead>
+Every skill is a slash command. The commands below are the flat-install form (`npx vz-skills install --flat`). With the plugin install, prefix each with `vz-skills:`, for example `/vz-skills:plan`.
+</Lead>
+
+**Runs** tells you who starts a skill. *Auto* means Claude can also select it when a request matches its description. *You* means `disable-model-invocation: true`: only you can run it. Arguments in square brackets are optional.
+
+<Callout kind="note" title="Two renames after a flat install">
+`status` becomes `/vz-status`, so Claude Code's built-in `/status` keeps working. `/review` replaces Claude Code's bundled review command in that scope; this is intentional.
+</Callout>
+
+In total: 19 skills, 3 agents, 3 hooks. The same list, generated from the plugin's own frontmatter, is in `docs/skills-catalog.md` in the repository.
+
+<CommandReference />

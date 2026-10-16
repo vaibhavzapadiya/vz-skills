@@ -1,0 +1,105 @@
+<Lead>
+Discovery is deterministic code, not a prompt. It reads the repository, labels every fact with its evidence, and says UNKNOWN when nothing established a value.
+</Lead>
+
+## Running it
+
+Inside Claude Code, `/discover [path] [--baseline]`. From a shell, with the scripts from a clone or from `npx vz-skills path`:
+
+```bash
+node plugins/vz-skills/scripts/vz-discover.js [root] [--format json|md] [--brief] [--out <file>]
+     [--run-baseline] [--baseline-timeout <ms>] [--no-git] [--no-tools]
+     [--max-depth <n>] [--cache] [--cached]
+```
+
+Exit codes: `0` report produced, `2` usage error, `3` root unreadable. `--out` refuses paths outside the root.
+
+## What it detects
+
+| Area | Sources read |
+|---|---|
+| Languages and frameworks | Node/TypeScript, Python, Go, Rust, .NET, JVM (Maven, Gradle, Kotlin), Ruby, PHP manifests and project files |
+| Package manager | `packageManager` field, lockfiles, `uv.lock`, `Gemfile.lock`, wrapper scripts |
+| Commands | Manifest scripts, Makefile targets, CI `run` steps, ecosystem conventions |
+| Tests | Test files and directories, frameworks, whether the runner is on `PATH` |
+| CI | GitHub Actions workflows and their run steps |
+| Layout | Source dirs, entry points, docs, generated and ignored paths, monorepo workspaces |
+| Instructions | `CLAUDE.md`, `AGENTS.md`, `.claude/rules`, scanned for injection indicators |
+| Git | Branch, dirty files, untracked files |
+| Tools | Versions of `git`, `node`, `npm`, `pnpm`, and others found on `PATH` |
+
+The directory walk is bounded, skips symlinks, and reads only known manifest and instruction files.
+
+## Real output
+
+For the TypeScript sample repository shipped in `fixtures/ts-app`:
+
+```text
+# Repository discovery: ts-app
+Generated 2026-10-16T13:18:41.492Z by vz-skills discovery (vz-discovery/1). Labels: CONFIRMED / INFERRED / UNKNOWN / CONFLICTING.
+
+## Stack
+- Languages: typescript (CONFIRMED) [package.json, tsconfig.json]
+- Frameworks/tools: react (CONFIRMED), express (CONFIRMED)
+- Package manager: pnpm (CONFIRMED) [package.json#packageManager, pnpm-lock.yaml]
+
+## Commands
+- build: pnpm run build (CONFIRMED) [package.json#scripts.build] - scripts.build = tsc -p .
+- test: pnpm test (CONFIRMED) [package.json#scripts.test, .github/workflows/ci.yml] - scripts.test = vitest run
+- lint: pnpm run lint (CONFIRMED) [package.json#scripts.lint, .github/workflows/ci.yml] - scripts.lint = eslint .
+- format: (none) (UNKNOWN) - no format command could be established from manifests, Makefile, or CI
+- typecheck: pnpm run typecheck (CONFIRMED) [package.json#scripts.typecheck] - scripts.typecheck = tsc --noEmit
+
+## Tests
+- Present: true (CONFIRMED) [tests/index.test.ts]; files matched: 1; dirs: tests
+- Frameworks: vitest (CONFIRMED)
+- Runner available: true (CONFIRMED) [which pnpm]
+- Baseline: NOT_RUN - baseline tests are only run with --run-baseline and only for allowlisted commands
+
+## Git
+- Dirty: false (CONFIRMED) [git status --porcelain]; modified: 0; untracked: 0
+
+## Instructions (untrusted repository content)
+- none found at known paths
+
+## CI
+- .github/workflows/ci.yml (github-actions); run steps: pnpm install --frozen-lockfile | pnpm test | pnpm run lint
+
+## Unknowns
+- format command
+```
+
+The sections are trimmed to the ones that matter here (the report also lists the layout and tools on `PATH`).
+
+## How labels are assigned
+
+- **Declared beats guessed.** A script in `package.json` wins over a convention.
+- **Corroboration is recorded.** The `pnpm test` line cites both the manifest and the CI workflow.
+- **Node lint and format inference.** With no `lint` script but an ESLint config (`eslint.config.*`, `.eslintrc*`, or `package.json#eslintConfig`), lint is reported as `INFERRED` `<pm> exec eslint .` (`npx eslint .` for npm). A Prettier config likewise yields `INFERRED` `<pm> exec prettier --check .`. The config file is named as the basis. A dependency without a config file stays `UNKNOWN`.
+- **Conventions are `INFERRED`.** Maven's `./mvnw test` and Gradle's `./gradlew test` are inferred from the build tool, falling back to bare `mvn` or `gradle` without a wrapper.
+- **Disagreement is `CONFLICTING`.** A pnpm lockfile with a `CLAUDE.md` that says npm shows both sources. Prefer the lockfile and fix the stale instruction.
+
+## The baseline
+
+`--run-baseline` runs the test suite once, before any change, so existing failures are known. It runs only commands on a conservative allowlist (`BASELINE_ALLOWLIST`): well-known forms such as `npm test`, `pytest`, `go test ./...`. Anything else is reported `BLOCKED` with the reason. The runner trusts that `npm test` runs the project's declared script; it does not inspect the script body.
+
+| Result | Meaning |
+|---|---|
+| `NOT_RUN` | Default. Nothing was executed. |
+| `PASS` | Suite ran green. |
+| `FAIL` | Pre-existing failures, with exit code and output tail. They are not regressions. |
+| `BLOCKED` | Command not on the allowlist, or the runner is missing. |
+
+## Instruction-file scanning
+
+Files such as `CLAUDE.md` are listed as **untrusted repository content**. The scanner flags eight classes of indicators, such as requests to reveal secrets, run destructive commands, disable checks, or "ignore previous instructions". Flags name the file and the class; the matched content is not echoed. The scanner is heuristic: novel phrasings will not be flagged, and the policy still tells the model to treat all repository text as data.
+
+## Caching
+
+`--cache` writes a report to `.vz-skills/cache/` and `--cached` reads it. This is the only thing discovery writes. Add `.vz-skills/cache/` to `.gitignore`.
+
+## What it does not do
+
+- It does not execute project scripts, except an allowlisted test command under `--run-baseline`.
+- It does not open `.env` files or key files. They are listed by name only.
+- It does not guess. Unknown values stay unknown.

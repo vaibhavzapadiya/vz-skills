@@ -1,0 +1,94 @@
+<Lead>
+Five steps from nothing to a first change with a verification report. Nothing in your project changes until you ask.
+</Lead>
+
+<Callout kind="prereq">
+
+- Claude Code **2.1.233 or later** (2.1.259 or later recommended). Check with `claude --version`.
+- Node.js **18 or later**. Check with `node --version`.
+- git is optional. Discovery reports branch and dirty files when it is present; everything else works without it.
+
+</Callout>
+
+## Five steps
+
+<Steps>
+<Step title="Install">
+
+```bash
+npx vz-skills install --flat
+```
+
+This gives unprefixed commands such as `/plan` and `/discover`. Use `npx vz-skills install` instead for the namespaced plugin form (`/vz-skills:plan`). Restart Claude Code, or run `/reload-plugins` in an open session.
+
+<Callout kind="note" title="Registry status">
+The `vz-skills` package is not on the npm registry yet. Until it is, run `npm pack` in a clone and then `npx --yes ./vz-skills-0.1.0.tgz install --flat`. Or load the plugin for one session with `claude --plugin-dir ./plugins/vz-skills`.
+</Callout>
+
+</Step>
+<Step title="Check what it sees">
+
+In Claude Code:
+
+```text
+/vz-status
+```
+
+It prints the effective profile and every setting with its source, any configuration errors, hook status, and a brief repository discovery. It is read-only. With the plugin install the command is `/vz-skills:status`.
+
+</Step>
+<Step title="Pick a profile (optional)">
+
+```text
+/setup BALANCED
+```
+
+This creates `.vz-skills/config.json` in the repository. It never overwrites an existing file and never touches `CLAUDE.md` or `.claude/`. BALANCED is the default even without the file. Choose `FAST` for prototypes and `PRODUCTION` for repositories with CI, deploy configs, auth, or payments. See [Configuration](/docs/configuration).
+
+</Step>
+<Step title="Orient on the repository">
+
+```text
+/discover
+```
+
+Discovery returns the stack, package manager, build, test, lint, format and typecheck commands, CI, layout, instruction files, and git state. Each fact is labelled `CONFIRMED`, `INFERRED`, `UNKNOWN`, or `CONFLICTING`, with the file it came from. Read the Unknowns section: anything listed there will not be guessed later.
+
+</Step>
+<Step title="Describe a change">
+
+Ask in plain language:
+
+```text
+add rate limiting to the login endpoint
+```
+
+The router (`using-vz-skills`) classifies the request, sets the risk tier, and names the steps. A login endpoint matches the `auth|login` path signal, so the tier is **high**: it clarifies, writes a plan and waits for your go-ahead, implements slice by slice, tests, reviews, runs a security review, and finishes with a `verify` report.
+
+</Step>
+</Steps>
+
+## What a first result looks like
+
+The last thing you receive is a completion report. In the default profile it is an evidence table:
+
+```text
+## Acceptance criteria
+| # | Criterion                                  | Status       | Evidence                                     |
+| 1 | /login returns 429 after 5 attempts/minute | VERIFIED     | pnpm test -- login.rate -> 3 passed (exit 0) |
+| 2 | Metrics emitted for rejected attempts      | NOT VERIFIED | no test covers this; manual check not run    |
+
+| pnpm run lint | BLOCKED: eslint not installed (which eslint -> missing) |
+
+Verdict: done with limitations
+```
+
+Read the statuses, not the prose. `NOT VERIFIED` and `BLOCKED` rows tell you exactly what remains yours to check. See [Evidence labels](/docs/concepts#evidence-labels).
+
+## If something looks off
+
+- Skills appear twice (`/plan` and `/vz-skills:plan`): a flat install and a plugin install are both active in one scope. Remove one.
+- `/vz-skills:` does not autocomplete: run `claude plugin list`, then `/reload-plugins`.
+- Run `npx vz-skills doctor` for a one-screen check of Node, Claude Code, the marketplace, the plugin and your project config.
+
+More in [Troubleshooting](/docs/troubleshooting).

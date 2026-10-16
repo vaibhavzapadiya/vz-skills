@@ -1,0 +1,91 @@
+<Lead>
+Three hooks ship with the plugin. They are advisory: they can ask, deny, or stay silent, and Claude Code's permission system and sandbox remain the enforcement boundary.
+</Lead>
+
+<Callout kind="warning" title="Advisory, and fail open by design">
+A hook that crashes, times out, or receives malformed input makes **no decision**: exit 0, nothing on stdout, a one-line note on stderr. A guard must not break every command when something unexpected happens. Treat the guards as accident prevention, not as a security control.
+</Callout>
+
+## The three hooks
+
+Declared in `plugins/vz-skills/hooks/hooks.json` in exec form (`"command": "node"` with an `args` array), so no shell quoting is involved on any platform.
+
+| Event | Matcher | Script | Timeout | What it does |
+|---|---|---|---|---|
+| `PreToolUse` | `Bash\|PowerShell` | `command-guard.js` | 10 s | `deny` catastrophic commands; `ask` for risky ones; silent otherwise |
+| `PreToolUse` | `Write\|Edit\|MultiEdit\|NotebookEdit` | `write-guard.js` | 10 s | `deny` dangerous targets; `ask` for sensitive ones |
+| `SessionStart` | `startup\|resume\|clear\|compact` | `session-context.js` | 20 s | Injects the core policy, the effective profile, and a short discovery brief |
+
+Plugin hooks fire in every session where the plugin is enabled, for every matching tool call, whether or not a VZ skill is in use. Measured latency is typically 100-300 ms per call, dominated by Node start-up; the test suite enforces a 2.5 s budget.
+
+## Command guard
+
+**Deny** (irreversible or out of scope): `rm -rf /`, `rm -rf ~`, `rm -rf .`, `rm -rf *`, `mkfs`, `dd of=/dev/sd*`, fork bombs, `chmod -R 777 /`, `format c:`, `Remove-Item -Recurse` on a drive root or home, and `git push --force` to `main` or `master`.
+
+**Ask** (confirm with you):
+
+- Destructive git: `reset --hard`, `clean -f`, `checkout -- .`, `stash drop`, `branch -D`, force pushes to other branches, `rebase -i`, `filter-branch`.
+- Recursive deletes, piping a remote script into an interpreter, `sudo`.
+- Reading secret-bearing files (`.env`, `id_rsa`, `*.pem`, `credentials`), dumping the environment, echoing secret-looking variables.
+- Publishing or deploying: `npm publish`, `terraform apply`, `kubectl delete`, `gh release create`.
+- Destructive SQL and ORM resets, global package installs.
+- `rm` or `mv` on any `hooks.protected_paths`.
+
+Observed output, from running the script with a hook payload on stdin:
+
+```text title="git reset --hard HEAD~1"
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"vz-skills command guard: destructive git operation that can discard uncommitted or committed work. Confirm with the user before running."}}
+```
+
+```text title="rm -rf /"
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"vz-skills command guard: recursive delete of the filesystem root, home, or the whole working directory. If this is truly intended, run it yourself in a terminal."}}
+```
+
+An ordinary command such as `npm test` produces no output at all.
+
+## Write guard
+
+**Deny**: writes into `.git/` internals, home credential stores such as `~/.ssh`, OS directories, and the user's Claude settings.
+
+**Ask**: secrets files, local instruction files such as `CLAUDE.md`, VZ config, lockfiles, paths outside the project, `hooks.protected_paths`, and credential-looking content.
+
+Content checks apply to `content`, `new_string`, and `MultiEdit` edits. Recognised shapes are AWS keys, GitHub tokens, Slack tokens, private key blocks, and `password = "..."` style literals. They trigger an ask unless the value is an obvious placeholder or the file lives under a test, fixture, or mock directory. `.env.example` and similar templates are exempt from the file-name rule.
+
+```text title="Write to .env"
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"vz-skills write guard: .env files hold secrets. Confirm with the user before writing."}}
+```
+
+## Session brief
+
+Output shape: `{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"..."}}`. The context is the nine-rule core policy, the effective profile summary, and a discovery brief at depth 3 with no tool probing, capped at 9,000 characters. It is the same engine as `/discover` with a shallower scan. Disable it with `hooks.session_context: false`.
+
+## Configuring
+
+| Goal | Setting |
+|---|---|
+| Refuse instead of ask for destructive git | `approvals.destructive_git: "refuse"` |
+| Refuse instead of ask for publish and deploy | `approvals.external_actions: "refuse"` |
+| Protect directories | `hooks.protected_paths: ["migrations/**", "infra/**"]` |
+| Silence the command guard | `hooks.command_guard: "off"` plus an acknowledged override |
+| Silence the write guard | `hooks.write_guard: "off"` plus an acknowledged override |
+| Stop the session brief | `hooks.session_context: false` (no acknowledgment needed) |
+
+Everything platform-wide can be disabled with Claude Code's own `"disableAllHooks": true` setting. VZ never writes that setting, and there is no per-hook switch at the platform level. Removing the plugin removes its hooks.
+
+## What the hooks do not do
+
+- They do not inspect command **semantics**. A script named `npm test` that deletes files is not caught.
+- They do not see `@file` mentions, which Claude Code inserts without a tool call.
+- They do not replace code review or sandboxing. `claude plugin eval` treats plugin hooks as code running outside the sandbox, so evaluate only plugins you trust.
+
+## Running a hook by hand
+
+```bash
+echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"git reset --hard HEAD~1"},"cwd":"."}' \
+  | node plugins/vz-skills/scripts/hooks/command-guard.js
+
+echo '{"hook_event_name":"SessionStart","cwd":"."}' \
+  | node plugins/vz-skills/scripts/hooks/session-context.js
+```
+
+Read stderr if nothing comes out when you expected a decision. `claude --debug` shows hook invocations inside Claude Code.
