@@ -17,7 +17,7 @@ Edit skills live: most SKILL.md edits apply without restarting (`/reload-skills`
 - **Keep SKILL.md under ~200 lines**; put detail in `references/` and link it with `${CLAUDE_PLUGIN_ROOT}/references/...`.
 - **No new runtime dependencies** without a decision entry in `docs/decisions.md`.
 - **Every behaviour change in scripts needs a test**; every bug fix needs a regression test (see `tests/` and the `SEC-*` findings in `docs/security.md`).
-- **Docs are generated where they can be**: run `node scripts/gen-catalog.js` after changing skill or agent frontmatter; `npm test` fails if the catalog is stale and if a config key is undocumented.
+- **Docs are generated where they can be**: run `node scripts/gen-catalog.js` after changing skill or agent frontmatter; run `node scripts/gen-config-schema.js` after changing `SCHEMA` in `lib/config.js`; `npm test` fails if the catalog or the config JSON Schema is stale and if a config key is undocumented.
 - **Status words are exact**: IMPLEMENTED / TESTED / VERIFIED / BLOCKED / NOT VERIFIED in reports and trackers.
 
 ## Adding a skill

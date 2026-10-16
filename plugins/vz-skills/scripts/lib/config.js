@@ -292,9 +292,22 @@ function summaryText(res) {
   return L.join('\n');
 }
 
-function templateFor(profile) {
+// The JSON Schema ships with the plugin, so the runtime can point config files at it.
+const SCHEMA_FILE = path.resolve(__dirname, '..', '..', 'schema', 'config.v1.schema.json');
+
+/**
+ * `$schema` value for a config file in `configDir`: a forward-slash path relative to that directory,
+ * which editors resolve against the file. With no relative path (different Windows drive) a file: URL.
+ */
+function schemaRefFrom(configDir) {
+  const rel = path.relative(path.resolve(configDir), SCHEMA_FILE);
+  if (path.isAbsolute(rel)) return require('node:url').pathToFileURL(SCHEMA_FILE).href;
+  return rel.split(path.sep).join('/');
+}
+
+function templateFor(profile, { configDir = path.join(process.cwd(), '.vz-skills') } = {}) {
   return {
-    $schema: 'https://vz-skills.local/config/v1.json',
+    $schema: schemaRefFrom(configDir),
     version: 1,
     profile,
     $comment: 'Keys you omit take the profile preset. Run `node <plugin>/scripts/vz-config.js --explain` to see effective values and their sources. Safety-floored keys need safety.acknowledged_overrides.',
@@ -303,4 +316,4 @@ function templateFor(profile) {
   };
 }
 
-module.exports = { SCHEMA, PROFILES, BASE_DEFAULTS, PROFILE_PRESETS, CONFIG_VERSION, resolveConfig, validateDocument, profileDiff, summaryText, templateFor, flatten };
+module.exports = { SCHEMA, PROFILES, BASE_DEFAULTS, PROFILE_PRESETS, CONFIG_VERSION, resolveConfig, validateDocument, profileDiff, summaryText, templateFor, schemaRefFrom, SCHEMA_FILE, flatten };

@@ -43,6 +43,6 @@
     "discover": "node plugins/vz-skills/scripts/vz-discover.js",
     "config": "node plugins/vz-skills/scripts/vz-config.js",
     "package": "node scripts/package-release.js",
-    "prepack": "node scripts/gen-catalog.js --check && node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills"
+    "prepack": "node scripts/gen-catalog.js --check && node scripts/gen-config-schema.js --check && node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills"
   }
 }

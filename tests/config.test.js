@@ -207,3 +207,131 @@ test('example configs in docs/examples all validate', () => {
     assert.equal(r.status, 0, `${f}: ${r.stdout}`);
   }
 });
+
+// ---------- JSON Schema (plugins/vz-skills/schema/config.v1.schema.json) ----------
+const REPO = path.join(__dirname, '..');
+const SCHEMA_FILE = path.join(REPO, 'plugins', 'vz-skills', 'schema', 'config.v1.schema.json');
+const jsonSchema = () => JSON.parse(fs.readFileSync(SCHEMA_FILE, 'utf8'));
+
+// Tiny draft-07 subset validator: exactly the keywords the generator emits. Returns a list of problems.
+function checkSchema(schema, value, at = '$') {
+  const bad = (m) => [`${at}: ${m}`];
+  const t = schema.type;
+  if (t === 'object') {
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) return bad('expected object');
+    const out = [];
+    for (const [k, v] of Object.entries(value)) {
+      if (!schema.properties[k]) { if (schema.additionalProperties === false) out.push(`${at}.${k}: unknown key`); continue; }
+      out.push(...checkSchema(schema.properties[k], v, `${at}.${k}`));
+    }
+    return out;
+  }
+  if (t === 'array') {
+    if (!Array.isArray(value)) return bad('expected array');
+    const out = schema.maxItems !== undefined && value.length > schema.maxItems ? bad('too many items') : [];
+    value.forEach((v, i) => out.push(...checkSchema(schema.items, v, `${at}[${i}]`)));
+    return out;
+  }
+  if (typeof value !== t) return bad(`expected ${t}`);
+  if (schema.const !== undefined && value !== schema.const) return bad(`must be ${schema.const}`);
+  if (schema.enum && !schema.enum.includes(value)) return bad('not in enum');
+  if (schema.maxLength !== undefined && value.length > schema.maxLength) return bad('too long');
+  if (schema.pattern && !new RegExp(schema.pattern).test(value)) return bad('pattern mismatch');
+  return [];
+}
+
+test('config.v1.schema.json is up to date with SCHEMA (gen-config-schema --check)', () => {
+  const r = runNode(path.join(REPO, 'scripts', 'gen-config-schema.js'), ['--check']);
+  assert.equal(r.status, 0, r.stderr);
+});
+
+test('JSON Schema covers every SCHEMA key with matching type, enum, limits and nesting', () => {
+  const s = jsonSchema();
+  assert.equal(s.additionalProperties, false);
+  assert.equal(s.properties.$schema.type, 'string');
+  assert.equal(s.properties.$comment.type, 'string');
+  assert.equal(s.properties.version.const, cfg.CONFIG_VERSION);
+  const floored = Object.keys(cfg.SCHEMA).filter((k) => cfg.SCHEMA[k].floor);
+  for (const [key, spec] of Object.entries(cfg.SCHEMA)) {
+    let node = s;
+    for (const p of key.split('.')) {
+      assert.equal(node.additionalProperties, false, `additionalProperties false above ${key}`);
+      node = node.properties[p];
+      assert.ok(node, `${key} present in JSON Schema`);
+    }
+    assert.ok(node.description.startsWith(spec.description), `${key} description`);
+    if (spec.values) assert.deepEqual(node.enum, spec.values, `${key} enum`);
+    if (spec.maxLength) assert.equal(node.maxLength, spec.maxLength, `${key} maxLength`);
+    if (spec.type === 'string[]') { assert.equal(node.type, 'array'); assert.equal(node.maxItems, spec.maxItems); } else if (spec.type !== 'path') assert.equal(node.type, spec.type, `${key} type`);
+  }
+  assert.deepEqual(s.properties.safety.properties.acknowledged_overrides.items.enum, floored);
+  assert.ok(floored.length >= 3);
+});
+
+test('JSON Schema and validateDocument agree on every key: allowed values pass, wrong types/values fail', () => {
+  const s = jsonSchema();
+  const agree = (key, value, label) => {
+    const doc = {}; let cur = doc; const parts = key.split('.');
+    parts.slice(0, -1).forEach((p) => { cur = cur[p] = {}; });
+    cur[parts[parts.length - 1]] = value;
+    const resolver = cfg.validateDocument(doc, { source: 't' }).errors.length === 0;
+    const schema = checkSchema(s, doc).length === 0;
+    assert.equal(schema, resolver, `${key} = ${JSON.stringify(value)} (${label}): resolver ${resolver}, schema ${schema}`);
+  };
+  for (const [key, spec] of Object.entries(cfg.SCHEMA)) {
+    if (key === 'safety.acknowledged_overrides') continue; // covered below
+    if (spec.values) { for (const v of spec.values) agree(key, v, 'allowed'); agree(key, 'nope', 'bad value'); agree(key, 5, 'bad type'); }
+    else if (spec.type === 'boolean') { agree(key, true, 'ok'); agree(key, 'yes', 'bad type'); }
+    else if (spec.type === 'string[]') { agree(key, ['a/**'], 'ok'); agree(key, [1], 'bad item'); agree(key, 'a', 'not array'); agree(key, Array(spec.maxItems + 1).fill('a'), 'too many'); }
+    else if (spec.type === 'path') {
+      agree(key, '', 'empty'); agree(key, 'docs/rules.md', 'ok'); agree(key, 5, 'bad type');
+      for (const bad of ['/etc/x', '../x', 'a/../x', 'C:/x', 'C:\\x', '~/x', '\\\\srv\\x', 'a\\..\\x']) agree(key, bad, 'unsafe path');
+    }
+    if (spec.maxLength) { agree(key, 'x'.repeat(spec.maxLength), 'at limit'); agree(key, 'x'.repeat(spec.maxLength + 1), 'over limit'); }
+  }
+  agree('version', 1, 'ok'); agree('version', 2, 'unsupported'); agree('version', '1', 'bad type');
+  agree('safety.acknowledged_overrides', ['hooks.command_guard'], 'floored key');
+  agree('safety.acknowledged_overrides', ['testing.tdd'], 'non-floored key');
+  agree('safety.acknowledged_overrides', ['nope'], 'unknown key');
+  agree('hooks.protected_paths', ['../x'], 'escapes project');
+  agree('hooks.protected_paths', ['/abs'], 'absolute');
+  // unknown keys at every level are rejected; $schema/$comment are accepted
+  assert.ok(checkSchema(s, { profil: 'FAST' }).length);
+  assert.ok(checkSchema(s, { hooks: { command_gaurd: 'on' } }).length);
+  assert.deepEqual(checkSchema(s, { $schema: 'x', $comment: 'y' }), []);
+  assert.ok(checkSchema(s, { $schema: 5 }).length);
+});
+
+test('docs/examples reference the shipped schema by a relative path that resolves, and validate against it', () => {
+  const exDir = path.join(REPO, 'docs', 'examples');
+  const s = jsonSchema();
+  const files = fs.readdirSync(exDir).filter((f) => f.startsWith('config.') && f.endsWith('.json'));
+  assert.ok(files.length >= 4);
+  for (const f of files) {
+    const doc = JSON.parse(fs.readFileSync(path.join(exDir, f), 'utf8'));
+    assert.equal(path.resolve(exDir, doc.$schema), SCHEMA_FILE, `${f} $schema resolves to the shipped schema`);
+    assert.deepEqual(checkSchema(s, doc), [], f);
+  }
+});
+
+test('--init writes a $schema that resolves from the new config file to the shipped schema', () => {
+  const dir = tmpDir('init-schema');
+  try {
+    const r = runNode(path.join(SCRIPTS, 'vz-config.js'), ['--init', 'BALANCED', '--project', dir]);
+    assert.equal(r.status, 0, r.stderr);
+    const file = path.join(dir, '.vz-skills', 'config.json');
+    const doc = JSON.parse(fs.readFileSync(file, 'utf8'));
+    assert.ok(!doc.$schema.includes('vz-skills.local'));
+    assert.ok(!doc.$schema.includes('\\'), 'forward slashes only');
+    assert.equal(path.resolve(path.dirname(file), doc.$schema), SCHEMA_FILE);
+    assert.deepEqual(checkSchema(jsonSchema(), doc), []);
+  } finally { rmrf(dir); }
+});
+
+test('schemaRefFrom gives a relative path for a vendored layout and a file: URL when none exists', () => {
+  assert.equal(cfg.schemaRefFrom(path.join(REPO, '.vz-skills')), '../plugins/vz-skills/schema/config.v1.schema.json');
+  if (process.platform === 'win32') {
+    const other = path.parse(SCHEMA_FILE).root.toUpperCase().startsWith('Z') ? 'A:\\x' : 'Z:\\x';
+    assert.match(cfg.schemaRefFrom(other), /^file:\/\/\//);
+  }
+});

@@ -90,6 +90,20 @@ All keys are optional. Unknown keys are **errors** (with a "did you mean" hint),
 
 Print the schema as JSON: `node plugins/vz-skills/scripts/vz-config.js --schema`.
 
+### Editor support (JSON Schema)
+
+A JSON Schema (draft-07) for the file ships at `plugins/vz-skills/schema/config.v1.schema.json`. It gives editors completion, enum lists, hover descriptions, and red squiggles for typos and wrong values (unknown keys are rejected at every level; `$schema` and `$comment` are allowed). It is generated from the same `SCHEMA` object as the resolver by `node scripts/gen-config-schema.js`; `--check` fails the test suite when it is stale. The schema covers what a single file can be checked for. Safety floors and PRODUCTION minimums depend on the whole resolution, so they appear in the descriptions only; `vz-config.js --validate <file>` enforces them.
+
+Point your config at it with `$schema`. Three forms:
+
+| Form | `$schema` value | Use when |
+|---|---|---|
+| **Relative to the runtime (default)** | `../plugins/vz-skills/schema/config.v1.schema.json` | `--init` writes this: the path from `.vz-skills/` to the schema file of the plugin copy that ran `--init`. It always resolves on the machine that created the file. Where the plugin lives inside the repository (vendored, or this repository itself) it is the path above and is safe to commit. For a plugin installed in the Claude plugin cache, or on a different Windows drive (then a `file:///...` URL), it only works on that machine, and a plugin update changes the cache's version directory, so re-run `--init` on a scratch directory to refresh the path or switch to the URL form. |
+| Relative, vendored plugin | same as above, adjusted to your layout | The repository vendors `plugins/vz-skills` at a different location: use the relative path from `.vz-skills/config.json` to the schema file. |
+| GitHub raw URL (once published) | `https://raw.githubusercontent.com/<owner>/<repo>/<tag>/plugins/vz-skills/schema/config.v1.schema.json` | Teams that do not vendor the plugin. Pin a tag, not `main`. Not available yet: the repository has no public URL (**NOT VERIFIED** until published). |
+
+The example files in `docs/examples/` use the relative path from their own location (`../../plugins/vz-skills/schema/config.v1.schema.json`); after copying one to `.vz-skills/config.json`, fix the path or delete the `$schema` line. The resolver ignores `$schema` in all forms.
+
 ## Safety floors and acknowledged overrides
 
 Three keys protect behaviour that should not change by accident: `hooks.command_guard`, `hooks.write_guard`, `verification.require_evidence_labels`. Setting one below its floor is an **error** and the floor stays in force. If you really want the downgrade, list the key in `safety.acknowledged_overrides`:
@@ -119,4 +133,4 @@ Only `version: 1` exists. When a future version changes keys, this section will 
 
 ## Examples
 
-See `docs/examples/`: `config.fast.json`, `config.balanced.json`, `config.production.json`, `config.acknowledged-override.json`. All four are validated by `tests/config.test.js`.
+See `docs/examples/`: `config.fast.json`, `config.balanced.json`, `config.production.json`, `config.acknowledged-override.json`. All four are validated by `tests/config.test.js`, both by the resolver and against the JSON Schema.

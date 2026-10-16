@@ -1,0 +1,3 @@
+#!/bin/sh
+# fixture wrapper placeholder; not a real Maven wrapper
+exit 0

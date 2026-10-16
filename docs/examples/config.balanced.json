@@ -1,5 +1,5 @@
 {
-  "$schema": "https://vz-skills.local/config/v1.json",
+  "$schema": "../../plugins/vz-skills/schema/config.v1.schema.json",
   "version": 1,
   "profile": "BALANCED",
   "$comment": "The default. Explicit keys below override the preset.",

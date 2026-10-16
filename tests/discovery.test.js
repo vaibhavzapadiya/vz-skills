@@ -228,7 +228,181 @@ test('dotnet and go fixtures: INFERRED conventions, test projects and Makefile t
   assert.equal(g.commands.lint.status, 'CONFIRMED');
 });
 
-test('CLI: json and md output, --out refuses to write outside the root, --max-depth validated, unknown flags rejected', () => {
+test('ruby fixture: bundler + Gemfile.lock, rspec test command CONFIRMED from the Gemfile, other commands UNKNOWN', () => {
+  const r = discover(path.join(FIXTURES, 'ruby-app'), OPTS);
+  assert.equal(byValue(r.stack.languages, 'ruby').status, 'CONFIRMED');
+  assert.equal(r.package_managers[0].value, 'bundler');
+  assert.equal(r.package_managers[0].status, 'CONFIRMED');
+  assert.deepEqual(r.lockfiles, ['Gemfile.lock']);
+  assert.equal(r.commands.test.value, 'bundle exec rspec');
+  assert.equal(r.commands.test.status, 'CONFIRMED');
+  assert.equal(r.tests.present.value, true);
+  for (const k of ['build', 'lint', 'format', 'typecheck']) assert.equal(r.commands[k].status, 'UNKNOWN', k);
+});
+
+test('ruby without rspec: rails/minitest convention is INFERRED, a bare Gemfile reports no test command', () => {
+  const dir = tmpDir('ruby-variants');
+  try {
+    fs.writeFileSync(path.join(dir, 'Gemfile'), 'source "https://rubygems.org"\ngem "rails"\n');
+    let r = discover(dir, OPTS);
+    assert.equal(r.commands.test.value, 'bundle exec rake test');
+    assert.equal(r.commands.test.status, 'INFERRED');
+    assert.match(r.commands.test.basis, /convention/);
+    fs.writeFileSync(path.join(dir, 'Gemfile'), 'source "https://rubygems.org"\ngem "sinatra"\n');
+    r = discover(dir, OPTS);
+    assert.equal(r.commands.test.value, null);
+    assert.equal(r.commands.test.status, 'CONFIRMED');
+  } finally { rmrf(dir); }
+});
+
+test('php fixture: composer, scripts.test CONFIRMED; phpunit.xml alone gives vendor/bin/phpunit', () => {
+  const r = discover(path.join(FIXTURES, 'php-app'), OPTS);
+  assert.equal(byValue(r.stack.languages, 'php').status, 'CONFIRMED');
+  assert.equal(r.package_managers[0].value, 'composer');
+  assert.equal(r.commands.test.value, 'composer test');
+  assert.equal(r.commands.test.status, 'CONFIRMED');
+  assert.ok(r.commands.test.evidence.includes('composer.json#scripts.test'));
+  assert.equal(r.tests.present.value, true);
+  const dir = tmpDir('php-phpunit');
+  try {
+    copyFixture('php-app', dir);
+    fs.writeFileSync(path.join(dir, 'composer.json'), JSON.stringify({ name: 'fixture/php-app', require: { php: '>=8.2' } }));
+    const r2 = discover(dir, OPTS);
+    assert.equal(r2.commands.test.value, 'vendor/bin/phpunit');
+    assert.equal(r2.commands.test.status, 'CONFIRMED');
+    assert.ok(r2.commands.test.evidence.includes('phpunit.xml'));
+  } finally { rmrf(dir); }
+});
+
+test('maven fixture: java, maven, ./mvnw preferred, build/test INFERRED from convention, test sources found', () => {
+  const r = discover(path.join(FIXTURES, 'maven-app'), OPTS);
+  assert.equal(byValue(r.stack.languages, 'java').status, 'CONFIRMED');
+  assert.equal(r.package_managers[0].value, 'maven');
+  assert.equal(r.package_managers[0].status, 'CONFIRMED');
+  assert.equal(r.commands.test.value, './mvnw test');
+  assert.equal(r.commands.test.status, 'INFERRED');
+  assert.equal(r.commands.test.basis, 'maven convention');
+  assert.equal(r.commands.build.value, './mvnw -q package -DskipTests');
+  assert.equal(r.commands.build.status, 'INFERRED');
+  assert.equal(r.tests.present.value, true);
+  assert.ok(r.tests.samples.includes('src/test/java/FooTest.java'));
+  assert.ok(BASELINE_ALLOWLIST.some((re) => re.test(r.commands.test.value)), 'maven test command is baseline-runnable');
+  const dir = tmpDir('maven-nowrapper');
+  try {
+    copyFixture('maven-app', dir);
+    fs.rmSync(path.join(dir, 'mvnw'));
+    assert.equal(discover(dir, OPTS).commands.test.value, 'mvn test');
+  } finally { rmrf(dir); }
+});
+
+test('gradle kotlin fixture: gradle, ./gradlew preferred, language INFERRED from the build file, commands INFERRED', () => {
+  const r = discover(path.join(FIXTURES, 'gradle-kotlin-app'), OPTS);
+  const kotlin = byValue(r.stack.languages, 'kotlin');
+  assert.ok(kotlin, 'kotlin detected from build.gradle.kts');
+  assert.equal(kotlin.status, 'INFERRED');
+  assert.equal(r.package_managers[0].value, 'gradle');
+  assert.equal(r.package_managers[0].status, 'CONFIRMED');
+  assert.equal(r.commands.test.value, './gradlew test');
+  assert.equal(r.commands.test.status, 'INFERRED');
+  assert.equal(r.commands.test.basis, 'gradle convention');
+  assert.equal(r.commands.build.value, './gradlew build -x test');
+  assert.equal(r.tests.present.value, true);
+  assert.ok(r.tests.samples.includes('src/test/kotlin/FooTest.kt'));
+  assert.ok(BASELINE_ALLOWLIST.some((re) => re.test(r.commands.test.value)));
+  const dir = tmpDir('gradle-nowrapper');
+  try {
+    copyFixture('gradle-kotlin-app', dir);
+    fs.rmSync(path.join(dir, 'gradlew'));
+    assert.equal(discover(dir, OPTS).commands.test.value, 'gradle test');
+  } finally { rmrf(dir); }
+});
+
+function nodeRepo(name, pkg, extraFiles = {}) {
+  const dir = tmpDir(name);
+  fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(Object.assign({ name: 'x', scripts: { test: 'node --test' } }, pkg)));
+  for (const [f, body] of Object.entries(extraFiles)) fs.writeFileSync(path.join(dir, f), body);
+  return dir;
+}
+
+test('node lint inference: ESLint config without a lint script -> INFERRED <pm> exec eslint . naming the config file', () => {
+  for (const file of ['eslint.config.js', 'eslint.config.mjs', 'eslint.config.cjs', '.eslintrc.json', '.eslintrc', '.eslintrc.cjs']) {
+    const dir = nodeRepo('eslint', {}, { [file]: '' });
+    try {
+      const r = discover(dir, OPTS);
+      assert.equal(r.commands.lint.value, 'npx eslint .', file);
+      assert.equal(r.commands.lint.status, 'INFERRED', file);
+      assert.deepEqual(r.commands.lint.evidence, [file]);
+      assert.ok(r.commands.lint.basis.includes(file), 'basis names the config file');
+      assert.ok(!r.unknowns.includes('lint command'));
+    } finally { rmrf(dir); }
+  }
+  const dir = nodeRepo('eslint-pkg', { eslintConfig: { root: true } });
+  try {
+    const r = discover(dir, OPTS);
+    assert.equal(r.commands.lint.value, 'npx eslint .');
+    assert.equal(r.commands.lint.status, 'INFERRED');
+    assert.deepEqual(r.commands.lint.evidence, ['package.json#eslintConfig']);
+    assert.match(r.commands.lint.basis, /eslintConfig/);
+  } finally { rmrf(dir); }
+});
+
+test('node format inference: Prettier config without a format script -> INFERRED non-mutating --check command', () => {
+  for (const file of ['.prettierrc', '.prettierrc.json', 'prettier.config.js', '.prettierrc.yaml']) {
+    const dir = nodeRepo('prettier', {}, { [file]: '' });
+    try {
+      const r = discover(dir, OPTS);
+      assert.equal(r.commands.format.value, 'npx prettier --check .', file);
+      assert.equal(r.commands.format.status, 'INFERRED', file);
+      assert.deepEqual(r.commands.format.evidence, [file]);
+      assert.ok(r.commands.format.basis.includes(file));
+    } finally { rmrf(dir); }
+  }
+  const dir = nodeRepo('prettier-pkg', { prettier: { semi: false } });
+  try {
+    const r = discover(dir, OPTS);
+    assert.equal(r.commands.format.status, 'INFERRED');
+    assert.deepEqual(r.commands.format.evidence, ['package.json#prettier']);
+  } finally { rmrf(dir); }
+});
+
+test('node lint/format inference: command prefix follows the detected package manager', () => {
+  for (const [pm, lock, bin] of [['pnpm', 'pnpm-lock.yaml', 'pnpm exec'], ['yarn', 'yarn.lock', 'yarn exec'], ['npm', 'package-lock.json', 'npx']]) {
+    const dir = nodeRepo('pm-prefix', {}, { [lock]: '', 'eslint.config.js': '', '.prettierrc': '{}' });
+    try {
+      const r = discover(dir, OPTS);
+      assert.equal(r.package_managers[0].value, pm);
+      assert.equal(r.commands.lint.value, `${bin} eslint .`);
+      assert.equal(r.commands.format.value, `${bin} prettier --check .`);
+    } finally { rmrf(dir); }
+  }
+});
+
+test('node lint/format inference never overrides a declared script, and stays UNKNOWN with no config', () => {
+  let dir = nodeRepo('declared', { scripts: { test: 'node --test', lint: 'eslint src', format: 'prettier --write .' } }, { 'eslint.config.js': '', '.prettierrc': '{}' });
+  try {
+    const r = discover(dir, OPTS);
+    assert.equal(r.commands.lint.value, 'npm run lint');
+    assert.equal(r.commands.lint.status, 'CONFIRMED');
+    assert.equal(r.commands.format.value, 'npm run format');
+    assert.equal(r.commands.format.status, 'CONFIRMED');
+  } finally { rmrf(dir); }
+  dir = nodeRepo('neither', {});
+  try {
+    const r = discover(dir, OPTS);
+    assert.equal(r.commands.lint.status, 'UNKNOWN');
+    assert.equal(r.commands.format.status, 'UNKNOWN');
+    assert.ok(r.unknowns.includes('lint command') && r.unknowns.includes('format command'));
+  } finally { rmrf(dir); }
+  // the tools merely being dependencies is not enough to claim a command
+  dir = nodeRepo('dep-only', { devDependencies: { eslint: '9.0.0', prettier: '3.0.0' } });
+  try {
+    const r = discover(dir, OPTS);
+    assert.equal(r.commands.lint.status, 'UNKNOWN');
+    assert.equal(r.commands.format.status, 'UNKNOWN');
+  } finally { rmrf(dir); }
+});
+
+test('CLI: json and md output,--out refuses to write outside the root, --max-depth validated, unknown flags rejected', () => {
   const root = path.join(FIXTURES, 'ts-app');
   let r = runNode(path.join(SCRIPTS, 'vz-discover.js'), [root, '--no-git', '--no-tools']);
   assert.equal(r.status, 0, r.stderr);

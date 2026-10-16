@@ -9,7 +9,7 @@ Everything below was executed on 2026-10-16 on the build machine (Windows 11 Pro
 | Structural | `tests/structure.test.js`, `vz-validate.js`, `claude plugin validate` | 8 | PASS |
 | Config | `tests/config.test.js` | 14 | PASS |
 | Unit (parsers, scanners, allowlist, redaction) | inside structure/discovery suites | - | PASS |
-| Fixture (discovery) | `tests/discovery.test.js` over 13 fixtures | 17 | PASS |
+| Fixture (discovery) | `tests/discovery.test.js` over 17 fixtures (+ inline temp repos) | 26 | PASS |
 | Adversarial | TC-012 (malicious CLAUDE.md), TC-013 (unsafe paths), hook deny/ask, write-guard secrets | within the above | PASS |
 | Integration (platform) | `tests/platform.test.js` with the real CLI | 5 | PASS |
 | Documentation accuracy | `tests/docs.test.js` | 7 | PASS |
@@ -21,8 +21,8 @@ Everything below was executed on 2026-10-16 on the build machine (Windows 11 Pro
 
 ```
 > npm test            (node --test tests/*.test.js)
-# tests 68
-# pass 68
+# tests 84
+# pass 84
 # fail 0
 # skipped 0
 ```
@@ -59,6 +59,11 @@ Always-on: ~1,772 tok added to every session
 | Missing tool | TC-015 | runner unavailable -> baseline BLOCKED with reason | PASS |
 | .NET and Go | (unnumbered) | INFERRED conventions; Makefile target CONFIRMED with alternative | PASS |
 | Generated/vendor folders | part of TC-011 | `.gitignore` entries parsed | PASS |
+| Ruby (`ruby-app`) | (unnumbered) | bundler + `Gemfile.lock`; `bundle exec rspec` CONFIRMED from the Gemfile; rails/minitest variant INFERRED | PASS |
+| PHP (`php-app`) | (unnumbered) | composer; `composer test` CONFIRMED from `scripts.test`; `phpunit.xml` alone gives `vendor/bin/phpunit` | PASS |
+| Maven (`maven-app`) | (unnumbered) | `./mvnw test` INFERRED (maven convention); falls back to `mvn` without the wrapper | PASS |
+| Gradle + Kotlin (`gradle-kotlin-app`) | (unnumbered) | `./gradlew test` INFERRED; language kotlin INFERRED from the build file; falls back to `gradle` | PASS |
+| Node lint/format inference | (unnumbered) | ESLint/Prettier config files or package.json keys without a script -> INFERRED `<pm> exec eslint .` / `prettier --check .` with the config file as evidence; declared scripts win; no config or dependency-only stays UNKNOWN | PASS |
 
 ## Hook tests - status
 

@@ -1,0 +1,3 @@
+#!/bin/sh
+# fixture wrapper placeholder; not a real Gradle wrapper
+exit 0

@@ -59,5 +59,5 @@ VZ-skills/                         repository = local marketplace root
 ## Extending
 
 - Add a skill: `skills/<kebab-name>/SKILL.md` with `description`; run `npm test` (structure checks and catalog freshness) and `claude plugin validate --strict`.
-- Add a config key: extend `SCHEMA` and, if it should have a floor, `floor`; add a row to `docs/configuration.md`; the config test asserts presets are schema-valid and the docs test asserts every key is documented.
+- Add a config key: extend `SCHEMA` and, if it should have a floor, `floor`; add a row to `docs/configuration.md`; run `node scripts/gen-config-schema.js`; the config test asserts presets are schema-valid and the docs test asserts every key is documented.
 - Add a hook: declare it in `hooks.json`, implement with `lib/hookio.js`, add fail-open and decision tests.

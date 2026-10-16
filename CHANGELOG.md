@@ -18,12 +18,19 @@ First implementation, built from the specification kit against Claude Code 2.1.2
 - Documentation: install, configuration, catalog (generated), hooks, agents, security, architecture, testing and evaluation, troubleshooting, contributing, research register and gap analysis.
 - Release packaging script with archive integrity verification.
 
+### Added (discovery coverage)
+- Fixtures `ruby-app`, `php-app`, `maven-app`, `gradle-kotlin-app` with tests for the previously untested Ruby, PHP, Maven, and Gradle detectors (wrapper vs. bare tool, CONFIRMED vs. INFERRED labels, baseline-allowlist compatibility).
+- Node discovery: when no `lint` script exists but an ESLint config is present (`eslint.config.*`, `.eslintrc*`, or `package.json#eslintConfig`), `commands.lint` is reported as INFERRED `<pm> exec eslint .` (`npx eslint .` for npm); a Prettier config (`.prettierrc*`, `prettier.config.*`, or `package.json#prettier`) likewise yields INFERRED `<pm> exec prettier --check .` for `commands.format`. The config file is the evidence and is named in the basis. Declared scripts still win, and a dependency without a config file stays UNKNOWN.
+
 ### Fixed during development (regression-tested)
 - Nested test runners inherited `NODE_TEST_CONTEXT` and masked failures in baseline runs.
 - Write guard's test-artifact exemption matched absolute paths.
 - Directory walker skipped `.github`.
 - A config value that failed validation could still appear in the effective configuration summary; rejected values are now never applied (regression-tested).
 - Release archive built with PowerShell `Compress-Archive` had backslash entry names (unusable on macOS/Linux); the packager now uses bsdtar and rejects any backslash entry, with a regression test.
+
+### Added (editor support)
+- JSON Schema (draft-07) for `.vz-skills/config.json` at `plugins/vz-skills/schema/config.v1.schema.json`, generated from `SCHEMA` by `scripts/gen-config-schema.js` (`--check` enforced by tests and `prepack`). `--init` and `docs/examples/*.json` now reference it by relative path instead of the non-existent `https://vz-skills.local/config/v1.json`; `templateFor(profile, { configDir })` computes the path. Tests assert the schema covers every key and agrees with the resolver's per-file validation.
 
 ### Added (distribution)
 - Unprefixed install: `npx vz-skills install --flat [--scope user|project|local]` places the skills, agents, runtime, and hooks into the Claude config or the project's `.claude/` so commands are `/<name>` instead of `/vz-skills:<name>` (`status` becomes `vz-status`). Project scope uses `${CLAUDE_PROJECT_DIR}` paths and is committable. Verified against an isolated config directory and a temporary project (`tests/cli.test.js`).

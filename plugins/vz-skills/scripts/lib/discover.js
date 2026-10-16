@@ -123,6 +123,11 @@ function git(root, args) {
 }
 
 // ---------- detectors ----------
+const ESLINT_CONFIGS = ['eslint.config.js', 'eslint.config.mjs', 'eslint.config.cjs', 'eslint.config.ts', 'eslint.config.mts', 'eslint.config.cts',
+  '.eslintrc', '.eslintrc.js', '.eslintrc.cjs', '.eslintrc.mjs', '.eslintrc.json', '.eslintrc.yml', '.eslintrc.yaml'];
+const PRETTIER_CONFIGS = ['.prettierrc', '.prettierrc.json', '.prettierrc.yml', '.prettierrc.yaml', '.prettierrc.json5', '.prettierrc.js', '.prettierrc.cjs', '.prettierrc.mjs', '.prettierrc.toml',
+  'prettier.config.js', 'prettier.config.cjs', 'prettier.config.mjs', 'prettier.config.ts'];
+
 function detectNode(root, files, report) {
   const pkgPath = path.join(root, 'package.json');
   if (!has(files, 'package.json')) return;
@@ -181,6 +186,19 @@ function detectNode(root, files, report) {
   }
   if (!report.commands.typecheck && hasTs && 'typescript' in deps) {
     report.commands.typecheck = fact(`${pmName === 'npm' ? 'npx' : pmName} tsc --noEmit`, LABEL.INFERRED, ['tsconfig.json', 'package.json#devDependencies.typescript'], 'typescript installed but no typecheck script');
+  }
+
+  // lint/format by configuration convention when no script is declared
+  const bin = pmName === 'npm' ? 'npx' : pmName === 'bun' ? 'bunx' : `${pmName} exec`;
+  if (!report.commands.lint) {
+    const cfg = ESLINT_CONFIGS.find((n) => has(files, n));
+    const basis = cfg ? cfg : pkg.eslintConfig ? 'package.json#eslintConfig' : null;
+    if (basis) report.commands.lint = fact(`${bin} eslint .`, LABEL.INFERRED, [basis], `ESLint configuration (${basis}) present but no lint script declared`);
+  }
+  if (!report.commands.format) {
+    const cfg = PRETTIER_CONFIGS.find((n) => has(files, n));
+    const basis = cfg ? cfg : pkg.prettier ? 'package.json#prettier' : null;
+    if (basis) report.commands.format = fact(`${bin} prettier --check .`, LABEL.INFERRED, [basis], `Prettier configuration (${basis}) present but no format script declared; --check does not modify files`);
   }
 
   // frameworks and test runners

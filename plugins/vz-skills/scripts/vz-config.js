@@ -56,7 +56,7 @@ function main() {
     const file = path.join(dir, 'config.json');
     if (fs.existsSync(file)) { process.stdout.write(`exists: ${file} (not overwritten). Edit it directly or delete it first.\n`); return 0; }
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(templateFor(o.init), null, 2) + '\n');
+    fs.writeFileSync(file, JSON.stringify(templateFor(o.init, { configDir: dir }), null, 2) + '\n');
     process.stdout.write(`created: ${file} with profile ${o.init}\n`);
     return 0;
   }
