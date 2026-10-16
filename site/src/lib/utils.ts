@@ -35,5 +35,5 @@ export const SITE = {
   minClaude: '2.1.233',
   recommendedClaude: '2.1.259',
   minNode: '18',
-  counts: { skills: 19, agents: 3, hooks: 3, tests: 90, fixtures: 17 },
+  counts: { skills: 24, agents: 3, hooks: 3, tests: 91, fixtures: 17 },
 } as const;

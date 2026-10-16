@@ -12,7 +12,7 @@
   "page": "Overview",
   "heading": "What it is",
   "anchor": "what-it-is",
-  "text": "The plugin is 19 skills, 3 read-only agents, and 3 hooks, backed by dependency-free Node scripts. Skills are short prose workflows. Everything that can be code is code and is unit-tested: repository discovery, configuration resolution, and the guards. Part Count Role --- --- --- Skills 19 Slash commands. Entry points, an eight-step pipeline, and specialists. See Commands. Agents 3 Read-only subagents for fresh-context review. See Agents. Hooks 3 Advisory guards on shell commands and file writes, plus a session brief. See Hooks and guards. Scripts 3 CLIs vz-discover.js , vz-config.js , vz-validate.js . See CLI reference.",
+  "text": "The plugin is 24 skills, 3 read-only agents, and 3 hooks, backed by dependency-free Node scripts. Skills are short prose workflows. Everything that can be code is code and is unit-tested: repository discovery, configuration resolution, and the guards. Part Count Role --- --- --- Skills 24 Slash commands in four groups: entry points, the lifecycle, specialists, and productivity. See Commands. Agents 3 Read-only subagents for fresh-context review. See Agents. Hooks 3 Advisory guards on shell commands and file writes, plus a session brief. See Hooks and guards. Scripts 3 CLIs vz-discover.js , vz-config.js , vz-validate.js . See CLI reference.",
   "to": "/docs#what-it-is"
  },
  {
@@ -124,7 +124,7 @@
   "page": "Installation",
   "heading": "Unprefixed commands: --flat",
   "anchor": "unprefixed-commands-flat",
-  "text": "Claude Code namespaces plugin skills as / : and has no setting to disable that. Skills in the personal skills directory or a project's .claude/skills load as plain / . --flat installs that way. npx vz-skills install --flat [--scope user project local] [--force] Scope Skills and agents Runtime (scripts, policy, references) Hooks --- --- --- --- user (default) ~/.claude/skills/ / , ~/.claude/agents/ ~/.claude/vz-skills/ merged into ~/.claude/settings.json with absolute paths project .claude/skills/ , .claude/agents/ .claude/vz-skills/ merged into .claude/settings.json using ${CLAUDE PROJECT DIR} ; portable, commit it local same as project same as project merged into .claude/settings.local.json (personal) user scope honours CLAUDE CONFIG DIR when set. What the flat installer rewrites: - ${CLAUDE PLUGIN ROOT} becomes the runtime path. - /vz-skills: becomes / ; agent references lose the prefix. - status is renamed vz-status , because a skill named status would replace Claude Code's built-in /status . /review is intentionally allowed to replace the bundled review command. Safety properties: each installed skill carries a .vz-skills-managed marker, and an existing skill of the same name without the marker stops the install unless you pass --force . settings.json is backed up beside itself before every write. uninstall --flat removes only the hook groups whose commands point into the runtime directory.",
+  "text": "Claude Code namespaces plugin skills as / : and has no setting to disable that. Skills in the personal skills directory or a project's .claude/skills load as plain / . --flat installs that way. npx vz-skills install --flat [--scope user project local] [--force] Scope Skills and agents Runtime (scripts, policy, references) Hooks --- --- --- --- user (default) ~/.claude/skills/ / , ~/.claude/agents/ ~/.claude/vz-skills/ merged into ~/.claude/settings.json with absolute paths project .claude/skills/ , .claude/agents/ .claude/vz-skills/ merged into .claude/settings.json using ${CLAUDE PROJECT DIR} ; portable, commit it local same as project same as project merged into .claude/settings.local.json (personal) user scope honours CLAUDE CONFIG DIR when set. The plugin keeps its skills in group folders ( entry , lifecycle , specialists , productivity ); the flat installer flattens them to / , because Claude Code does not nest skill names. It refuses to install if a group is not listed in plugin.json . What the flat installer rewrites: - ${CLAUDE PLUGIN ROOT} becomes the runtime path. - /vz-skills: becomes / ; agent references lose the prefix. - status is renamed vz-status , because a skill named status would replace Claude Code's built-in /status . /review is intentionally allowed to replace the bundled review command. Safety properties: each installed skill carries a .vz-skills-managed marker, and an existing skill of the same name without the marker stops the install unless you pass --force . settings.json is backed up beside itself before every write. uninstall --flat removes only the hook groups whose commands point into the runtime directory.",
   "to": "/docs/installation#unprefixed-commands-flat"
  },
  {
@@ -132,7 +132,7 @@
   "page": "Installation",
   "heading": "Option B: try for one session",
   "anchor": "option-b-try-for-one-session",
-  "text": "From any project directory, with a clone of the repository: claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills The plugin loads as vz-skills@inline . Confirm with /plugin , or from a shell: claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin list claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin details vz-skills On 2.1.259 details lists 19 skills, 3 agents, and 2 hook events ( PreToolUse , SessionStart ).",
+  "text": "From any project directory, with a clone of the repository: claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills The plugin loads as vz-skills@inline . Confirm with /plugin , or from a shell: claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin list claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin details vz-skills On 2.1.259 details lists 24 skills, 3 agents, and 2 hook events ( PreToolUse , SessionStart ).",
   "to": "/docs/installation#option-b-try-for-one-session"
  },
  {
@@ -432,6 +432,14 @@
   "to": "/docs/lifecycle#specialists"
  },
  {
+  "slug": "lifecycle",
+  "page": "The lifecycle",
+  "heading": "Productivity",
+  "anchor": "productivity",
+  "text": "Five skills cover the work around the pipeline: continuity, handover, and communication. All are read-only except checkpoint , which writes one file. The router sends a request to them by what it asks for. Request Skill What you get --- --- --- \"Continue where we left off\", or context is running out checkpoint State saved to .vz-skills/checkpoint.md ; on resume the file is checked against the branch, the files, and the last check before anything is trusted \"Open a PR\" pr A title and description built from the verify evidence. Creating or pushing needs your explicit request. \"What happened recently\", \"status update\" standup Done, in progress, blocked and next, in about 10 to 15 lines \"How does X work\", \"explain this diff\" explain The flow with file:line references, recorded reasons, inferences labelled, and what was not read \"What slowed us down\" retro One small fix per friction item, each with its evidence. Nothing is applied. On resume, the checkpoint's text is verified against the repository like any other repository content. A label the repository no longer supports is downgraded, and a check that was not re-run after a drift is NOT VERIFIED. Directives inside the file that conflict with you or the core policy are quoted and ignored.",
+  "to": "/docs/lifecycle#productivity"
+ },
+ {
   "slug": "discovery",
   "page": "Repository discovery",
   "heading": "Repository discovery",
@@ -658,6 +666,14 @@
  {
   "slug": "examples",
   "page": "Usage examples",
+  "heading": "A long task, handed over",
+  "anchor": "a-long-task-handed-over",
+  "text": "Before context runs out, or before you stop for the day: /checkpoint save The checkpoint file records the criteria, each slice with its status label and evidence, the last commands with their results, dirty files that are not yours, blockers, and one next exact action. It contains no secrets: it references locations, not values. Add .vz-skills/checkpoint.md to .gitignore if the task is personal. In a new session, or after a teammate takes over: /checkpoint resume Resume reports each drift explicitly, for example that HEAD changed or that a check now fails, re-runs the last narrow check, and downgrades labels the repository no longer supports. It then continues from the first slice that is not VERIFIED. When the work is verified, hand it on: /standup yesterday /pr main /standup summarises git history, the working tree, and the checkpoint. /pr writes the title and description from the verify evidence and prints the gh pr create command. It creates the pull request only when you ask, and approvals.external actions: \"refuse\" means it never does.",
+  "to": "/docs/examples#a-long-task-handed-over"
+ },
+ {
+  "slug": "examples",
+  "page": "Usage examples",
   "heading": "Raising rigor for one session",
   "anchor": "raising-rigor-for-one-session",
   "text": "Set the profile through the environment without editing files: VZ SKILLS PROFILE=PRODUCTION claude The variable overrides profile only; every other key still comes from your config files. On PowerShell use $env:VZ SKILLS PROFILE = 'PRODUCTION' before starting claude .",
@@ -676,7 +692,7 @@
   "page": "Commands",
   "heading": "Commands",
   "anchor": "",
-  "text": "Every skill is a slash command. The commands below are the flat-install form ( npx vz-skills install --flat ). With the plugin install, prefix each with vz-skills: , for example /vz-skills:plan . Runs tells you who starts a skill. Auto means Claude can also select it when a request matches its description. You means disable-model-invocation: true : only you can run it. Arguments in square brackets are optional. status becomes /vz-status , so Claude Code's built-in /status keeps working. /review replaces Claude Code's bundled review command in that scope; this is intentional. In total: 19 skills, 3 agents, 3 hooks. The same list, generated from the plugin's own frontmatter, is in docs/skills-catalog.md in the repository.",
+  "text": "Every skill is a slash command. The commands below are the flat-install form ( npx vz-skills install --flat ). With the plugin install, prefix each with vz-skills: , for example /vz-skills:plan . Runs tells you who starts a skill. Auto means Claude can also select it when a request matches its description. You means disable-model-invocation: true : only you can run it. Arguments in square brackets are optional. status becomes /vz-status , so Claude Code's built-in /status keeps working. /review replaces Claude Code's bundled review command in that scope; this is intentional. In total: 24 skills, 3 agents, 3 hooks. The skills live in four folders under plugins/vz-skills/skills/ : entry , lifecycle , specialists , and productivity . The groups below follow those folders. The same list, generated from the plugin's own frontmatter, is in docs/skills-catalog.md in the repository.",
   "to": "/docs/commands"
  },
  {
@@ -716,7 +732,7 @@
   "page": "CLI reference",
   "heading": "vz-validate.js",
   "anchor": "vz-validatejs",
-  "text": "node plugins/vz-skills/scripts/vz-validate.js [pluginRoot] [--json] Structural validation of the plugin: manifest, skill and agent frontmatter against the supported field lists, and hooks. It is stricter than claude plugin validate in places. Exit codes: 0 ok (warnings allowed), 1 errors found, 2 usage or unexpected error. Validation passed: 0 error(s), 0 warning(s); 19 skill(s), 3 agent(s), hooks: PreToolUse,SessionStart",
+  "text": "node plugins/vz-skills/scripts/vz-validate.js [pluginRoot] [--json] Structural validation of the plugin: manifest, skill and agent frontmatter against the supported field lists, and hooks. It is stricter than claude plugin validate in places. Exit codes: 0 ok (warnings allowed), 1 errors found, 2 usage or unexpected error. Validation passed: 0 error(s), 0 warning(s); 24 skill(s), 3 agent(s), hooks: PreToolUse,SessionStart",
   "to": "/docs/cli#vz-validatejs"
  },
  {
@@ -836,7 +852,7 @@
   "page": "Troubleshooting",
   "heading": "Debugging tips",
   "anchor": "debugging-tips",
-  "text": "claude --debug hook invocations and skill loading node plugins/vz-skills/scripts/vz-config.js --explain --project . every effective value and its source node plugins/vz-skills/scripts/vz-discover.js . --format json full discovery report node plugins/vz-skills/scripts/vz-discover.js . --format md the readable version npm test in a clone: 90 checks, under a minute, no network",
+  "text": "claude --debug hook invocations and skill loading node plugins/vz-skills/scripts/vz-config.js --explain --project . every effective value and its source node plugins/vz-skills/scripts/vz-discover.js . --format json full discovery report node plugins/vz-skills/scripts/vz-discover.js . --format md the readable version npm test in a clone: 91 checks, under a minute, no network",
   "to": "/docs/troubleshooting#debugging-tips"
  },
  {
@@ -868,7 +884,7 @@
   "page": "Limitations and compatibility",
   "heading": "What was tested",
   "anchor": "what-was-tested",
-  "text": "Area Evidence Status --- --- --- Plugin structure, manifest, frontmatter tests/structure.test.js , vz-validate.js , claude plugin validate --strict Configuration: presets, precedence, floors, overrides, typos, schema agreement tests/config.test.js Discovery over 17 sample repositories, including dirty trees, malicious instruction files, malformed manifests, missing tools tests/discovery.test.js Hooks: every deny and ask category, PowerShell parity, fail-open, size cap, latency tests/hooks.test.js Plugin and flat installs against an isolated config directory tests/cli.test.js , tests/platform.test.js (skipped when claude is absent) Release packaging integrity tests/package.test.js Documentation accuracy: keys documented, matrix matches presets, links resolve, counts correct tests/docs.test.js The full suite is 90 tests, run with npm test , with no installs and no network.",
+  "text": "Area Evidence Status --- --- --- Plugin structure, manifest, frontmatter tests/structure.test.js , vz-validate.js , claude plugin validate --strict Configuration: presets, precedence, floors, overrides, typos, schema agreement tests/config.test.js Discovery over 17 sample repositories, including dirty trees, malicious instruction files, malformed manifests, missing tools tests/discovery.test.js Hooks: every deny and ask category, PowerShell parity, fail-open, size cap, latency tests/hooks.test.js Plugin and flat installs against an isolated config directory tests/cli.test.js , tests/platform.test.js (skipped when claude is absent) Release packaging integrity tests/package.test.js Documentation accuracy: keys documented, matrix matches presets, links resolve, counts correct tests/docs.test.js The full suite is 91 tests, run with npm test , with no installs and no network.",
   "to": "/docs/limitations#what-was-tested"
  },
  {
@@ -1076,7 +1092,7 @@
   "page": "Contributing",
   "heading": "Project structure",
   "anchor": "project-structure",
-  "text": "VZ-skills/ repository = local marketplace root ├── .claude-plugin/marketplace.json marketplace \"vz-skills-marketplace\" ├── bin/vz-skills.js npm CLI: install, update, uninstall, try, doctor ├── plugins/vz-skills/ the installable plugin │ ├── .claude-plugin/plugin.json manifest │ ├── skills/ /SKILL.md 19 skills │ ├── agents/ .md 3 read-only subagents │ ├── hooks/hooks.json 3 hooks │ ├── policy/core-policy.md rules injected at session start │ ├── references/ .md risk tiers, review and security checklists, report template │ ├── schema/config.v1.schema.json JSON Schema for the config file │ ├── scripts/ dependency-free Node: discovery, config, validate, hooks, lib │ └── evals/ claude plugin eval cases ├── fixtures/ sample repositories for discovery tests ├── tests/ .test.js node:test suites ├── scripts/ catalog generator, schema generator, release packager ├── docs/ user and maintainer docs, decision log, examples └── site/ this website (Vite, React, Tailwind, MDX) Everything a user receives lives under plugins/vz-skills/ ; tests, fixtures, docs and this site are not shipped in the npm package.",
+  "text": "VZ-skills/ repository = local marketplace root ├── .claude-plugin/marketplace.json marketplace \"vz-skills-marketplace\" ├── bin/vz-skills.js npm CLI: install, update, uninstall, try, doctor ├── plugins/vz-skills/ the installable plugin │ ├── .claude-plugin/plugin.json manifest │ ├── skills/ / /SKILL.md 24 skills in entry/, lifecycle/, specialists/, productivity/ │ ├── agents/ .md 3 read-only subagents │ ├── hooks/hooks.json 3 hooks │ ├── policy/core-policy.md rules injected at session start │ ├── references/ .md risk tiers, review and security checklists, report template │ ├── schema/config.v1.schema.json JSON Schema for the config file │ ├── scripts/ dependency-free Node: discovery, config, validate, hooks, lib │ └── evals/ claude plugin eval cases ├── fixtures/ sample repositories for discovery tests ├── tests/ .test.js node:test suites ├── scripts/ catalog generator, schema generator, release packager ├── docs/ user and maintainer docs, decision log, examples └── site/ this website (Vite, React, Tailwind, MDX) Everything a user receives lives under plugins/vz-skills/ ; tests, fixtures, docs and this site are not shipped in the npm package.",
   "to": "/docs/contributing#project-structure"
  },
  {
@@ -1092,7 +1108,7 @@
   "page": "Contributing",
   "heading": "Tests",
   "anchor": "tests",
-  "text": "Command Suite --- --- npm test Everything (90 tests) npm run test:structure Manifest, frontmatter, validator npm run test:config Presets, precedence, floors, schema npm run test:discovery Fixture matrix npm run test:hooks Guards and session brief npm run test:platform Real claude CLI; skipped when absent",
+  "text": "Command Suite --- --- npm test Everything (91 tests) npm run test:structure Manifest, frontmatter, validator npm run test:config Presets, precedence, floors, schema npm run test:discovery Fixture matrix npm run test:hooks Guards and session brief npm run test:platform Real claude CLI; skipped when absent",
   "to": "/docs/contributing#tests"
  },
  {
@@ -1100,7 +1116,7 @@
   "page": "Contributing",
   "heading": "Adding a skill",
   "anchor": "adding-a-skill",
-  "text": "1. Create plugins/vz-skills/skills/ /SKILL.md with frontmatter. name equals the directory, description is specific and starts with the key use case, and disable-model-invocation: true marks user-only commands. 2. Write the body: purpose, inputs, workflow with decision points, output shape, safety, failure behaviour, validation scenarios. 3. Run node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills and claude plugin validate ./plugins/vz-skills --strict . 4. Run node scripts/gen-catalog.js and add a changelog entry. 5. Add an eval case under plugins/vz-skills/evals/ if the behaviour can be judged from a read-only run. 6. Update site/src/data/skills.ts so this site lists it. npm run check in site/ fails if the counts disagree.",
+  "text": "1. Create plugins/vz-skills/skills/ / /SKILL.md with frontmatter. The group is entry , lifecycle , specialists , or productivity . A new group folder must also be listed in the skills array of plugin.json , or its skills silently fail to load. npm test and vz-validate.js catch that; the official validator does not. name equals the directory, description is specific and starts with the key use case, and disable-model-invocation: true marks user-only commands. 2. Write the body: purpose, inputs, workflow with decision points, output shape, safety, failure behaviour, validation scenarios. 3. Run node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills and claude plugin validate ./plugins/vz-skills --strict . 4. Run node scripts/gen-catalog.js and add a changelog entry. 5. Add an eval case under plugins/vz-skills/evals/ if the behaviour can be judged from a read-only run. 6. Update site/src/data/skills.ts so this site lists it. npm run check in site/ fails if the counts disagree.",
   "to": "/docs/contributing#adding-a-skill"
  },
  {
@@ -1170,6 +1186,14 @@
  {
   "slug": "changelog",
   "page": "Changelog",
+  "heading": "Added (productivity skills)",
+  "anchor": "added-productivity-skills",
+  "text": "- checkpoint (save/resume task state in .vz-skills/checkpoint.md , verified against the repository on resume), pr (PR title and description from the verify evidence; creates nothing without an explicit request), standup (done / in progress / blocked / next from git and the checkpoint), explain (read-only explanation with file:line references), retro (friction with evidence and one small fix per item, applied by nothing). Routed by using-vz-skills ; listed under \"Productivity\" in the catalog. Skill count is now 24.",
+  "to": "/docs/changelog#added-productivity-skills"
+ },
+ {
+  "slug": "changelog",
+  "page": "Changelog",
   "heading": "Added (discovery coverage)",
   "anchor": "added-discovery-coverage",
   "text": "- Fixtures ruby-app , php-app , maven-app , gradle-kotlin-app with tests for the previously untested Ruby, PHP, Maven, and Gradle detectors (wrapper vs. bare tool, CONFIRMED vs. INFERRED labels, baseline-allowlist compatibility). - Node discovery: when no lint script exists but an ESLint config is present ( eslint.config. , .eslintrc , or package.json eslintConfig ), commands.lint is reported as INFERRED exec eslint . ( npx eslint . for npm); a Prettier config ( .prettierrc , prettier.config. , or package.json prettier ) likewise yields INFERRED exec prettier --check . for commands.format . The config file is the evidence and is named in the basis. Declared scripts still win, and a dependency without a config file stays UNKNOWN.",
@@ -1204,7 +1228,7 @@
   "page": "Changelog",
   "heading": "Changed",
   "anchor": "changed",
-  "text": "- Repository split: the specification kit and all process/tracker files moved out of the repository (DEC-013); docs/decisions.md keeps the decision log. Added a GitHub Actions workflow.",
+  "text": "- Skills are grouped into skills/entry , skills/lifecycle , skills/specialists , skills/productivity , each listed in plugin.json skills (DEC-016). Names and invocation are unchanged. scripts/lib/skills.js mirrors the platform scan; the validator and tests flag any group folder missing from the manifest, a case the official validator does not report. - Repository split: the specification kit and all process/tracker files moved out of the repository (DEC-013); docs/decisions.md keeps the decision log. Added a GitHub Actions workflow.",
   "to": "/docs/changelog#changed"
  },
  {
@@ -1366,5 +1390,45 @@
   "anchor": "release",
   "text": "/release [version] Freezes scope, runs full verification, audits dependencies, drafts the version bump and changelog, inspects the artifact, writes a rollback plan, and gives a go/no-go. Tagging, pushing, and publishing happen only when you say so, one step at a time.",
   "to": "/docs/commands#release"
+ },
+ {
+  "slug": "commands",
+  "page": "Commands",
+  "heading": "checkpoint",
+  "anchor": "checkpoint",
+  "text": "/checkpoint [save | resume | show] Saves the state of a long task (criteria, slices with status labels, last commands and results, blockers, exact next action) to .vz-skills/checkpoint.md. On resume it verifies the file against the repository first and downgrades any label that reality no longer supports. Writes only that one file.",
+  "to": "/docs/commands#checkpoint"
+ },
+ {
+  "slug": "commands",
+  "page": "Commands",
+  "heading": "pr",
+  "anchor": "pr",
+  "text": "/pr [base branch] [--create] Writes a pull request title and description from the evidence gathered during a task: summary, acceptance criteria with status, checks run, baseline failures, risk and rollback, review notes, and what is NOT VERIFIED. Prints the gh pr create command; creates or pushes only when you explicitly ask.",
+  "to": "/docs/commands#pr"
+ },
+ {
+  "slug": "commands",
+  "page": "Commands",
+  "heading": "standup",
+  "anchor": "standup",
+  "text": "/standup [since] Produces a short, factual summary from git history, the working tree, and the latest checkpoint, in roughly 10 to 15 lines. Read-only. Use for a daily update or a handover.",
+  "to": "/docs/commands#standup"
+ },
+ {
+  "slug": "commands",
+  "page": "Commands",
+  "heading": "explain",
+  "anchor": "explain",
+  "text": "/explain [path, symbol, diff, or question] Explains a module, function, diff, or error to a human reader with file:line references, the data flow, the reasons behind the design as far as the code and history show them, inferences labelled as such, and what was not read. Read-only.",
+  "to": "/docs/commands#explain"
+ },
+ {
+  "slug": "commands",
+  "page": "Commands",
+  "heading": "retro",
+  "anchor": "retro",
+  "text": "/retro [task or time window] After a task, lists what slowed the work or weakened confidence (unknown commands, missing tests, flaky checks, guard prompts) with evidence, and proposes one small fix per item for the repository, CLAUDE.md, VZ configuration, or tests. Proposes only; applying anything is a separate step.",
+  "to": "/docs/commands#retro"
  }
 ]

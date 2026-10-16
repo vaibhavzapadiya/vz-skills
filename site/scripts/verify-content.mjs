@@ -4,6 +4,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const site = join(here, '..');
@@ -19,16 +20,29 @@ const profilesTs = read(join(site, 'src', 'data', 'profiles.ts'));
 const utilsTs = read(join(site, 'src', 'lib', 'utils.ts'));
 const registryTs = read(join(site, 'src', 'docs', 'registry.ts'));
 
-// 1. Skills: names on disk == names in data, in the same group.
-const onDisk = readdirSync(join(plugin, 'skills')).sort();
-const dataSkills = [...skillsTs.matchAll(/\{\n\s+name: '([a-z-]+)',\n\s+command: '([^']+)'/g)].map((m) => ({ name: m[1], command: m[2] }));
+// 1. Skills: the plugin's own scan (scripts/lib/skills.js) is the source of truth, including group folders.
+const require = createRequire(import.meta.url);
+const { listSkills } = require(join(plugin, 'scripts', 'lib', 'skills.js'));
+const scan = listSkills(plugin);
+for (const u of scan.unreachable) fail(`plugin: skill ${u.name} is not reachable (${u.reason})`);
+const onDisk = scan.skills.map((x) => x.name).sort();
+const dataSkills = [...skillsTs.matchAll(/\{\n\s+name: '([a-z-]+)',\n\s+command: '([^']+)',[\s\S]*?group: '([a-z]+)'/g)].map((m) => ({ name: m[1], command: m[2], group: m[3] }));
 if (dataSkills.length !== onDisk.length) fail(`skills: data has ${dataSkills.length}, plugin has ${onDisk.length}`);
-for (const n of onDisk) if (!dataSkills.some((s) => s.name === n)) fail(`skills: ${n} missing from site/src/data/skills.ts`);
-for (const s of dataSkills) {
-  if (!onDisk.includes(s.name)) fail(`skills: ${s.name} in site data but not in plugin`);
-  const expected = s.name === 'status' ? '/vz-status' : `/${s.name}`;
-  if (s.command !== expected) fail(`skills: command for ${s.name} is ${s.command}, expected ${expected}`);
+for (const sk of scan.skills) {
+  const d = dataSkills.find((x) => x.name === sk.name);
+  if (!d) {
+    fail(`skills: ${sk.name} missing from site/src/data/skills.ts`);
+    continue;
+  }
+  if (d.group !== sk.group) fail(`skills: ${sk.name} is in group "${sk.group}" in the plugin but "${d.group}" on the site`);
+  const expected = sk.name === 'status' ? '/vz-status' : `/${sk.name}`;
+  if (d.command !== expected) fail(`skills: command for ${sk.name} is ${d.command}, expected ${expected}`);
 }
+for (const d of dataSkills) if (!onDisk.includes(d.name)) fail(`skills: ${d.name} in site data but not in plugin`);
+const siteGroups = [...skillsTs.matchAll(/\{ id: '([a-z]+)', title: '/g)].map((m) => m[1]);
+const pluginGroups = scan.groups.map((g) => g.name);
+for (const g of pluginGroups) if (!siteGroups.includes(g)) fail(`skill groups: plugin group "${g}" has no section on the site`);
+for (const g of siteGroups) if (!pluginGroups.includes(g)) fail(`skill groups: site group "${g}" is not a plugin folder`);
 
 // 2. Counts in SITE constant.
 const counts = (k) => Number(new RegExp(`${k}: (\\d+)`).exec(utilsTs)?.[1]);

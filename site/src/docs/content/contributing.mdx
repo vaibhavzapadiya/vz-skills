@@ -21,7 +21,7 @@ VZ-skills/                         repository = local marketplace root
 ├── bin/vz-skills.js                 npm CLI: install, update, uninstall, try, doctor
 ├── plugins/vz-skills/               the installable plugin
 │   ├── .claude-plugin/plugin.json   manifest
-│   ├── skills/<name>/SKILL.md       19 skills
+│   ├── skills/<group>/<name>/SKILL.md   24 skills in entry/, lifecycle/, specialists/, productivity/
 │   ├── agents/*.md                  3 read-only subagents
 │   ├── hooks/hooks.json             3 hooks
 │   ├── policy/core-policy.md        rules injected at session start
@@ -51,7 +51,7 @@ Everything a user receives lives under `plugins/vz-skills/`; tests, fixtures, do
 
 | Command | Suite |
 |---|---|
-| `npm test` | Everything (90 tests) |
+| `npm test` | Everything (91 tests) |
 | `npm run test:structure` | Manifest, frontmatter, validator |
 | `npm run test:config` | Presets, precedence, floors, schema |
 | `npm run test:discovery` | Fixture matrix |
@@ -60,7 +60,7 @@ Everything a user receives lives under `plugins/vz-skills/`; tests, fixtures, do
 
 ## Adding a skill
 
-1. Create `plugins/vz-skills/skills/<kebab-name>/SKILL.md` with frontmatter. `name` equals the directory, `description` is specific and starts with the key use case, and `disable-model-invocation: true` marks user-only commands.
+1. Create `plugins/vz-skills/skills/<group>/<kebab-name>/SKILL.md` with frontmatter. The group is `entry`, `lifecycle`, `specialists`, or `productivity`. A new group folder must also be listed in the `skills` array of `plugin.json`, or its skills silently fail to load. `npm test` and `vz-validate.js` catch that; the official validator does not. `name` equals the directory, `description` is specific and starts with the key use case, and `disable-model-invocation: true` marks user-only commands.
 2. Write the body: purpose, inputs, workflow with decision points, output shape, safety, failure behaviour, validation scenarios.
 3. Run `node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills` and `claude plugin validate ./plugins/vz-skills --strict`.
 4. Run `node scripts/gen-catalog.js` and add a changelog entry.

@@ -52,7 +52,7 @@ export const docGroups: DocGroup[] = [
     id: 'reference',
     title: 'Reference',
     pages: [
-      page('commands', 'Commands', 'All 19 skills with invocation, arguments, who runs them, and what they produce.', 'reference', () => import('./content/commands.mdx')),
+      page('commands', 'Commands', 'All 24 skills with invocation, arguments, who runs them, and what they produce.', 'reference', () => import('./content/commands.mdx')),
       page('cli', 'CLI reference', 'npx vz-skills, vz-discover.js, vz-config.js, vz-validate.js: options, outputs, exit codes.', 'reference', () => import('./content/cli.mdx')),
     ],
   },

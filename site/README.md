@@ -6,7 +6,7 @@ Landing page and documentation for the VZ Skills plugin. Vite, React 19, TypeScr
 cd site
 npm install
 npm run dev        # http://localhost:5173
-npm run verify     # typecheck + content checks + production build
+npm run verify     # regenerate changelog and search index, typecheck, content checks, production build
 npm run preview    # serve dist/ on http://localhost:4173
 ```
 

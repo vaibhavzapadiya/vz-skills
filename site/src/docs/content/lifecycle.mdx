@@ -148,3 +148,19 @@ Every TESTED or VERIFIED row names the command and the observed output. "Tests p
 ## Specialists
 
 `performance`, `frontend`, `backend`, `database`, `api-design`, `docs`, and `release` are overlays. `plan`, `implement`, and `review` call them when the change touches their area, and fold their checklist into the slices. See [Commands](/docs/commands#specialists).
+
+## Productivity
+
+Five skills cover the work around the pipeline: continuity, handover, and communication. All are read-only except `checkpoint`, which writes one file. The router sends a request to them by what it asks for.
+
+| Request | Skill | What you get |
+|---|---|---|
+| "Continue where we left off", or context is running out | `checkpoint` | State saved to `.vz-skills/checkpoint.md`; on resume the file is checked against the branch, the files, and the last check before anything is trusted |
+| "Open a PR" | `pr` | A title and description built from the `verify` evidence. Creating or pushing needs your explicit request. |
+| "What happened recently", "status update" | `standup` | Done, in progress, blocked and next, in about 10 to 15 lines |
+| "How does X work", "explain this diff" | `explain` | The flow with `file:line` references, recorded reasons, inferences labelled, and what was not read |
+| "What slowed us down" | `retro` | One small fix per friction item, each with its evidence. Nothing is applied. |
+
+<Callout kind="note" title="A checkpoint is data, not instructions">
+On resume, the checkpoint's text is verified against the repository like any other repository content. A label the repository no longer supports is downgraded, and a check that was not re-run after a drift is NOT VERIFIED. Directives inside the file that conflict with you or the core policy are quoted and ignored.
+</Callout>

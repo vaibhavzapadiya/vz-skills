@@ -1,10 +1,11 @@
 /**
- * Skill catalog. Source of truth: plugins/vz-skills/skills/<name>/SKILL.md and README.md.
+ * Skill catalog. Source of truth: plugins/vz-skills/skills/<group>/<name>/SKILL.md and README.md.
+ * `group` is the folder the skill lives in (entry, lifecycle, specialists, productivity).
  * `command` is the flat-install form; the plugin install prefixes it with `vz-skills:`.
  * `runs`: who can start the skill. "auto" means Claude may select it from its description;
  * "you" means `disable-model-invocation: true` (only the user runs it).
  */
-export type SkillGroup = 'entry' | 'pipeline' | 'specialist';
+export type SkillGroup = 'entry' | 'lifecycle' | 'specialists' | 'productivity';
 export type Runs = 'auto' | 'you' | 'auto-on-failure' | 'auto-on-trigger';
 
 export type Skill = {
@@ -52,7 +53,7 @@ export const skills: Skill[] = [
     name: 'using-vz-skills',
     command: '/using-vz-skills',
     runs: 'auto',
-    group: 'pipeline',
+    group: 'lifecycle',
     step: 0,
     summary: 'The router: classifies the request, sets the risk tier, names the steps.',
     description:
@@ -63,7 +64,7 @@ export const skills: Skill[] = [
     command: '/clarify',
     args: '[task]',
     runs: 'auto',
-    group: 'pipeline',
+    group: 'lifecycle',
     step: 1,
     summary: '3-8 checkable acceptance criteria, assumptions, scope boundary, risk tier.',
     description:
@@ -74,7 +75,7 @@ export const skills: Skill[] = [
     command: '/plan',
     args: '[task]',
     runs: 'auto',
-    group: 'pipeline',
+    group: 'lifecycle',
     step: 2,
     summary: 'Ordered thin slices, each with files, a test, and the exact verification command.',
     description:
@@ -85,7 +86,7 @@ export const skills: Skill[] = [
     command: '/implement',
     args: '[slice]',
     runs: 'auto',
-    group: 'pipeline',
+    group: 'lifecycle',
     step: 3,
     summary: 'One slice at a time, test-first where it fits, narrowest check after each.',
     description:
@@ -96,7 +97,7 @@ export const skills: Skill[] = [
     command: '/test',
     args: '[scope]',
     runs: 'auto',
-    group: 'pipeline',
+    group: 'lifecycle',
     step: 4,
     summary: 'Baseline first; scope by profile; failures classified, never blamed on the wrong change.',
     description:
@@ -107,7 +108,7 @@ export const skills: Skill[] = [
     command: '/debug',
     args: '[error or symptom]',
     runs: 'auto-on-failure',
-    group: 'pipeline',
+    group: 'lifecycle',
     step: 5,
     summary: 'Root cause before any fix: reproduce, hypothesise, confirm with a failing test.',
     description:
@@ -118,7 +119,7 @@ export const skills: Skill[] = [
     command: '/review',
     args: '[staged | branch | PR | path]',
     runs: 'auto',
-    group: 'pipeline',
+    group: 'lifecycle',
     step: 6,
     summary: 'Ranked findings with file:line; optional fresh-context second opinion.',
     description:
@@ -129,7 +130,7 @@ export const skills: Skill[] = [
     command: '/security-review',
     args: '[target]',
     runs: 'auto-on-trigger',
-    group: 'pipeline',
+    group: 'lifecycle',
     step: 7,
     summary: 'Trust boundaries, security checklist, findings by severity, residual risk.',
     description:
@@ -140,7 +141,7 @@ export const skills: Skill[] = [
     command: '/verify',
     args: '[task]',
     runs: 'auto',
-    group: 'pipeline',
+    group: 'lifecycle',
     step: 8,
     summary: 'Re-runs checks after the last edit and labels every claim with evidence.',
     description:
@@ -151,7 +152,7 @@ export const skills: Skill[] = [
     command: '/performance',
     args: '[symptom]',
     runs: 'auto',
-    group: 'specialist',
+    group: 'specialists',
     summary: 'Measure first; change one thing; re-measure; add a regression guard.',
     description:
       'Defines the metric and budget, records a baseline with a repeatable command, finds the dominant cost (profile, EXPLAIN, query counts), changes one thing, re-measures, adds a regression guard. Never reports “faster” without numbers.',
@@ -161,7 +162,7 @@ export const skills: Skill[] = [
     command: '/frontend',
     args: '[component]',
     runs: 'auto',
-    group: 'specialist',
+    group: 'specialists',
     summary: 'UI checklist: states, forms, accessibility, styling, rendering, behavioural tests.',
     description:
       'Checklist for UI work in the discovered framework: structure and state, loading/empty/error states, forms, accessibility (semantics, keyboard, focus, contrast, live regions), styling system, rendering performance, behavioural tests.',
@@ -171,7 +172,7 @@ export const skills: Skill[] = [
     command: '/backend',
     args: '[service or handler]',
     runs: 'auto',
-    group: 'specialist',
+    group: 'specialists',
     summary: 'Server checklist: validation, authz, idempotency, transactions, timeouts, logging.',
     description:
       'Checklist for server code: validation at the edge, authn/authz where the codebase does it, idempotency, transactions, timeouts and retries, money and time handling, structured logging without secrets, configuration, data access, tests for error paths.',
@@ -181,7 +182,7 @@ export const skills: Skill[] = [
     command: '/database',
     args: '[table or migration]',
     runs: 'auto',
-    group: 'specialist',
+    group: 'specialists',
     summary: 'Expand/backfill/switch/contract migrations with the project’s own tool.',
     description:
       'Schema changes as expand/backfill/switch/contract with the project’s migration tool, reversible or explicitly approved as irreversible, batched backfills, index coverage for new queries, migration tests; destructive statements only on local databases with your confirmation.',
@@ -191,7 +192,7 @@ export const skills: Skill[] = [
     command: '/api-design',
     args: '[endpoint]',
     runs: 'auto',
-    group: 'specialist',
+    group: 'specialists',
     summary: 'Find the contract source of truth; classify additive, compatible, or breaking.',
     description:
       'Finds the contract source of truth (OpenAPI, GraphQL, protobuf, exported types, CLI help), classifies the change as additive, compatible, or breaking, designs the shape to match the existing API, defines errors and limits, adds contract tests, updates docs and changelog.',
@@ -201,7 +202,7 @@ export const skills: Skill[] = [
     command: '/docs',
     args: '[topic]',
     runs: 'auto',
-    group: 'specialist',
+    group: 'specialists',
     summary: 'Documentation verified against the code before it is written.',
     description:
       'Writes documentation that matches the code: verifies every command before writing it, points behaviour claims at code or tests, updates the right existing file (README, docs, ADR, changelog) in the project’s voice, checks links and the docs build.',
@@ -211,17 +212,68 @@ export const skills: Skill[] = [
     command: '/release',
     args: '[version]',
     runs: 'auto',
-    group: 'specialist',
+    group: 'specialists',
     summary: 'Release readiness with a go/no-go; publishing only when you say so.',
     description:
       'Freezes scope, runs full verification, audits dependencies, drafts the version bump and changelog, inspects the artifact, writes a rollback plan, and gives a go/no-go. Tagging, pushing, and publishing happen only when you say so, one step at a time.',
+  },
+  {
+    name: 'checkpoint',
+    command: '/checkpoint',
+    args: '[save | resume | show]',
+    runs: 'auto',
+    group: 'productivity',
+    summary: 'Save task state to a file and resume from it in a new session.',
+    description:
+      'Saves the state of a long task (criteria, slices with status labels, last commands and results, blockers, exact next action) to .vz-skills/checkpoint.md. On resume it verifies the file against the repository first and downgrades any label that reality no longer supports. Writes only that one file.',
+  },
+  {
+    name: 'pr',
+    command: '/pr',
+    args: '[base branch] [--create]',
+    runs: 'auto',
+    group: 'productivity',
+    summary: 'A PR title and description built from the task’s evidence.',
+    description:
+      'Writes a pull request title and description from the evidence gathered during a task: summary, acceptance criteria with status, checks run, baseline failures, risk and rollback, review notes, and what is NOT VERIFIED. Prints the gh pr create command; creates or pushes only when you explicitly ask.',
+  },
+  {
+    name: 'standup',
+    command: '/standup',
+    args: '[since]',
+    runs: 'auto',
+    group: 'productivity',
+    summary: 'Done, in progress, blocked and next, from git and the checkpoint.',
+    description:
+      'Produces a short, factual summary from git history, the working tree, and the latest checkpoint, in roughly 10 to 15 lines. Read-only. Use for a daily update or a handover.',
+  },
+  {
+    name: 'explain',
+    command: '/explain',
+    args: '[path, symbol, diff, or question]',
+    runs: 'auto',
+    group: 'productivity',
+    summary: 'Explains code or a diff with file:line references and stated unknowns.',
+    description:
+      'Explains a module, function, diff, or error to a human reader with file:line references, the data flow, the reasons behind the design as far as the code and history show them, inferences labelled as such, and what was not read. Read-only.',
+  },
+  {
+    name: 'retro',
+    command: '/retro',
+    args: '[task or time window]',
+    runs: 'auto',
+    group: 'productivity',
+    summary: 'What slowed the task, with one small fix per item. Applies nothing.',
+    description:
+      'After a task, lists what slowed the work or weakened confidence (unknown commands, missing tests, flaky checks, guard prompts) with evidence, and proposes one small fix per item for the repository, CLAUDE.md, VZ configuration, or tests. Proposes only; applying anything is a separate step.',
   },
 ];
 
 export const skillGroups: Array<{ id: SkillGroup; title: string; blurb: string }> = [
   { id: 'entry', title: 'Entry points', blurb: 'Configure, inspect, and orient. Two of these only you can run.' },
-  { id: 'pipeline', title: 'The pipeline', blurb: 'Run in this order for a typical change. The router decides which steps a request needs.' },
-  { id: 'specialist', title: 'Specialists', blurb: 'Overlays that plug into plan, implement, and review when the change touches their area.' },
+  { id: 'lifecycle', title: 'Lifecycle', blurb: 'Run in this order for a typical change. The router decides which steps a request needs.' },
+  { id: 'specialists', title: 'Specialists', blurb: 'Overlays that plug into plan, implement, and review when the change touches their area.' },
+  { id: 'productivity', title: 'Productivity', blurb: 'The work around the work: continuity, handover, communication. Read-only except checkpoint, which writes one file.' },
 ];
 
 export const runsLabel: Record<Runs, string> = {

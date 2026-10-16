@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check": "node scripts/verify-content.mjs",
-    "verify": "npm run typecheck && npm run check && npm run build"
+    "verify": "npm run sync && npm run typecheck && npm run check && npm run build",
+    "sync": "node scripts/sync-changelog.mjs && node scripts/build-search-index.mjs"
   },
   "engines": {
     "node": ">=22.18"

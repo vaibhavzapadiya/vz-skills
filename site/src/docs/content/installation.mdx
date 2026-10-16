@@ -58,7 +58,7 @@ npx vz-skills install --flat [--scope user|project|local] [--force]
 | `project` | `.claude/skills/`, `.claude/agents/` | `.claude/vz-skills/` | merged into `.claude/settings.json` using `${CLAUDE_PROJECT_DIR}`; portable, commit it |
 | `local` | same as project | same as project | merged into `.claude/settings.local.json` (personal) |
 
-`user` scope honours `CLAUDE_CONFIG_DIR` when set. What the flat installer rewrites:
+`user` scope honours `CLAUDE_CONFIG_DIR` when set. The plugin keeps its skills in group folders (`entry`, `lifecycle`, `specialists`, `productivity`); the flat installer flattens them to `<skills>/<name>`, because Claude Code does not nest skill names. It refuses to install if a group is not listed in `plugin.json`. What the flat installer rewrites:
 
 - `${CLAUDE_PLUGIN_ROOT}` becomes the runtime path.
 - `/vz-skills:<name>` becomes `/<name>`; agent references lose the prefix.
@@ -83,7 +83,7 @@ claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin list
 claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin details vz-skills
 ```
 
-On 2.1.259 `details` lists 19 skills, 3 agents, and 2 hook events (`PreToolUse`, `SessionStart`).
+On 2.1.259 `details` lists 24 skills, 3 agents, and 2 hook events (`PreToolUse`, `SessionStart`).
 
 ## Option C: local marketplace from a clone
 

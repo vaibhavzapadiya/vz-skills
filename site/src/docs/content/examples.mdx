@@ -72,6 +72,33 @@ The baseline runs only if the detected test command is on the allowlist; otherwi
 
 `release` freezes scope, runs full verification, audits dependencies, drafts the version bump and changelog, inspects the artifact, writes a rollback plan, and gives a go or no-go. Tagging, pushing, and publishing happen only when you say so, one step at a time.
 
+## A long task, handed over
+
+Before context runs out, or before you stop for the day:
+
+```text
+/checkpoint save
+```
+
+The checkpoint file records the criteria, each slice with its status label and evidence, the last commands with their results, dirty files that are not yours, blockers, and one next exact action. It contains no secrets: it references locations, not values. Add `.vz-skills/checkpoint.md` to `.gitignore` if the task is personal.
+
+In a new session, or after a teammate takes over:
+
+```text
+/checkpoint resume
+```
+
+Resume reports each drift explicitly, for example that HEAD changed or that a check now fails, re-runs the last narrow check, and downgrades labels the repository no longer supports. It then continues from the first slice that is not VERIFIED.
+
+When the work is verified, hand it on:
+
+```text
+/standup yesterday
+/pr main
+```
+
+`/standup` summarises git history, the working tree, and the checkpoint. `/pr` writes the title and description from the `verify` evidence and prints the `gh pr create` command. It creates the pull request only when you ask, and `approvals.external_actions: "refuse"` means it never does.
+
 ## Raising rigor for one session
 
 Set the profile through the environment without editing files:
