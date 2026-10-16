@@ -1,6 +1,6 @@
 # Install, update, roll back, uninstall
 
-Every command below was taken from the official Claude Code plugin documentation (accessed 2026-10-16, see `docs/research/source-register.md`) and the ones marked *verified* were executed on Claude Code **2.1.259** on Windows 11 during the build (see `project/PROGRESS.md` for the log).
+Every command below was taken from the official Claude Code plugin documentation (accessed 2026-10-16; the pages are listed in `docs/decisions.md` and `docs/testing-and-evaluation.md`) and the ones marked *verified* were executed on Claude Code **2.1.259** on Windows 11 during the build.
 
 ## Prerequisites
 

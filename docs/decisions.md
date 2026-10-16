@@ -1,6 +1,16 @@
 # VZ Skills - Decision Log
 
-Record consequential design decisions. Add new decisions at the top. Do not silently change an accepted decision; supersede it with a new entry and rationale.
+Architecture decisions for the plugin, newest first. Do not silently change an accepted decision; supersede it with a new entry and rationale.
+
+Prior art studied before the design (all MIT, accessed 2026-10-16; ideas only, no code or text copied): obra/superpowers, addyosmani/agent-skills, mattpocock/skills. Platform conventions were verified against the official Claude Code documentation pages for plugins (manifest reference, components, CLI reference, marketplace reference, install), skills, commands, hooks, sub-agents, and plugin evals, accessed 2026-10-16.
+
+### DEC-013 - Plugin repository holds only the plugin; the build kit lives beside it
+
+- **Status:** ACCEPTED
+- **Date:** 2026-10-16
+- **Context:** The repository was built from a specification kit (prompts, spec, trackers, audit). The owner asked for a clean open-source repository.
+- **Decision:** This repository keeps the plugin, its tests and fixtures, user documentation, this decision log, and release tooling. The kit and all process files moved to a sibling folder (`VZ-skills-kit`) outside the repository. DEC-004 is superseded for the repository; the trackers remain the source of truth in the kit folder.
+- **Consequences/trade-offs:** Public readers see only what they need; progress and acceptance tracking continue privately. Docs here no longer reference tracker files.
 
 ## Decision template
 
@@ -95,7 +105,7 @@ Record consequential design decisions. Add new decisions at the top. Do not sile
 
 ### DEC-004 - Tracker location stays at `project/` (kit layout), research at `docs/research/`
 
-- **Status:** ACCEPTED
+- **Status:** SUPERSEDED by DEC-013 (the kit folder now holds these; paths below are relative to that folder)
 - **Date:** 2026-10-16
 - **Context:** The kit's protocol text references `docs/project/*.md` while the kit itself (and the build instructions) ship and name `project/*.md`.
 - **Decision:** `project/` remains the single source of truth; `docs/project/README.md` points there to satisfy the resume/audit prompts. Research outputs go to `docs/research/` as the master prompt requires.

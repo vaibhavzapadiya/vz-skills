@@ -4,7 +4,7 @@ Everything below was executed on 2026-10-16 on the build machine (Windows 11 Pro
 
 ## Layers and what covers them
 
-| Layer (quality/test-strategy.md) | Where | Count | Result |
+| Layer | Where | Count | Result |
 |---|---|---|---|
 | Structural | `tests/structure.test.js`, `vz-validate.js`, `claude plugin validate` | 8 | PASS |
 | Config | `tests/config.test.js` | 14 | PASS |
@@ -41,7 +41,7 @@ Skills (19) ...  Agents (3) ...  Hooks (2) PreToolUse, SessionStart
 Always-on: ~1,772 tok added to every session
 ```
 
-## Fixture matrix (spec/repository-intelligence.md) - status
+## Fixture matrix - status
 
 | Fixture | Test | Key assertion | Status |
 |---|---|---|---|

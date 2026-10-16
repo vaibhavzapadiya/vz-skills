@@ -4,8 +4,8 @@
  * vz-validate: structural validation for the VZ Skills plugin.
  *
  * Checks the plugin manifest, every SKILL.md, every agent file, and
- * hooks/hooks.json against the conventions verified in docs/research/source-register.md
- * (Claude Code docs, accessed 2026-10-16). It is stricter than `claude plugin validate`
+ * hooks/hooks.json against the conventions in the official Claude Code docs
+ * (plugins/manifest-reference, skills, sub-agents, hooks pages; accessed 2026-10-16). It is stricter than `claude plugin validate`
  * in places (naming, description length, line counts) and complementary to it: run both.
  *
  * Usage: node vz-validate.js [pluginRoot] [--json]

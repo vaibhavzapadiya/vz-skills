@@ -21,7 +21,7 @@ The calling skill passes: the diff or file list, acceptance criteria, risk tier,
 
 ## Why not more agents
 
-Performance, documentation, and test-strategy personas were considered and rejected for v1: each would duplicate an in-context skill with no isolation benefit and add orchestration cost (see `docs/research/gap-analysis.md`, D5).
+Performance, documentation, and test-strategy personas were considered and rejected for v1: each would duplicate an in-context skill with no isolation benefit and add orchestration cost (see `docs/decisions.md`, DEC-008).
 
 ## Validation
 

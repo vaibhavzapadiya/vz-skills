@@ -20,11 +20,11 @@ VZ-skills/                         repository = local marketplace root
 ├── fixtures/                        13 repositories for discovery tests
 ├── tests/*.test.js                  node:test suites (structure, config, discovery, hooks, platform)
 ├── scripts/                         workspace tooling (catalog generator, release packager)
-├── docs/                            user and maintainer documentation, research, examples
-└── project/ spec/ quality/ tracking/ prompts/ templates/ research/   the specification kit and trackers
+├── docs/                            user and maintainer documentation, decisions, examples
+└── .github/workflows/ci.yml         CI: npm test, catalog check, structural validation
 ```
 
-## Layers (mapped to spec/architecture.md)
+## Layers
 
 | Layer | Implementation | Validated by |
 |---|---|---|

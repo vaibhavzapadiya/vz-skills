@@ -24,6 +24,9 @@ First implementation, built from the specification kit against Claude Code 2.1.2
 - Directory walker skipped `.github`.
 - Release archive built with PowerShell `Compress-Archive` had backslash entry names (unusable on macOS/Linux); the packager now uses bsdtar and rejects any backslash entry, with a regression test.
 
+### Changed
+- Repository split: the specification kit and all process/tracker files moved out of the repository (DEC-013); `docs/decisions.md` keeps the decision log. Added a GitHub Actions workflow.
+
 ### Known limitations
 - `claude plugin eval` behaviour on CLI 2.1.259 is below the documented minimum; see `docs/testing-and-evaluation.md` for what was observed.
 - Injection detection and command guarding are heuristic and advisory.

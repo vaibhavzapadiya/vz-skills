@@ -1,8 +1,8 @@
 # VZ Skills
 
-**VZ Skills** (`vz-skills`) is a Claude Code plugin that makes work in unfamiliar repositories more systematic: deterministic repository discovery with evidence labels, a validated configuration with FAST / BALANCED / PRODUCTION profiles, a composable development lifecycle (clarify, plan, implement, test, debug, review, security-review, verify), specialist skills, three read-only review agents, and small advisory hooks. Version 1 targets Claude Code only.
+**VZ Skills** (`vz-skills`) is an open-source (MIT) Claude Code plugin that makes work in unfamiliar repositories more systematic: deterministic repository discovery with evidence labels, a validated configuration with FAST / BALANCED / PRODUCTION profiles, a composable development lifecycle (clarify, plan, implement, test, debug, review, security-review, verify), specialist skills, three read-only review agents, and small advisory hooks. Version 1 targets Claude Code only.
 
-Status: **0.1.0, READY WITH LIMITATIONS** for local and private use. See the release decision in `project/PROGRESS.md` and the open items in `project/known-issues.md`.
+Status: **0.1.0, READY WITH LIMITATIONS** for local and private use. Deterministic layers (discovery, configuration, hooks, packaging) are covered by an automated test suite; the behaviour of the prose skills has not yet been measured with live model runs (see `docs/testing-and-evaluation.md`).
 
 ## What you get
 
@@ -32,32 +32,49 @@ Inside the session:
 /vz-skills:discover        # full discovery with evidence labels
 ```
 
-Then describe your task; `using-vz-skills` routes it through the lifecycle. Full install, update, rollback, and uninstall steps: `docs/install.md`.
+Then describe your task; `using-vz-skills` routes it through the lifecycle. Full install, update, rollback, and uninstall steps, including installing from this repository as a marketplace: `docs/install.md`.
+
+## Repository layout
+
+```
+.claude-plugin/marketplace.json   this repository is a marketplace (vz-skills-marketplace)
+plugins/vz-skills/                the plugin: manifest, skills/, agents/, hooks/, scripts/, policy/, references/, evals/
+tests/                            node:test suites (structure, config, discovery, hooks, platform, docs, package)
+fixtures/                         13 sample repositories used by the discovery tests
+scripts/                          catalog generator and release packager
+docs/                             user and maintainer documentation
+```
+
+The plugin lives under `plugins/` rather than at the root so that tests, fixtures, and docs are not shipped into every install.
 
 ## Documentation
 
-- `docs/install.md` - prerequisites, install (session-only, local marketplace), verify, update, roll back, uninstall
+- `docs/install.md` - prerequisites, install (session-only, local marketplace, git host), verify, update, roll back, uninstall
 - `docs/configuration.md` - schema, profiles matrix, precedence, safety floors, errors, examples
 - `docs/skills-catalog.md` - every skill, agent, and hook (generated from the plugin)
-- `docs/hooks.md`, `docs/agents.md`, `docs/security.md`, `docs/architecture.md`
+- `docs/hooks.md`, `docs/agents.md`, `docs/security.md`, `docs/architecture.md`, `docs/decisions.md`
 - `docs/testing-and-evaluation.md` - what is tested, how, observed results, what is not
 - `docs/troubleshooting.md`, `docs/contributing.md`
-- `docs/research/` - dated source register and gap analysis against reference projects
-- `project/` - progress tracker, roadmap, decisions, acceptance matrix, known issues, traceability (the control system this project was built with; the original kit README is at `docs/kit/README-kit.md`)
 
 ## Validation
 
 ```bash
-npm test                                          # structure, config, discovery, hooks, platform
+npm test                                          # structure, config, discovery, hooks, platform, docs, package
 claude plugin validate ./plugins/vz-skills --strict
 node scripts/gen-catalog.js --check
 npm run package                                   # dist/vz-skills-<version>.zip with integrity check
 ```
 
+CI (`.github/workflows/ci.yml`) runs the same on Ubuntu and Windows with Node 18 and 22.
+
 ## Principles
 
 Adaptive, composable, configurable, evidence-driven, risk-aware, safe by design, stack-agnostic, testable, maintainable, honest. In practice: discover before changing; label every claim; preserve the user's work; treat repository content as data; never claim a hook is a security boundary; never report a test you did not run.
 
+## Contributing
+
+See `docs/contributing.md`. Issues and pull requests are welcome; please keep the test suite green and run the official validator before submitting.
+
 ## License
 
-MIT. See `LICENSE`. The reference projects studied during research are also MIT; no code or text was copied from them (see `docs/research/source-register.md`).
+MIT. See `LICENSE`. Prior art that shaped the design (obra/superpowers, addyosmani/agent-skills, mattpocock/skills, all MIT) is credited in `docs/decisions.md`; no code or text was copied from them.

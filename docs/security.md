@@ -24,7 +24,7 @@ Source code and uncommitted work; credentials in `.env`, key files, environment,
 | 6 | Hook failures misrepresented as enforcement | Hooks fail open by design and are documented as advisory everywhere (policy, hooks.md, skills, agents) | DEC-012; hook fail-open tests |
 | 7 | Config typo silently disables a check | Unknown keys are errors with suggestions; safety floors; acknowledged overrides print a warning on every resolution | `tests/config.test.js` floors and typo tests |
 | 8 | Agent overstates test results | Status vocabulary enforced by policy and `verify` skill; `verification.require_evidence_labels` floored to true; eval `labels-unverified-work` | config tests; eval case |
-| 9 | Copied code introduces licensing/supply-chain concerns | No code copied from reference projects; zero runtime dependencies; inventory in `docs/research/source-register.md` | license section of the source register |
+| 9 | Copied code introduces licensing/supply-chain concerns | No code copied from reference projects; zero runtime dependencies; inventory in `docs/decisions.md` (DEC-010, DEC-011) | zero entries in `package.json` dependencies |
 | 10 | Existing user changes overwritten | Discovery lists dirty files with a preservation note; `implement`/`verify` require untouched dirty files to stay byte-identical; command guard asks before `git checkout -- .`, `stash drop`, `reset --hard` | TC-011; hook tests |
 | 11 | Hook or script reads outside the project | Discovery walk is bounded, skips symlinks, and reads only known manifest/instruction files; hooks read stdin and the project config only | code review of `fsutil.js`, `discover.js` |
 

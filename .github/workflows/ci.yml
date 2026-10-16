@@ -1,0 +1,25 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [18, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      # No dependencies to install: the plugin and its tests are dependency-free Node.
+      # Platform tests (tests/platform.test.js) skip automatically when the `claude` CLI is absent.
+      - run: npm test
+      - run: node scripts/gen-catalog.js --check
+      - run: node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills
