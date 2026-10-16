@@ -76,7 +76,9 @@ test('flat (unprefixed) install at user scope: skills/agents/runtime/hooks creat
     assert.ok(skills.includes('plan') && skills.includes('discover'));
     const plan = fs.readFileSync(path.join(cfg, 'skills', 'plan', 'SKILL.md'), 'utf8');
     assert.doesNotMatch(plan, /CLAUDE_PLUGIN_ROOT|\/vz-skills:/, 'plugin references rewritten');
-    assert.match(plan, /references\/risk-tiers\.md/);
+    const clarify = fs.readFileSync(path.join(cfg, 'skills', 'clarify', 'SKILL.md'), 'utf8');
+    assert.match(clarify, /vz-skills\/references\/risk-tiers\.md/, 'reference path rewritten to the runtime directory');
+    assert.doesNotMatch(clarify, /CLAUDE_PLUGIN_ROOT/);
     assert.match(fs.readFileSync(path.join(cfg, 'skills', 'vz-status', 'SKILL.md'), 'utf8'), /^name: vz-status$/m);
     assert.match(fs.readFileSync(path.join(cfg, 'skills', 'using-vz-skills', 'SKILL.md'), 'utf8'), /`\/discover`|\/discover\b/);
     assert.equal(fs.readdirSync(path.join(cfg, 'agents')).length, 3);

@@ -1,10 +1,10 @@
 {
   "archive": "D:\\Trash\\VZ-skills\\dist\\vz-skills-0.1.0.zip",
   "archiver": "bsdtar",
-  "bytes": 216242,
-  "sha256": "8362427fbf8816c1d851d429db0e339edc57dfd411650047fde8519cfb93af62",
-  "files": 139,
-  "entries": 139,
+  "bytes": 224055,
+  "sha256": "6ed67b2a673bd70bdfa18725fc114a9aed96caadfbd7870a0ee3854ed3735e13",
+  "files": 140,
+  "entries": 140,
   "verified": true,
   "problems": [],
   "file_list": [
@@ -16,6 +16,7 @@
     "CHANGELOG.md",
     "LICENSE",
     "README.md",
+    "bin/lib/flat.js",
     "bin/vz-skills.js",
     "docs/agents.md",
     "docs/architecture.md",
