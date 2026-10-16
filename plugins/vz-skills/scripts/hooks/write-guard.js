@@ -54,7 +54,9 @@ function main() {
   const content = [ti.content, ti.new_string, ti.new_source, ...(Array.isArray(ti.edits) ? ti.edits.map((e) => e && e.new_string) : [])].filter((s) => typeof s === 'string').join('\n');
   if (content && SECRET_CONTENT.test(content)) {
     const m = content.match(SECRET_CONTENT)[0];
-    if (!PLACEHOLDER.test(m) && !/\.(example|sample|template|dist)$/.test(base) && !/(fixture|test|spec|mock)/i.test(p)) reasons.push('content contains a credential-looking value; secrets must not be written into the repository');
+    const relLower = toPosix(rel).toLowerCase();
+    const isTestArtifact = /(^|\/)(tests?|__tests__|fixtures?|__fixtures__|__mocks__|mocks?|specs?|testdata)\//.test(relLower) || /\.(test|spec)\.[a-z]+$/.test(relLower);
+    if (!PLACEHOLDER.test(m) && !/\.(example|sample|template|dist)$/.test(base) && !isTestArtifact) reasons.push('content contains a credential-looking value; secrets must not be written into the repository');
   }
   if (!reasons.length) return process.exit(0);
   return emit(preToolDecision('ask', `vz-skills write guard: ${reasons.join('; ')}. Confirm with the user before writing.`));
