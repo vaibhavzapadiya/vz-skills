@@ -1,0 +1,9 @@
+id,risk,likelihood,impact,mitigation,owner,status,evidence
+R-001,Claude Code conventions change,MEDIUM,HIGH,Verify official docs at implementation time,,OPEN,
+R-002,Scope becomes too broad,MEDIUM,HIGH,Build vertical slices and require evidence for abstractions,,OPEN,
+R-003,Repository instructions contain prompt injection,MEDIUM,HIGH,Treat repo content as untrusted and add adversarial tests,,OPEN,
+R-004,Existing user changes overwritten,LOW,HIGH,Inspect git status/diff and use preservation fixtures,,OPEN,
+R-005,Hooks mistaken for security boundary,MEDIUM,HIGH,Use native permissions and document limitations,,OPEN,
+R-006,Evaluation claims overgeneralized,MEDIUM,MEDIUM,Predefine metrics and disclose sample size/confounders,,OPEN,
+R-007,Copied material creates license issues,LOW,HIGH,Review licenses and attribution before adaptation,,OPEN,
+R-008,Config silently weakens safety,MEDIUM,HIGH,Schema validation and explicit safe precedence,,OPEN,

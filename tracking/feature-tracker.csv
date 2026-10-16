@@ -1,0 +1,13 @@
+id,feature,requirement_ids,phase,priority,status,owner,implementation_paths,test_evidence,blocker,notes
+FT-001,Current Claude Code compatibility,REQ-001,0,P0,NOT_STARTED,,,,,Verify current official docs
+FT-002,Minimal valid plugin,REQ-002,1,P0,NOT_STARTED,,,,,Build smallest valid slice
+FT-003,Skill contract,REQ-003,1,P0,NOT_STARTED,,,,,Validate against official docs
+FT-004,Config and profiles,REQ-004;REQ-005,2,P1,NOT_STARTED,,,,,Schema and behavior tests
+FT-005,Repository intelligence,REQ-006;REQ-007,3,P1,NOT_STARTED,,,,,Fixture matrix
+FT-006,Core lifecycle,REQ-008;REQ-013,4,P0,NOT_STARTED,,,,,End-to-end scenario
+FT-007,Commands,REQ-009,5,P1,NOT_STARTED,,,,,Only useful supported commands
+FT-008,Hooks,REQ-010,6,P2,NOT_STARTED,,,,,Justify each hook
+FT-009,Specialist agents/skills,REQ-011,7,P2,NOT_STARTED,,,,,Prove distinct value
+FT-010,Security validation,REQ-012,8,P0,NOT_STARTED,,,,,Threat model and adversarial fixtures
+FT-011,Evaluation/regression,REQ-014;REQ-015,9,P1,NOT_STARTED,,,,,Reproducible results
+FT-012,Distribution/release,REQ-016;REQ-018;REQ-019,10,P0,NOT_STARTED,,,,,Final audit
