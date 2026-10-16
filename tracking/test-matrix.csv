@@ -1,17 +1,20 @@
 test_id,scenario,requirement_ids,fixture,expected_result,status,command_or_procedure,evidence,notes
-TC-001,Minimal package validation,REQ-001;REQ-002,Minimal fixture,Package meets current supported structure,NOT_STARTED,,,
-TC-002,Valid config,REQ-004;REQ-005,Valid sample config,Accepted and resolved preferences are correct,NOT_STARTED,,,
-TC-003,Malformed config,REQ-004,Malformed config,Actionable error and no silent fallback,NOT_STARTED,,,
-TC-004,TypeScript discovery,REQ-006,TypeScript fixture,Stack and available commands grounded in files,NOT_STARTED,,,
-TC-005,Python discovery,REQ-006,Python fixture,Stack and available commands grounded in files,NOT_STARTED,,,
-TC-006,Monorepo discovery,REQ-006,Monorepo fixture,Packages and tooling boundaries identified,NOT_STARTED,,,
-TC-007,No tests,REQ-006;REQ-008,No-test fixture,Absence of tests reported honestly,NOT_STARTED,,,
-TC-008,Failing baseline tests,REQ-006;REQ-013,Failing fixture,Baseline failure preserved and distinguished,NOT_STARTED,,,
-TC-009,Unknown stack,REQ-006,Unknown fixture,Unknowns reported without fabricated commands,NOT_STARTED,,,
-TC-010,Custom CLAUDE.md,REQ-007,Custom instructions fixture,Existing instructions preserved and considered,NOT_STARTED,,,
-TC-011,Dirty working tree,REQ-007,Uncommitted-change fixture,Changes preserved,NOT_STARTED,,,
-TC-012,Malicious repo instruction,REQ-012,Prompt-injection fixture,Malicious instruction treated as untrusted data,NOT_STARTED,,,
-TC-013,Unsafe path/config,REQ-004;REQ-012,Malformed path fixture,Unsafe write rejected or safely constrained,NOT_STARTED,,,
-TC-014,Task lifecycle end-to-end,REQ-008;REQ-013,Representative app fixture,Workflows end with evidence-based report,NOT_STARTED,,,
-TC-015,Unavailable test tool,REQ-013,Missing tool fixture,Check marked blocked/not verified with reason,NOT_STARTED,,,
-TC-016,Install verification,REQ-016,Clean environment,Install and uninstall instructions work,NOT_STARTED,,,
+TC-001,Minimal package validation,REQ-001;REQ-002,plugins/vz-skills,Package meets current supported structure,PASS,claude plugin validate ./plugins/vz-skills --strict --json; tests/platform.test.js,success:true no warnings; 5/5,CLI 2.1.259
+TC-002,Valid config,REQ-004;REQ-005,tests/config.test.js temp project + docs/examples,Accepted and resolved preferences are correct,PASS,node --test tests/config.test.js,14/14,sources reported per key
+TC-003,Malformed config,REQ-004,inline malformed JSON,Actionable error and no silent fallback,PASS,node --test tests/config.test.js,exit 1 with not-valid-JSON message,
+TC-004,TypeScript discovery,REQ-006,fixtures/ts-app,Stack and available commands grounded in files,PASS,node --test tests/discovery.test.js,pnpm test CONFIRMED + CI corroboration,
+TC-005,Python discovery,REQ-006,fixtures/python-pkg,Stack and available commands grounded in files,PASS,node --test tests/discovery.test.js,uv run pytest CONFIRMED,
+TC-006,Monorepo discovery,REQ-006,fixtures/monorepo,Packages and tooling boundaries identified,PASS,node --test tests/discovery.test.js,turbo + 3 packages,
+TC-007,No tests,REQ-006;REQ-008,fixtures/no-tests,Absence of tests reported honestly,PASS,node --test tests/discovery.test.js,test command (none) CONFIRMED,
+TC-008,Failing baseline tests,REQ-006;REQ-013,fixtures/failing-tests,Baseline failure preserved and distinguished,PASS,node --test tests/discovery.test.js,baseline FAIL exit!=0 with pre-existing note,regression for SEC-001
+TC-009,Unknown stack,REQ-006,fixtures/unknown-stack,Unknowns reported without fabricated commands,PASS,node --test tests/discovery.test.js,all commands UNKNOWN,
+TC-010,Custom CLAUDE.md,REQ-007,fixtures/custom-claude-md,Existing instructions preserved and considered,PASS,node --test tests/discovery.test.js,file byte-identical; listed as untrusted,
+TC-011,Dirty working tree,REQ-007,fixtures/ts-app + git init,Changes preserved,PASS,node --test tests/discovery.test.js,M src/index.ts listed; edit preserved,
+TC-012,Malicious repo instruction,REQ-012,fixtures/malicious-instructions,Malicious instruction treated as untrusted data,PASS,node --test tests/discovery.test.js,5 indicators flagged; .env never read,live eval case also written (BLOCKED)
+TC-013,Unsafe path/config,REQ-004;REQ-012,inline configs,Unsafe write rejected or safely constrained,PASS,node --test tests/config.test.js; tests/hooks.test.js; discovery --out test,paths rejected; write guard asks/denies,
+TC-014,Task lifecycle end-to-end,REQ-008;REQ-013,fixture copies + plugin,Workflows end with evidence-based report,BLOCKED,claude -p ... --plugin-dir; claude plugin eval,OAuth session expired; eval in early access on 2.1.259,needs claude login and >= 2.1.269
+TC-015,Unavailable test tool,REQ-013,fixtures/missing-tool,Check marked blocked/not verified with reason,PASS,node --test tests/discovery.test.js,baseline BLOCKED (not on PATH),
+TC-016,Install verification,REQ-016,plugins/vz-skills,Install and uninstall instructions work,PASS (partial),claude --plugin-dir ./plugins/vz-skills plugin list,loaded; marketplace install path NOT_RUN,KI-004
+TC-017,Hook behaviour,REQ-010;REQ-012,tests/hooks.test.js temp projects,deny/ask/silent/fail-open/latency as documented,PASS,node --test tests/hooks.test.js,16/16,
+TC-018,Documentation accuracy,REQ-017,docs/,Docs agree with implementation,PASS,node --test tests/docs.test.js,7/7,
+TC-019,Package integrity,REQ-019,dist/,Archive lists every file with matching sizes,PASS,npm run package,dist/vz-skills-0.1.0.manifest.json verified:true,

@@ -1,6 +1,6 @@
 # Research Source Register
 
-Research should be performed during Phase 0. These are starting points, not claims that the pages have already been reviewed.
+Research was performed during Phase 0 on 2026-10-16. The completed register with findings lives at `docs/research/source-register.md`; the table below is the original starting list.
 
 | Source | URL | Why consult it | Access date | Findings |
 |---|---|---|---|---|

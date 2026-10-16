@@ -1,6 +1,6 @@
 # VZ Skills — Competitive Gap Analysis
 
-> Complete during Phase 0 using current source evidence. This template intentionally contains no fabricated findings.
+> Template. The completed analysis is at `docs/research/gap-analysis.md` (2026-10-16).
 
 ## Executive summary
 - User problem:

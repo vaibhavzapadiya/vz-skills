@@ -1,9 +1,11 @@
 id,risk,likelihood,impact,mitigation,owner,status,evidence
-R-001,Claude Code conventions change,MEDIUM,HIGH,Verify official docs at implementation time,,OPEN,
-R-002,Scope becomes too broad,MEDIUM,HIGH,Build vertical slices and require evidence for abstractions,,OPEN,
-R-003,Repository instructions contain prompt injection,MEDIUM,HIGH,Treat repo content as untrusted and add adversarial tests,,OPEN,
-R-004,Existing user changes overwritten,LOW,HIGH,Inspect git status/diff and use preservation fixtures,,OPEN,
-R-005,Hooks mistaken for security boundary,MEDIUM,HIGH,Use native permissions and document limitations,,OPEN,
-R-006,Evaluation claims overgeneralized,MEDIUM,MEDIUM,Predefine metrics and disclose sample size/confounders,,OPEN,
-R-007,Copied material creates license issues,LOW,HIGH,Review licenses and attribution before adaptation,,OPEN,
-R-008,Config silently weakens safety,MEDIUM,HIGH,Schema validation and explicit safe precedence,,OPEN,
+R-001,Claude Code conventions change,MEDIUM,HIGH,Dated source register; validators re-run before release; weekly changelog noted,,OPEN (mitigated),docs/research/source-register.md
+R-002,Scope becomes too broad,MEDIUM,HIGH,Vertical slices; 19 skills each with distinct trigger; rejected/deferred list,,CLOSED,project/known-issues.md DF-001..003
+R-003,Repository instructions contain prompt injection,MEDIUM,HIGH,Policy rule 4; discovery scanner; adversarial fixture and eval,,OPEN (mitigated),TC-012
+R-004,Existing user changes overwritten,LOW,HIGH,Discovery dirty-file note; guards; preservation tests,,OPEN (mitigated),TC-010; TC-011
+R-005,Hooks mistaken for security boundary,MEDIUM,HIGH,Advisory fail-open design documented everywhere,,CLOSED,DEC-012; docs/hooks.md
+R-006,Evaluation claims overgeneralized,MEDIUM,MEDIUM,No claims made; methodology documented; runs BLOCKED,,CLOSED,docs/testing-and-evaluation.md
+R-007,Copied material creates license issues,LOW,HIGH,No code copied; zero deps; register notes MIT prior art,,CLOSED,docs/research/source-register.md
+R-008,Config silently weakens safety,MEDIUM,HIGH,Floors + acknowledged overrides with persistent warnings,,CLOSED,tests/config.test.js
+R-009,Live behaviour of skills untested before release,HIGH,MEDIUM,Eval suite shipped; blocked by CLI gate and credentials; limitation stated,,OPEN,KI-002
+R-010,Guard false positives annoy users,MEDIUM,LOW,Narrow regexes; ask not deny for risky; approvals config,,OPEN,tests/hooks.test.js ordinary-command cases
