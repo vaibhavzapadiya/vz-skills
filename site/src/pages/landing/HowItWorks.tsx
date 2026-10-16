@@ -32,8 +32,8 @@ export function HowItWorks() {
             </li>
           ))}
           <li className="flex items-center rounded-xl border border-dashed border-border-strong p-5 sm:col-span-2 lg:col-span-1">
-            <Link to="/docs/lifecycle" className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline underline-offset-4">
-              Read the lifecycle guide <IconArrowRight size={14} />
+            <Link to="/docs/concepts#how-a-request-flows" className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline underline-offset-4">
+              See how a request flows <IconArrowRight size={14} />
             </Link>
           </li>
         </ol>

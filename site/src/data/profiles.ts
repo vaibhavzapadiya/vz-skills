@@ -26,12 +26,6 @@ export const profileMatrix: MatrixRow[] = [
   { key: 'verification.depth', FAST: 'targeted', BALANCED: 'standard', PRODUCTION: 'exhaustive', plain: 'What verify re-runs' },
 ];
 
-export const profileBlurbs: Record<ProfileName, { title: string; when: string }> = {
-  FAST: { title: 'Fast', when: 'Prototypes, personal scripts, repositories without CI. Plans only for high risk, runs the changed units, summary report.' },
-  BALANCED: { title: 'Balanced', when: 'The default. Plans for medium risk and above, records a baseline, runs affected tests, evidence-table report.' },
-  PRODUCTION: { title: 'Production', when: 'CI, deploy configs, auth, or payments present. Always plans, full suite plus lint and typecheck, independent review, full report.' },
-};
-
 /** Rows shown in the README's shorter comparison; used on the landing page. */
 export const profileHighlights: Array<{ label: string; FAST: string; BALANCED: string; PRODUCTION: string }> = [
   { label: 'Write a plan when risk is', FAST: 'high', BALANCED: 'medium or above', PRODUCTION: 'always' },

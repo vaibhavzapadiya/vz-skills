@@ -1,61 +1,32 @@
 <Lead>
-VZ Skills is a plugin for Claude Code. It discovers a repository before touching it, turns vague requests into checkable criteria, plans in small verified slices, runs the right tests, reviews its own work, and reports exactly what was verified and what was not.
+VZ Skills is a plugin for Claude Code. It makes Claude look before it changes things, and say exactly what was checked when it is done.
 </Lead>
 
 ```bash
 npx vz-skills install --flat
 ```
 
-Then, inside Claude Code:
+## What you get
 
-```text
-/vz-status      # profile, repository brief, hook status
-/discover       # stack, commands, tests, git state, with evidence labels
-"add rate limiting to the login endpoint"   # clarify -> plan -> implement -> test -> review -> verify
-```
+- **24 skills.** Slash commands such as `/discover`, `/plan` and `/verify`.
+- **3 agents.** Read-only helpers that review code with fresh eyes.
+- **3 hooks.** They ask before risky commands and file writes.
 
-## What it is
+## The idea
 
-The plugin is 24 skills, 3 read-only agents, and 3 hooks, backed by dependency-free Node scripts. Skills are short prose workflows. Everything that can be code is code and is unit-tested: repository discovery, configuration resolution, and the guards.
+- **Look first.** Claude reads your repository and says how sure it is about each fact.
+- **Small steps.** Work is split into slices, and each slice has its own test.
+- **Honest report.** At the end, every claim is marked as verified or not verified.
 
-| Part | Count | Role |
-|---|---|---|
-| Skills | 24 | Slash commands in four groups: entry points, the lifecycle, specialists, and productivity. See [Commands](/docs/commands). |
-| Agents | 3 | Read-only subagents for fresh-context review. See [Agents](/docs/agents). |
-| Hooks | 3 | Advisory guards on shell commands and file writes, plus a session brief. See [Hooks and guards](/docs/guards). |
-| Scripts | 3 CLIs | `vz-discover.js`, `vz-config.js`, `vz-validate.js`. See [CLI reference](/docs/cli). |
-
-## Who it is for
-
-Developers who use Claude Code on real repositories and want the work to be checkable. It fits a team that wants one shared definition of rigor (commit `.vz-skills/config.json`) and an individual who wants a final report they can trust without rereading the transcript.
-
-## What problem it solves
-
-Most failures in agent-driven development are not bad code. They are unverified claims, guessed commands, and side effects nobody asked for.
-
-- **Guessed commands.** Discovery reads manifests, Makefiles and CI. Every command carries a label and its evidence. `UNKNOWN` is a valid answer; a guessed command is not.
-- **Unverified claims.** `verify` re-runs checks after the last edit and records the command with its observed result.
-- **Collateral damage.** Dirty files are listed and left alone. The command guard asks before destructive git operations.
-- **Prompt injection through the repository.** Text in files is data. Discovery flags injection indicators and the core policy says to quote and refuse.
-
-## Key concepts
-
-<Cards>
-<Card to="/docs/concepts#evidence-labels" title="Evidence labels">Two vocabularies used everywhere: facts about the repository and claims about the work.</Card>
-<Card to="/docs/concepts#profiles" title="Profiles">FAST, BALANCED, PRODUCTION. One setting scales planning, testing, review, and reporting.</Card>
-<Card to="/docs/concepts#risk-tiers" title="Risk tiers">Low, medium, high. Auth, payments, migrations, infrastructure and secrets are always high.</Card>
-<Card to="/docs/security" title="Trust boundaries">Claude Code permissions are the boundary. VZ hooks are advisory and fail open.</Card>
-</Cards>
-
-## What it is not
-
-<Callout kind="warning" title="Limits to know up front">
-VZ Skills is not a security boundary. The guards match text, not behaviour, and the injection scanner is heuristic. Claude Code is the only supported runtime. No claim is made that it performs better than plain Claude Code: the live-session eval suite exists but could not be run on the build machine. See [Limitations](/docs/limitations).
+<Callout kind="note" title="What it is not">
+It is not a security sandbox. Claude Code's own permissions stay in charge. See [Security and limits](/docs/security).
 </Callout>
 
-## Where to go next
+## Next
 
-- New here: [Getting started](/docs/getting-started).
-- Choosing an install form: [Installation](/docs/installation).
-- Tuning rigor: [Configuration](/docs/configuration).
-- Looking up a command: [Commands](/docs/commands).
+<Cards>
+<Card to="/docs/getting-started" title="Getting started">Install it and try it in a few minutes.</Card>
+<Card to="/docs/concepts" title="Concepts">Evidence labels, profiles, and how a request flows.</Card>
+<Card to="/docs/commands" title="Commands">All 24 skills in one list.</Card>
+<Card to="/docs/configuration" title="Configuration">Turn the rigor up or down.</Card>
+</Cards>

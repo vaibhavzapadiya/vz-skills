@@ -1,105 +1,39 @@
 <Lead>
-Two layers: the `vz-skills` installer CLI that you run with `npx`, and three dependency-free scripts inside the plugin that skills and hooks call.
+The installer you run with `npx`, and three small scripts inside the plugin.
 </Lead>
 
 ## `npx vz-skills`
 
 ```text
-npx vz-skills install [--scope user|project|local]      copy the plugin, register a marketplace, install it
-npx vz-skills install --flat [--scope ...] [--force]    unprefixed: install as personal or project skills
-npx vz-skills update [--flat]                           refresh the installed copy
-npx vz-skills uninstall [--flat] [--scope ...] [--purge]
-npx vz-skills try [claude args...]                      start Claude Code with the plugin for one session
-npx vz-skills doctor                                    check Node, Claude Code, marketplace, plugin, project config
-npx vz-skills path                                      print the plugin directory (for --plugin-dir)
-npx vz-skills validate                                  run `claude plugin validate --strict` on the bundled plugin
-npx vz-skills version
+install [--flat] [--scope user|project|local] [--force]
+update [--flat]
+uninstall [--flat] [--scope ...] [--purge]
+try                  start Claude Code with the plugin for one session
+doctor               check Node, Claude Code, the install, and your config
+path                 print the plugin folder
+validate             run the official plugin validator
 ```
 
-| Command | Notes |
-|---|---|
-| `install` | Requires `claude` on `PATH`. `--scope` defaults to `user`. Prints the next steps. |
-| `install --flat` | `--force` replaces an existing skill of the same name that VZ did not create. Your settings file is backed up first; your skill is not. |
-| `update` | Copies the new version into `~/.vz-skills/marketplace`, refreshes the marketplace, updates the plugin. With `--flat` it reinstalls with `--force`. |
-| `uninstall` | `--purge` also removes the marketplace registration and the managed copy. Never removes `.vz-skills/config.json`. |
-| `try` | Passes remaining arguments to `claude`. Nothing is written to settings. |
-| `doctor` | Exits 1 if Node is older than 18, `claude` is missing, or the project config has errors. Other lines are informational. |
+`install` needs `claude` on your `PATH`. `--force` replaces an existing skill of the same name that VZ did not create. `--purge` also removes the managed copy.
 
-**Environment.** `CLAUDE_CONFIG_DIR` is honoured by Claude Code and passes through, so you can test an install against an isolated settings directory. `VZ_SKILLS_HOME` overrides `~/.vz-skills`.
+Set `CLAUDE_CONFIG_DIR` to test an install against a separate settings folder.
 
-**Exit codes.** `0` ok, `1` a step failed (its output is shown), `2` usage error.
+## Scripts in the plugin
 
-## `vz-discover.js`
+Run these from a clone, or from the folder that `npx vz-skills path` prints.
 
 ```bash
-node plugins/vz-skills/scripts/vz-discover.js [root] [options]
+node scripts/vz-discover.js [folder] [--format json|md] [--run-baseline]
+node scripts/vz-config.js [--explain | --profiles | --schema] [--project <dir>]
+node scripts/vz-config.js --init [FAST|BALANCED|PRODUCTION]
+node scripts/vz-config.js --validate <file>
+node scripts/vz-validate.js [plugin folder]
 ```
 
-| Option | Default | Effect |
-|---|---|---|
-| `--format json\|md` | `json` | Machine-readable report, or the readable Markdown brief |
-| `--brief` | off | Shorter output |
-| `--out <file>` | none | Write the report to a file. Refuses paths outside the root. |
-| `--run-baseline` | off | Run the detected test command once, only if it is on the allowlist |
-| `--baseline-timeout <ms>` | 600000 | Baseline timeout; a timeout reports `BLOCKED` |
-| `--no-git` | git on | Skip git state |
-| `--no-tools` | tools on | Skip probing for tools on `PATH` |
-| `--max-depth <n>` | 4 | Directory depth, 1 to 12 |
-| `--cache` | off | Write the report to `.vz-skills/cache/` |
-| `--cached` | off | Read a matching cached report (ignored with `--run-baseline`) |
-
-Exit codes: `0` report produced, `2` usage error, `3` root unreadable. The JSON report's baseline field has `status` of `NOT_RUN`, `PASS`, `FAIL`, or `BLOCKED`, with the command, exit code, and an explanatory note.
-
-## `vz-config.js`
-
-```bash
-node plugins/vz-skills/scripts/vz-config.js [--project <dir>] [--summary | --json | --explain | --schema | --profiles]
-node plugins/vz-skills/scripts/vz-config.js --validate <file.json>
-node plugins/vz-skills/scripts/vz-config.js --init [FAST|BALANCED|PRODUCTION] [--project <dir>]
-node plugins/vz-skills/scripts/vz-config.js --no-user
-```
-
-| Mode | Output |
+| Script | Use it to |
 |---|---|
-| `--summary` | The profile line plus the effective settings, in six lines |
-| `--explain` | Every key with its value and source (`default`, `profile:BALANCED`, user, project) |
-| `--json` | The effective configuration as JSON |
-| `--schema` | The key schema as JSON |
-| `--profiles` | The preset matrix, one row per key |
-| `--validate <file>` | Validate one document without resolving, enforcing floors and minimums |
-| `--init [PROFILE]` | Write `.vz-skills/config.json`. Never overwrites; prints `exists:` instead. |
-| `--no-user` | Ignore `~/.vz-skills/config.json` |
+| `vz-discover.js` | Print what discovery sees. `--run-baseline` runs the test command once, if it is on the safe list. |
+| `vz-config.js` | Show settings and where they come from, create a config file, or validate one. |
+| `vz-validate.js` | Check the plugin's own structure. |
 
-Exit codes: `0` valid, `1` invalid configuration (errors printed, floors enforced), `2` usage error.
-
-```text title="--explain (excerpt)"
-planning.depth                              "standard"  <- profile:BALANCED
-planning.plan_when                          "risk>=medium"  <- profile:BALANCED
-profile                                     "BALANCED"  <- default
-verification.require_evidence_labels        true  <- default
-```
-
-## `vz-validate.js`
-
-```bash
-node plugins/vz-skills/scripts/vz-validate.js [pluginRoot] [--json]
-```
-
-Structural validation of the plugin: manifest, skill and agent frontmatter against the supported field lists, and hooks. It is stricter than `claude plugin validate` in places. Exit codes: `0` ok (warnings allowed), `1` errors found, `2` usage or unexpected error.
-
-```text
-Validation passed: 0 error(s), 0 warning(s); 24 skill(s), 3 agent(s), hooks: PreToolUse,SessionStart
-```
-
-## Workspace scripts
-
-In a clone of the repository, `package.json` defines:
-
-| Script | Runs |
-|---|---|
-| `npm test` | `node --test tests/*.test.js` |
-| `npm run test:structure`, `test:config`, `test:discovery`, `test:hooks`, `test:platform` | One suite each |
-| `npm run validate` | `vz-validate.js` on the plugin |
-| `npm run validate:claude` | `claude plugin validate ./plugins/vz-skills --strict` |
-| `npm run discover`, `npm run config` | The two scripts above |
-| `npm run package` | Build and verify `dist/vz-skills-<version>.zip` |
+Exit codes: `0` is fine, `1` means a configuration error (or a failed step), `2` means a usage error.

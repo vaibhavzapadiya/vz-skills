@@ -1,142 +1,47 @@
 <Lead>
-Four ways to get VZ Skills into Claude Code. Commands marked verified were executed on Claude Code 2.1.259 on Windows 11 against an isolated config directory.
+Pick one install form. Do not use two in the same scope, or every skill shows up twice.
 </Lead>
-
-## Prerequisites
-
-| Requirement | Why | Check |
-|---|---|---|
-| Claude Code 2.1.233+ (2.1.259+ recommended) | `--plugin-dir`, directory validation (2.1.233), `claude plugin validate --json` (2.1.259) | `claude --version` |
-| Node.js 18+ | Hooks and scripts are dependency-free Node | `node --version` |
-| git (optional) | Discovery reports branch and dirty files | `git --version` |
-
-No npm packages are installed by VZ Skills and nothing is downloaded at runtime.
-
-## Choose a form
 
 | You want | Run | Commands look like |
 |---|---|---|
-| Unprefixed commands (recommended) | `npx vz-skills install --flat` | `/plan`, `/discover`, `/review`, `/vz-status` |
-| The plugin as one unit | `npx vz-skills install` | `/vz-skills:plan`, `/vz-skills:discover` |
-| A look, nothing written | `npx vz-skills try` | `/vz-skills:...` for one session |
+| Short commands (recommended) | `npx vz-skills install --flat` | `/plan`, `/discover` |
+| The plugin as one unit | `npx vz-skills install` | `/vz-skills:plan` |
+| Just a look | `npx vz-skills try` | `/vz-skills:plan`, one session only |
 
-<Callout kind="warning" title="Do not combine forms in one scope">
-A flat install and a plugin install in the same scope list every skill twice. Uninstall one with `npx vz-skills uninstall --flat` or `npx vz-skills uninstall`.
+Claude Code puts the plugin name in front of plugin commands, and there is no setting to turn that off. The flat install avoids it by placing the skills in your own Claude config.
+
+<Callout kind="note" title="Two renames">
+With the flat install, `status` becomes `/vz-status` so Claude Code's own `/status` still works. `/review` replaces the built-in review command.
 </Callout>
 
-## Option A: npm
+## Scope
 
-<Status word="VERIFIED" />
+Add `--scope` to choose where it goes.
 
-```bash
-npx vz-skills install                    # user scope (default)
-npx vz-skills install --scope project
-npx vz-skills install --scope local
-```
+| Scope | Where | Use it for |
+|---|---|---|
+| `user` (default) | Your Claude config | Every project on your machine |
+| `project` | The repository's `.claude/` | Your team. Commit it. |
+| `local` | The repository's `.claude/`, hooks in `settings.local.json` | Only you, in one repository |
 
-In order, the installer checks that `claude` is on `PATH`, copies the bundled plugin to `~/.vz-skills/marketplace/plugins/vz-skills`, registers that directory as the marketplace `vz-skills-marketplace` (or refreshes it), and runs `claude plugin install vz-skills@vz-skills-marketplace --scope <scope>`. The copy exists because `npx` caches are temporary and a marketplace added from a directory is read in place.
-
-Observed output:
-
-```text
-Copied plugin 0.1.0 to ...\.vz-skills\marketplace\plugins\vz-skills
-✔ Successfully added marketplace: vz-skills-marketplace (declared in user settings)
-✔ Successfully installed plugin: vz-skills@vz-skills-marketplace (scope: user)
-```
-
-### Unprefixed commands: `--flat`
-
-Claude Code namespaces plugin skills as `/<plugin>:<skill>` and has no setting to disable that. Skills in the personal skills directory or a project's `.claude/skills` load as plain `/<name>`. `--flat` installs that way.
+## From a clone
 
 ```bash
-npx vz-skills install --flat [--scope user|project|local] [--force]
+claude --plugin-dir ./plugins/vz-skills                       # one session, nothing installed
+claude plugin marketplace add /path/to/VZ-skills              # or install from the clone
+claude plugin install vz-skills@vz-skills-marketplace
 ```
 
-| Scope | Skills and agents | Runtime (scripts, policy, references) | Hooks |
-|---|---|---|---|
-| `user` (default) | `~/.claude/skills/<name>/`, `~/.claude/agents/` | `~/.claude/vz-skills/` | merged into `~/.claude/settings.json` with absolute paths |
-| `project` | `.claude/skills/`, `.claude/agents/` | `.claude/vz-skills/` | merged into `.claude/settings.json` using `${CLAUDE_PROJECT_DIR}`; portable, commit it |
-| `local` | same as project | same as project | merged into `.claude/settings.local.json` (personal) |
-
-`user` scope honours `CLAUDE_CONFIG_DIR` when set. The plugin keeps its skills in group folders (`entry`, `lifecycle`, `specialists`, `productivity`); the flat installer flattens them to `<skills>/<name>`, because Claude Code does not nest skill names. It refuses to install if a group is not listed in `plugin.json`. What the flat installer rewrites:
-
-- `${CLAUDE_PLUGIN_ROOT}` becomes the runtime path.
-- `/vz-skills:<name>` becomes `/<name>`; agent references lose the prefix.
-- `status` is renamed `vz-status`, because a skill named `status` would replace Claude Code's built-in `/status`. `/review` is intentionally allowed to replace the bundled review command.
-
-Safety properties: each installed skill carries a `.vz-skills-managed` marker, and an existing skill of the same name without the marker stops the install unless you pass `--force`. `settings.json` is backed up beside itself before every write. `uninstall --flat` removes only the hook groups whose commands point into the runtime directory.
-
-## Option B: try for one session
-
-<Status word="VERIFIED" />
-
-From any project directory, with a clone of the repository:
+## Check, update, remove
 
 ```bash
-claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills
+npx vz-skills doctor                 # check Node, Claude Code, and the install
+npx vz-skills@latest update          # add --flat for the flat form
+npx vz-skills uninstall              # add --flat for the flat form, --purge to clean up fully
 ```
 
-The plugin loads as `vz-skills@inline`. Confirm with `/plugin`, or from a shell:
+Your `.vz-skills/config.json` files are never removed.
 
-```bash
-claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin list
-claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin details vz-skills
-```
-
-On 2.1.259 `details` lists 24 skills, 3 agents, and 2 hook events (`PreToolUse`, `SessionStart`).
-
-## Option C: local marketplace from a clone
-
-<Status word="VERIFIED" />
-
-The repository root is a marketplace (`.claude-plugin/marketplace.json`, name `vz-skills-marketplace`).
-
-```bash
-claude plugin marketplace add /path/to/VZ-skills
-claude plugin install vz-skills@vz-skills-marketplace --scope user
-```
-
-Scopes: `user` writes `~/.claude/settings.json`; `project` writes `.claude/settings.json` (committed, collaborators run the same install once); `local` writes `.claude/settings.local.json`. Restart Claude Code or run `/reload-plugins`. Inside a session, the equivalents are `/plugin marketplace add /path/to/VZ-skills` and `/plugin install vz-skills@vz-skills-marketplace`.
-
-## Option D: from a git host
-
-<Status word="NOT VERIFIED" />
-
-Push the repository to a git host and add it by URL, for example `claude plugin marketplace add your-org/vz-skills` for GitHub, then install as in Option C. This route was not exercised during the build because no remote was configured.
-
-## Verify an install
-
-```bash
-claude plugin list          # expect vz-skills@vz-skills-marketplace, Status: ✔ loaded
-npx vz-skills doctor        # Node, Claude Code, marketplace, plugin, flat installs, project config
-```
-
-In a session, type `/vz-skills:` and the skills should autocomplete, or run `/vz-status` after a flat install.
-
-## Update
-
-| Install | Update |
-|---|---|
-| npm, plugin form | `npx vz-skills@latest update` |
-| npm, flat form | `npx vz-skills@latest update --flat` |
-| Session only | Pull the repository; the next session uses the new files |
-| Marketplace | `claude plugin marketplace update vz-skills-marketplace`, then `claude plugin update vz-skills@vz-skills-marketplace` |
-
-Local marketplaces do not auto-update by default.
-
-## Roll back
-
-`plugin.json` carries a `version`. To pin an older version, check out the matching git tag or commit in your clone and run the update commands; a directory marketplace is read in place.
-
-## Uninstall
-
-<Status word="VERIFIED" />
-
-```bash
-npx vz-skills uninstall                  # plugin form
-npx vz-skills uninstall --purge          # also removes the marketplace and ~/.vz-skills/marketplace
-npx vz-skills uninstall --flat           # flat form; add --scope project|local if you used one
-claude plugin uninstall vz-skills@vz-skills-marketplace --scope user    # without npm
-```
-
-Left behind on purpose: `.vz-skills/config.json` in projects where you ran `setup`, and `~/.vz-skills/config.json` if you created one. Both are yours.
+<Callout kind="note" title="Not on npm yet">
+Until it is published, use a packed tarball (`npm pack`, then `npx --yes ./vz-skills-0.1.0.tgz install --flat`) or a clone.
+</Callout>

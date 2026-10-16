@@ -1,89 +1,55 @@
 <Lead>
-Short answers. Each links to the page with the detail.
+Short answers.
 </Lead>
 
-## General
+### Does it replace Claude Code's permissions?
 
-### Does VZ Skills replace Claude Code's permissions or sandbox?
-
-No. Claude Code's permissions and sandbox are the security boundary. VZ hooks can ask, deny, or stay silent, and they fail open. Nothing in VZ configuration can grant what Claude Code forbids. See [Security](/docs/security).
+No. Claude Code's permissions and sandbox are the boundary. VZ hooks only ask or deny on top of them, and they fail open. See [Security and limits](/docs/security).
 
 ### Is it better than plain Claude Code?
 
-Unknown. No comparison has been run, and no superiority claim is made. The method for measuring it is in `docs/testing-and-evaluation.md` in the repository: the shipped eval cases with `--ablation with-without --runs 3`, with the sample size disclosed. See [Limitations](/docs/limitations).
+Nobody knows yet. No comparison has been run, and none is claimed.
 
-### Which versions and platforms work?
+### Why `/vz-skills:plan` and not `/plan`?
 
-Claude Code 2.1.233 or later (2.1.259 or later recommended) and Node.js 18 or later. CI runs Ubuntu and Windows on Node 18 and 22. Claude Code is the only supported runtime.
-
-### What does it cost per session?
-
-The session brief adds the core policy, your profile summary, and a short discovery to each session. `claude plugin details` reported about 1,772 always-on tokens for 0.1.0. Hook calls take typically 100-300 ms each. There are no network calls.
-
-## Install
-
-### Why do commands start with `/vz-skills:`, and how do I get plain `/plan`?
-
-Claude Code namespaces every plugin's commands. Run `npx vz-skills install --flat` instead. See [Installation](/docs/installation).
+Claude Code puts the plugin name in front of plugin commands. Use `npx vz-skills install --flat` for short names. See [Installation](/docs/installation).
 
 ### Why is it `/vz-status` and not `/status`?
 
-A skill named `status` would replace Claude Code's built-in `/status`. The flat installer renames it. `/review` is allowed to replace the bundled review command.
+So Claude Code's own `/status` keeps working.
 
-### Can I install it for one project only?
+### Does it run my scripts?
 
-Yes. Add `--scope project` to commit the install in `.claude/` for your team, or `--scope local` for yourself in one repository. Project-scope hooks use `${CLAUDE_PROJECT_DIR}`, so the result is portable.
+No. Discovery only reads files. With `--baseline` it runs one well-known test command, such as `npm test` or `pytest`.
 
-### The npm command fails because the package does not exist.
+### Will it read my `.env`?
 
-The `vz-skills` package has not been published yet. Run `npm pack` in a clone and then `npx --yes ./vz-skills-0.1.0.tgz install --flat`, or use `claude --plugin-dir ./plugins/vz-skills`.
-
-## Behaviour
-
-### Does discovery run my project's scripts?
-
-Not by default. With `--baseline` it runs one allowlisted test command, such as `npm test`, `pytest`, or `go test ./...`. Anything else is `BLOCKED` with the reason. See [Discovery](/docs/discovery#the-baseline).
-
-### Will it read my `.env` file?
-
-VZ scripts never open `.env` files, keys, or tokens. The write guard and command guard ask before touching them. See [Hooks and guards](/docs/guards).
+No. VZ scripts never open `.env` files or keys, and the guards ask before anything else does.
 
 ### What happens to my uncommitted changes?
 
-They are listed at discovery and left alone. `implement` does not edit them unless a slice requires it, and then says so first. `verify` confirms they are byte-identical to before.
+They are listed and left alone. If a change must touch them, Claude says so first.
 
-### Why does it say `UNKNOWN` instead of just guessing?
+### Why does it say UNKNOWN?
 
-Because a guessed command is how an unrun test becomes a reported pass. Tell the skill the command, or add a script to your manifest. See [Concepts](/docs/concepts#evidence-labels).
+Because a guessed command is how an unrun test becomes a reported pass. Tell Claude the command, or add a script to your manifest.
 
-### A one-line fix triggered a lot of ceremony.
+### It is too much for a small fix.
 
-The router should skip most steps for a clear, low-risk change. If a path matches `auth|login|session|token|payment|migration|infra|deploy` or a protected path, the tier is high regardless of size. For lighter rigor everywhere else, use `FAST`.
-
-## Configuration
+Small, low-risk changes skip most steps. If the path looks like auth, payments or migrations, it is treated as high risk anyway. Use the `FAST` profile for lighter checks elsewhere.
 
 ### How do I change the profile?
 
-Run `/setup FAST`, `/setup BALANCED`, or `/setup PRODUCTION` to create `.vz-skills/config.json`. For one shell, set `VZ_SKILLS_PROFILE`. See [Configuration](/docs/configuration).
+Run `/setup FAST` (or `BALANCED`, `PRODUCTION`). For one shell, set `VZ_SKILLS_PROFILE`. See [Configuration](/docs/configuration).
 
 ### Can I turn the guards off?
 
-Yes, deliberately. `hooks.command_guard`, `hooks.write_guard`, and `verification.require_evidence_labels` have floors. Lowering one is an error until it is listed in `safety.acknowledged_overrides`, and every session then prints a warning. The session brief can be disabled without that step.
+Yes, on purpose. Lowering a guard needs an acknowledged override, and every session then prints a warning.
 
-### My config is rejected with an unknown key.
+### What does it cost?
 
-Unknown keys are errors on purpose, so a typo cannot silently change behaviour. The message includes a suggestion. Check `node plugins/vz-skills/scripts/vz-config.js --explain --project .`.
+A small amount of context is added to each session. `claude plugin details` reports the exact figure. Each hook call takes 100 to 300 ms, and there are no network calls.
 
-### Does Claude Code read `.vz-skills/config.json`?
+### License?
 
-No. Only VZ scripts and skills do. It lives outside `.claude/` because Claude Code reads `.claude/settings.json` for its own settings and would ignore foreign keys there.
-
-## Project
-
-### What is the license?
-
-MIT. Design ideas were drawn from obra/superpowers, addyosmani/agent-skills, and mattpocock/skills, all MIT. No code or text was copied.
-
-### How do I report a bug or contribute?
-
-See [Contributing](/docs/contributing) and [Troubleshooting](/docs/troubleshooting#reporting-an-issue).
+MIT.

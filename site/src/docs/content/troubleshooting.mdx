@@ -1,62 +1,30 @@
 <Lead>
-Start with `npx vz-skills doctor`. It checks Node, Claude Code, the marketplace, the plugin, both install forms, and your project config in one screen.
+Start with `npx vz-skills doctor`. It checks Node, Claude Code, the install, and your config.
 </Lead>
 
-## Install and commands
-
-| Symptom | Likely cause | What to do |
+| Problem | Cause | Fix |
 |---|---|---|
-| `npx vz-skills install` could not register the marketplace | A `vz-skills-marketplace` already exists from a different path, such as a clone | `claude plugin marketplace remove vz-skills-marketplace` (this uninstalls its plugins), then install again. Or keep the clone and skip npm. |
-| `install --flat` stops with "already exist ... not created by vz-skills" | You have your own skill with the same name, for example `plan` | Rename yours, or pass `--force` to replace it. Your settings file is backed up; your skill is not. |
-| After `install --flat`, `/vz-status` exists but `/status` shows Claude's own status | Expected: `status` is renamed to avoid hiding the built-in command | Use `/vz-status` for VZ and `/status` for Claude Code. |
-| Skills appear twice (`/plan` and `/vz-skills:plan`) | A flat install and a plugin install are both active in one scope | Remove one: `npx vz-skills uninstall --flat` or `npx vz-skills uninstall`. |
-| `npx vz-skills` says Claude Code CLI not found | `claude` is not on `PATH` in that shell | Install Claude Code or open a shell where `claude --version` works. |
-| `/vz-skills:...` does not autocomplete | Plugin not loaded for this session | `claude plugin list` (put `--plugin-dir <path>` before it for the session-only form). Check the `/plugin` **Errors** tab, then run `/reload-plugins`. |
-| `claude plugin validate` warns about an unknown field | A frontmatter or manifest key not in the official list | Run `node plugins/vz-skills/scripts/vz-validate.js` for the exact file, then remove or rename the field. |
+| Skills show up twice | A flat install and a plugin install are both active | Remove one with `npx vz-skills uninstall --flat` or `npx vz-skills uninstall` |
+| `/vz-skills:` does not autocomplete | The plugin is not loaded | Run `claude plugin list`, then `/reload-plugins` |
+| "Claude Code CLI not found" | `claude` is not on `PATH` in that shell | Open a shell where `claude --version` works |
+| Install cannot register the marketplace | A `vz-skills-marketplace` already exists from another path | `claude plugin marketplace remove vz-skills-marketplace`, then install again |
+| Flat install stops: "not created by vz-skills" | You have your own skill with the same name | Rename yours, or pass `--force` |
+| `/status` shows Claude's status, not VZ's | Expected after a flat install | Use `/vz-status` |
+| Every command asks for confirmation | The command guard matched something, such as `sudo` or `rm -r` | Read the prompt; it names the reason. Change the command or your settings. |
+| A command is denied | It matched a catastrophic pattern | Run it yourself in a terminal if you are sure |
+| No session brief at start | `hooks.session_context` is false, or hooks are disabled | Run `/vz-status` |
+| `vz-config.js` exits with 1 | A config error | Read the `ERROR:` lines. Each names the key and the fix. |
+| A command is `UNKNOWN` | Nothing in your manifest, Makefile or CI names it | Tell Claude the command, or add a script. It will not guess. |
+| Baseline is `BLOCKED` | The test command is not a well-known form | Run it yourself, or add a standard script |
 
-## Hooks and guards
-
-| Symptom | Likely cause | What to do |
-|---|---|---|
-| Session starts without the VZ brief | `hooks.session_context: false`, hooks disabled platform-wide (`disableAllHooks`), or the hook failed | Run `/vz-status`. Run the hook by hand and read stderr (below). |
-| Every shell command asks for confirmation | The command guard is matching something in your command, such as `sudo` or `rm -r` | Read the reason in the prompt; it names the category. Adjust the command, or set `approvals.*` or `hooks.protected_paths` deliberately. |
-| A shell command is denied | It matched a catastrophic pattern | Run it yourself in a terminal if you are sure. VZ will not run it. |
-| Hook output appears garbled on Windows | A shell-form hook with unquoted paths | VZ uses exec form. If you copied a hook into settings, keep `"command": "node", "args": [...]`. |
-
-Run the session hook by hand:
+## Debugging
 
 ```bash
-echo '{"hook_event_name":"SessionStart","cwd":"."}' | node plugins/vz-skills/scripts/hooks/session-context.js
-```
-
-## Configuration
-
-| Symptom | Likely cause | What to do |
-|---|---|---|
-| `vz-config.js` exits 1 | Configuration error; floors are enforced meanwhile | Read the `ERROR:` lines. Each names the key, the allowed values, and the fix. |
-| `WARNING: SAFETY DOWNGRADE acknowledged` on every session | You listed a floored key in `safety.acknowledged_overrides` | Expected. Remove the override to stop the warning. |
-
-## Discovery and tests
-
-| Symptom | Likely cause | What to do |
-|---|---|---|
-| A command is `UNKNOWN` | No manifest script, Makefile target, or CI step established it | Tell the skill the command, or add a script to the manifest. VZ will not guess. |
-| Package manager is `CONFLICTING` | Lockfile and instruction files disagree | Prefer the lockfile and fix the stale instructions. |
-| Baseline is `BLOCKED`: "not on the baseline allowlist" | The test command is not a well-known form (`npm test`, `pytest`, `go test ./...`) | Run it yourself and tell VZ the result, or add the standard script. |
-| `claude plugin eval` refuses to run | CLI older than the documented 2.1.269 minimum, or Bash granted on native Windows with no sandbox backend | Update Claude Code. Keep eval cases read-only on Windows or run under WSL2. |
-| `tests/platform.test.js` is skipped | `claude` is not on `PATH` | Install Claude Code, or run the rest of the suite. |
-| A secret appears in a report | Should never happen | Report it as a bug with a redacted example. |
-
-## Debugging tips
-
-```bash
-claude --debug                                                  # hook invocations and skill loading
-node plugins/vz-skills/scripts/vz-config.js --explain --project .   # every effective value and its source
-node plugins/vz-skills/scripts/vz-discover.js . --format json   # full discovery report
-node plugins/vz-skills/scripts/vz-discover.js . --format md     # the readable version
-npm test                                                        # in a clone: 91 checks, under a minute, no network
+claude --debug                                              # shows hooks and skill loading
+node plugins/vz-skills/scripts/vz-config.js --explain --project .
+node plugins/vz-skills/scripts/vz-discover.js . --format md
 ```
 
 ## Reporting an issue
 
-Include the Claude Code version (`claude --version`), your OS, the skill or hook involved, the command or prompt, observed versus expected behaviour, and the output of `vz-config.js --explain --project .` with any secrets redacted.
+Include your Claude Code version, your OS, what you ran, what you expected, and the `--explain` output with secrets removed.

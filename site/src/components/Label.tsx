@@ -56,12 +56,3 @@ export function Label({ children, tone, className, size = 'sm' }: { children: Re
     </span>
   );
 }
-
-/** Small neutral chip for metadata such as "Auto" or "You". */
-export function Chip({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <span className={cn('inline-flex items-center rounded-full border border-border bg-bg-raised px-2 py-0.5 text-xs text-fg-muted whitespace-nowrap', className)}>
-      {children}
-    </span>
-  );
-}

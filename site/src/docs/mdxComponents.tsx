@@ -102,7 +102,8 @@ function CodeTab({ children }: { label: string; children?: ReactNode }) {
 }
 
 function Lead({ children }: { children: ReactNode }) {
-  return <p className="lead">{children}</p>;
+  // MDX may wrap the text in its own <p>, so this must be a div.
+  return <div className="lead">{children}</div>;
 }
 
 function Cards({ children }: { children: ReactNode }) {

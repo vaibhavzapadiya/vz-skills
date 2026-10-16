@@ -1,100 +1,53 @@
 <Lead>
-Pull requests are welcome. Keep the test suite green, validate the plugin, regenerate generated docs, and add a regression test for every bug you fix.
+Pull requests are welcome. Keep the tests green and add a test for every bug you fix.
 </Lead>
 
-## Local development
+## Run it locally
 
 ```bash
 git clone <this repo> && cd VZ-skills
-npm test                                   # all suites, no installs, no network
+npm test                                     # all suites, no installs, no network
 claude plugin validate ./plugins/vz-skills --strict
-claude --plugin-dir ./plugins/vz-skills    # try it in a session
+claude --plugin-dir ./plugins/vz-skills      # try it in a session
 ```
 
-Most `SKILL.md` edits apply without restarting (`/reload-skills`). Hook or manifest changes need `/reload-plugins` or a new session.
-
-## Project structure
+## Layout
 
 ```text
-VZ-skills/                         repository = local marketplace root
-├── .claude-plugin/marketplace.json  marketplace "vz-skills-marketplace"
-├── bin/vz-skills.js                 npm CLI: install, update, uninstall, try, doctor
-├── plugins/vz-skills/               the installable plugin
-│   ├── .claude-plugin/plugin.json   manifest
-│   ├── skills/<group>/<name>/SKILL.md   24 skills in entry/, lifecycle/, specialists/, productivity/
-│   ├── agents/*.md                  3 read-only subagents
-│   ├── hooks/hooks.json             3 hooks
-│   ├── policy/core-policy.md        rules injected at session start
-│   ├── references/*.md              risk tiers, review and security checklists, report template
-│   ├── schema/config.v1.schema.json JSON Schema for the config file
-│   ├── scripts/                     dependency-free Node: discovery, config, validate, hooks, lib
-│   └── evals/                       claude plugin eval cases
-├── fixtures/                        sample repositories for discovery tests
-├── tests/*.test.js                  node:test suites
-├── scripts/                         catalog generator, schema generator, release packager
-├── docs/                            user and maintainer docs, decision log, examples
-└── site/                            this website (Vite, React, Tailwind, MDX)
+plugins/vz-skills/    the installable plugin
+  skills/<group>/<name>/SKILL.md   groups: entry, lifecycle, specialists, productivity
+  agents/  hooks/  policy/  references/  schema/  scripts/  evals/
+bin/                  the npx installer
+tests/  fixtures/     the test suites and sample repositories
+docs/                 documentation, decision log, config examples
+site/                 this website
 ```
 
-Everything a user receives lives under `plugins/vz-skills/`; tests, fixtures, docs and this site are not shipped in the npm package.
+## Rules
 
-## Rules of the road
+- Keep each `SKILL.md` under about 200 lines. Put detail in `references/`.
+- No new runtime dependencies without an entry in `docs/decisions.md`.
+- A script change needs a test. A bug fix needs a regression test.
+- After changing skill frontmatter, run `node scripts/gen-catalog.js`. After changing the config schema, run `node scripts/gen-config-schema.js`. `npm test` fails if either is stale.
 
-- **Verify platform claims against the current Claude Code docs.** Record the page and access date in `docs/decisions.md` when you rely on a new platform detail.
-- **Keep `SKILL.md` under about 200 lines.** Put detail in `references/` and link it with `${CLAUDE_PLUGIN_ROOT}/references/...`.
-- **No new runtime dependencies** without a decision entry in `docs/decisions.md`.
-- **Every behaviour change in scripts needs a test.** Every bug fix needs a regression test.
-- **Generated docs stay generated.** Run `node scripts/gen-catalog.js` after changing skill or agent frontmatter, and `node scripts/gen-config-schema.js` after changing `SCHEMA` in `lib/config.js`. `npm test` fails if either is stale, and if a config key is undocumented.
-- **Status words are exact:** IMPLEMENTED, TESTED, VERIFIED, BLOCKED, NOT VERIFIED.
+## Add a skill
 
-## Tests
+1. Create `plugins/vz-skills/skills/<group>/<name>/SKILL.md`. The folder name is the skill name.
+2. If you add a new group folder, list it in the `skills` array of `plugin.json`. Without that, its skills silently do not load.
+3. Run `node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills` and `node scripts/gen-catalog.js`.
+4. Add the skill to `site/src/data/skills.ts`. `npm run check` in `site/` fails if it is missing.
 
-| Command | Suite |
-|---|---|
-| `npm test` | Everything (91 tests) |
-| `npm run test:structure` | Manifest, frontmatter, validator |
-| `npm run test:config` | Presets, precedence, floors, schema |
-| `npm run test:discovery` | Fixture matrix |
-| `npm run test:hooks` | Guards and session brief |
-| `npm run test:platform` | Real `claude` CLI; skipped when absent |
+## Release
 
-## Adding a skill
+Update the version in `plugin.json` and `package.json`, add a `CHANGELOG.md` entry, then run `npm test`, `claude plugin validate ./plugins/vz-skills --strict`, and `npm run package`. Publishing to npm is the owner's step.
 
-1. Create `plugins/vz-skills/skills/<group>/<kebab-name>/SKILL.md` with frontmatter. The group is `entry`, `lifecycle`, `specialists`, or `productivity`. A new group folder must also be listed in the `skills` array of `plugin.json`, or its skills silently fail to load. `npm test` and `vz-validate.js` catch that; the official validator does not. `name` equals the directory, `description` is specific and starts with the key use case, and `disable-model-invocation: true` marks user-only commands.
-2. Write the body: purpose, inputs, workflow with decision points, output shape, safety, failure behaviour, validation scenarios.
-3. Run `node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills` and `claude plugin validate ./plugins/vz-skills --strict`.
-4. Run `node scripts/gen-catalog.js` and add a changelog entry.
-5. Add an eval case under `plugins/vz-skills/evals/` if the behaviour can be judged from a read-only run.
-6. Update `site/src/data/skills.ts` so this site lists it. `npm run check` in `site/` fails if the counts disagree.
-
-## Adding a config key
-
-Extend `SCHEMA` (and `floor` if it needs one) in `lib/config.js`, add a row to `docs/configuration.md`, run `node scripts/gen-config-schema.js`, and update the table in `site/src/docs/content/configuration.mdx`. The config test asserts presets are schema-valid and the docs test asserts every key is documented.
-
-## Adding a hook
-
-Declare it in `hooks.json`, implement it with `lib/hookio.js`, and add fail-open and decision tests.
-
-## Releasing
-
-1. Update `version` in `plugins/vz-skills/.claude-plugin/plugin.json` and `package.json`, and add the entry to `CHANGELOG.md`.
-2. Run `npm test`, `claude plugin validate ./plugins/vz-skills --strict`, and `node scripts/gen-catalog.js --check`.
-3. Run `npm run package`. It builds `dist/vz-skills-<version>.zip` and verifies its integrity.
-4. Update `docs/testing-and-evaluation.md` with this release's observed results.
-5. Tag with `claude plugin tag ./plugins/vz-skills` if you publish through a git marketplace. Push only with the owner's authorization.
-6. Publishing to npm is owner-only. Set `repository` and `homepage` in `package.json` first, then `npm pack`, which runs `prepack`. Test the tarball with `npx --yes ./vz-skills-<version>.tgz doctor`.
-
-## Working on this website
+## This website
 
 ```bash
 cd site
 npm install
 npm run dev       # http://localhost:5173
-npm run verify    # typecheck, content checks, production build
+npm run verify    # sync, typecheck, content checks, build
 ```
 
-Site content under `site/src/docs/content/` is MDX. Values copied from the plugin (the profile matrix, the skill list, sample output) are in `site/src/data/` and should be updated with the plugin. `npm run check` compares the skill count, hook count, profile matrix and install commands against the plugin's own files.
-
-## Reporting issues
-
-Include the Claude Code version, OS, the skill or hook involved, the command or prompt, observed versus expected behaviour, and `vz-config.js --explain --project .` output with secrets redacted.
+Pages are MDX files in `site/src/docs/content/`. The changelog page is generated from `CHANGELOG.md`.

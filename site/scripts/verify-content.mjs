@@ -139,6 +139,18 @@ for (const word of ['install', 'update', 'uninstall', 'try', 'doctor', 'path', '
   if (!cli.includes(word)) fail(`CLI no longer mentions "${word}", which the site documents`);
 }
 
+// 8b. Every capitalised JSX tag in an MDX page is either provided by the docs or imported in that file.
+const provided = new Set(['Lead', 'Callout', 'Steps', 'Step', 'Status', 'CodeTabs', 'CodeTab', 'Cards', 'Card']);
+for (const f of files) {
+  const source = read(join(contentDir, `${f}.mdx`));
+  const text = source.replace(/```[\s\S]*?```/g, '').replace(/`[^`]*`/g, '');
+  const used = new Set([...text.matchAll(/<([A-Z][A-Za-z]*)[\s/>]/g)].map((m) => m[1]));
+  for (const name of used) {
+    if (provided.has(name)) continue;
+    if (!new RegExp(`^import\\s+\\{[^}]*\\b${name}\\b[^}]*\\}\\s+from`, 'm').test(source)) fail(`content/${f}.mdx uses <${name}> without importing it`);
+  }
+}
+
 // 9a. Search index is current.
 const si = spawnSync(process.execPath, [join(here, 'build-search-index.mjs'), '--check'], { encoding: 'utf8' });
 if (si.status !== 0) fail('search-index.json is stale (run node scripts/build-search-index.mjs)');

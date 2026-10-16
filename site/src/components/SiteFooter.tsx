@@ -5,32 +5,29 @@ import { SITE } from '@/lib/utils';
 
 const columns: Array<{ title: string; links: Array<{ to: string; label: string }> }> = [
   {
-    title: 'Documentation',
+    title: 'Start',
     links: [
       { to: '/docs', label: 'Overview' },
       { to: '/docs/getting-started', label: 'Getting started' },
       { to: '/docs/installation', label: 'Installation' },
-      { to: '/docs/configuration', label: 'Configuration' },
-      { to: '/docs/lifecycle', label: 'The lifecycle' },
+      { to: '/docs/concepts', label: 'Concepts' },
     ],
   },
   {
     title: 'Reference',
     links: [
+      { to: '/docs/configuration', label: 'Configuration' },
       { to: '/docs/commands', label: 'Commands' },
+      { to: '/docs/guards', label: 'Hooks and agents' },
       { to: '/docs/cli', label: 'CLI' },
-      { to: '/docs/guards', label: 'Hooks and guards' },
-      { to: '/docs/agents', label: 'Agents' },
-      { to: '/docs/discovery', label: 'Discovery' },
     ],
   },
   {
     title: 'Project',
     links: [
-      { to: '/docs/security', label: 'Security' },
-      { to: '/docs/limitations', label: 'Limitations' },
+      { to: '/docs/security', label: 'Security and limits' },
       { to: '/docs/troubleshooting', label: 'Troubleshooting' },
-      { to: '/docs/contributing', label: 'Contributing' },
+      { to: '/docs/faq', label: 'FAQ' },
       { to: '/docs/changelog', label: 'Changelog' },
     ],
   },
