@@ -23,7 +23,7 @@ A row can be `VERIFIED` only with evidence linked to an observed test, official 
 | REQ-015 | Evaluation | Baseline methodology and limitations are documented | Reproducible artifacts/results | IMPLEMENTED | eval cases + methodology in `docs/testing-and-evaluation.md`; no results (BLOCKED); no superiority claims made |
 | REQ-016 | Installation | Install/update/rollback/uninstall instructions verified | Clean-environment walkthrough | TESTED | session-only install verified by observation; marketplace add/install/uninstall documented from the official reference and NOT run (would write the user's settings) |
 | REQ-017 | Documentation accuracy | Docs agree with shipped behavior | Final audit checklist | VERIFIED | `tests/docs.test.js` 7/7 (schema keys, profile matrix, generated catalog, counts, links, versions, references); `docs/release-audit.md` |
-| REQ-018 | License/attribution | Dependencies and adapted materials are compliant | License inventory/review | TESTED | zero runtime deps; nothing copied from MIT reference repos (register); project license undecided (DEC-010) -> cannot be VERIFIED until chosen |
+| REQ-018 | License/attribution | Dependencies and adapted materials are compliant | License inventory/review | VERIFIED | zero runtime deps; nothing copied from MIT reference repos (register); project licensed MIT (DEC-010): LICENSE file + `license` in plugin.json, checked by `tests/docs.test.js` |
 | REQ-019 | Release readiness | No hidden critical blockers; known limitations documented | Final independent audit | VERIFIED | `docs/release-audit.md`: READY WITH LIMITATIONS; limitations listed in `project/known-issues.md` |
 
 ## Rules

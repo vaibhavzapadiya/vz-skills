@@ -57,6 +57,13 @@ test('plugin version is consistent across manifest, changelog, and workspace pac
   assert.equal(pkg.version, version);
 });
 
+test('license is MIT in the manifest, workspace package, and LICENSE files', () => {
+  const m = JSON.parse(fs.readFileSync(path.join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json'), 'utf8'));
+  assert.equal(m.license, 'MIT');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf8')).license, 'MIT');
+  for (const f of [path.join(REPO_ROOT, 'LICENSE'), path.join(PLUGIN_ROOT, 'LICENSE')]) assert.match(fs.readFileSync(f, 'utf8'), /^MIT License/);
+});
+
 test('skills reference only scripts and references that exist', () => {
   const skillsDir = path.join(PLUGIN_ROOT, 'skills');
   for (const d of fs.readdirSync(skillsDir)) {

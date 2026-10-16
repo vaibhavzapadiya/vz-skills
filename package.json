@@ -19,5 +19,5 @@
     "config": "node plugins/vz-skills/scripts/vz-config.js",
     "package": "node scripts/package-release.js"
   },
-  "license": "UNLICENSED"
+  "license": "MIT"
 }

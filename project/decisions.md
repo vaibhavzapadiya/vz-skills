@@ -39,14 +39,14 @@ Record consequential design decisions. Add new decisions at the top. Do not sile
 - **Consequences/trade-offs:** Hook commands use exec form `"command": "node", "args": [...]`, which needs no shell quoting and works on both shells.
 - **Follow-up/test required:** `npm test` runs the whole suite with zero installs.
 
-### DEC-010 - Project license left to the owner
+### DEC-010 - Project license: MIT
 
-- **Status:** PROPOSED (needs owner input)
+- **Status:** ACCEPTED (owner chose MIT on 2026-10-16)
 - **Date:** 2026-10-16
 - **Context:** `LICENSE-NOTICE.md` from the kit defers the license choice to the project owner. Reference projects are MIT but nothing was copied.
-- **Decision:** Ship without a `LICENSE` file and without a `license` field in `plugin.json`; document the gap in README and the release audit. Not a release blocker for private/internal use; a blocker for public distribution.
+- **Decision:** MIT. `LICENSE` at the repository root and a copy in `plugins/vz-skills/`; `"license": "MIT"` in `plugin.json` and `package.json`.
 - **Alternatives considered:** Defaulting to MIT - rejected because it is the owner's call.
-- **Follow-up/test required:** Owner picks a license; then add `LICENSE` and `"license"` to `plugin.json`.
+- **Follow-up/test required:** none; `tests/docs.test.js` checks the manifest field and LICENSE file exist.
 
 ### DEC-009 - Configuration lives in `.vz-skills/config.json`, not in `.claude/`
 

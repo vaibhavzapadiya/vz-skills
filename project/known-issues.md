@@ -7,7 +7,6 @@ Keep this file factual. Do not leave resolved issues open, and do not erase unre
 | ID | Severity | Description | Impact | Workaround | Next action | Status |
 |---|---|---|---|---|---|---|
 | KI-002 | medium | Live model evaluation cannot run: `claude plugin eval` prints "currently in early access" on CLI 2.1.259 (docs require >= 2.1.269), and headless `claude -p` runs fail with "OAuth session expired and could not be refreshed" | Skill/agent *behaviour* is NOT VERIFIED; only structure, config, discovery, and hooks are TESTED/VERIFIED | Use the plugin interactively and judge; automated suite still covers the deterministic layers | Owner: `claude login`, `claude update`; then run the commands in `docs/testing-and-evaluation.md` | OPEN (BLOCKED) |
-| KI-003 | low | No `LICENSE` file and no `license` field in `plugin.json` | Cannot be redistributed publicly; private/internal use unaffected | None | Owner chooses a license (DEC-010); add file and manifest field | OPEN (decision) |
 | KI-004 | low | Marketplace install path (`claude plugin marketplace add` + `install`) was documented from the official reference but not executed, because it writes the user's `~/.claude/settings.json` | Install docs for that path are NOT VERIFIED by observation | Session-only `--plugin-dir` path is verified and sufficient for trial | Owner runs the two commands once and records the output in `project/PROGRESS.md` | OPEN |
 | KI-005 | low | Command and write guards are regex heuristics; discovery injection scanner is heuristic | False negatives possible for unusual phrasing; false positives (asks) possible for benign commands containing `sudo`/`rm -r` | Native permissions remain the boundary; adjust `approvals.*`/`protected_paths` | Collect real-world misses and add patterns with tests | OPEN (by design, documented) |
 
@@ -16,6 +15,7 @@ Keep this file factual. Do not leave resolved issues open, and do not erase unre
 | ID | Severity | Description | Resolution |
 |---|---|---|---|
 | KI-001 | - | Initial state: research and implementation not yet run | Phases 0-10 executed; see `project/PROGRESS.md` |
+| KI-003 | low | No license chosen | Owner chose MIT (DEC-010); LICENSE added, manifest field set |
 | SEC-001 | medium | Baseline runner inherited `NODE_TEST_CONTEXT` from a parent `node --test`, masking a failing suite as exit 0 | env scrubbed in `runBaseline`; regression test TC-008 |
 | SEC-002 | low | Write guard exempted any path containing `test`, including whole projects under `tests/` | exemption now uses the project-relative path; test added |
 | SEC-003 | low | Walker skipped `.github`, hiding CI evidence | fixed; TC-004 asserts CI corroboration |

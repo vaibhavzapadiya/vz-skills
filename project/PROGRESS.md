@@ -9,7 +9,7 @@
 - **Last updated:** 2026-10-16 (build day; all times local)
 - **Current branch/commit:** `master`; see `git log --oneline` (commits: baseline kit import -> phases 0-3 -> hooks -> write-guard fix -> skills/agents -> docs/evals/packaging -> trackers/audit/release)
 - **Working tree status:** clean after the final commit (`git status --porcelain` empty); `dist/` and `tests/.tmp/` are ignored
-- **Next action:** owner decisions: choose a license (DEC-010); re-authenticate the CLI (`claude login`) and update to >= 2.1.269 to run `claude plugin eval` and the headless scenarios; optionally push to a git host and install from there
+- **Next action:** re-authenticate the CLI (`claude login`) and update to >= 2.1.269 to run `claude plugin eval` and the headless scenarios; optionally push to a git host and install from there
 - **Blockers:** live model evaluation BLOCKED (CLI eval gated "early access" on 2.1.259; OAuth session expired for headless runs). Not a code blocker.
 
 ## Phase status
@@ -42,6 +42,7 @@
 | 2026-10-16 ~18:00 | Docs, catalog generator, docs tests, eval cases, packaging | `docs/**`, `scripts/*`, `tests/docs.test.js`, `evals/**` | docs tests 7/7; eval run BLOCKED (see log) | TESTED / BLOCKED |
 | 2026-10-16 ~18:10 | Headless scenarios | `tests/.tmp/scenario/*` (ignored) | both runs: `Failed to authenticate: OAuth session expired` | BLOCKED |
 | 2026-10-16 ~18:20 | Trackers, audit, package | `project/*`, `tracking/*`, `quality/*`, `docs/release-audit.md`, `dist/*` | `npm test` 67/67; package integrity verified by the packager | VERIFIED |
+| 2026-10-16 ~18:40 | Owner chose MIT: LICENSE added (root + plugin), `license` field in plugin.json and package.json, docs/trackers updated | `LICENSE`, `plugins/vz-skills/LICENSE`, manifests, README, decisions, known-issues, audit, acceptance matrix | `npm test`, both validators (see commands log) | VERIFIED |
 | 2026-10-16 ~18:30 | Independent `unzip -l` of the archive found backslash entry names (PKG-001); packager rewritten to bsdtar with a backslash check; regression test added | `scripts/package-release.js`, `tests/package.test.js`, `CHANGELOG.md`, `project/known-issues.md` | `npm run package` -> verified:true, 172 entries, forward slashes; `unzip -t` clean; `npm test` 68/68 | VERIFIED |
 
 ## Commands/checks log
@@ -64,7 +65,7 @@
 
 ## Open decisions
 
-- DEC-010 license: owner must choose; blocks public distribution only.
+- none (DEC-010 resolved: MIT).
 
 ## Next-session handoff
 

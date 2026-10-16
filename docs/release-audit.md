@@ -34,7 +34,7 @@ See `dist/vz-skills-0.1.0.manifest.json` for the file list, byte count, entry co
 
 ## Security findings and residual risk
 
-SEC-001..003 fixed with regression tests; SEC-004 (license) open. Residual: heuristic guards and scanners; `@`-mention blind spot; baseline runner trusts declared scripts; behaviour of prose skills not measured.
+SEC-001..003 fixed with regression tests; SEC-004 (license) resolved with MIT. Residual: heuristic guards and scanners; `@`-mention blind spot; baseline runner trusts declared scripts; behaviour of prose skills not measured.
 
 ## Installation verification
 
@@ -45,6 +45,6 @@ Verified: `claude --plugin-dir ./plugins/vz-skills` loads and lists components o
 **READY WITH LIMITATIONS** for private and internal use via `--plugin-dir` or a local marketplace.
 
 Limitations that must be resolved before a public release:
-1. Choose a license (DEC-010 / KI-003).
+1. ~~Choose a license (DEC-010 / KI-003).~~ Done 2026-10-16: MIT.
 2. Run the live eval suite and the two headless scenarios once credentials and CLI version allow (KI-002); record results; re-rate REQ-008/011/013/015.
 3. Execute and record the marketplace install/uninstall path once (KI-004).

@@ -25,6 +25,5 @@ First implementation, built from the specification kit against Claude Code 2.1.2
 - Release archive built with PowerShell `Compress-Archive` had backslash entry names (unusable on macOS/Linux); the packager now uses bsdtar and rejects any backslash entry, with a regression test.
 
 ### Known limitations
-- No license chosen yet (owner decision).
 - `claude plugin eval` behaviour on CLI 2.1.259 is below the documented minimum; see `docs/testing-and-evaluation.md` for what was observed.
 - Injection detection and command guarding are heuristic and advisory.

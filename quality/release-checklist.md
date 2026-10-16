@@ -36,7 +36,7 @@ Completed 2026-10-16 for VZ Skills 0.1.0. Evidence: `project/PROGRESS.md`, `docs
 - [x] README quick start verified.
 - [x] Install/update/rollback/uninstall instructions checked. (session-only path observed; marketplace path documented, NOT_RUN, KI-004)
 - [x] Troubleshooting and known limitations documented.
-- [x] License/attribution/dependency inventory reviewed. (project license still undecided, DEC-010)
+- [x] License/attribution/dependency inventory reviewed. (MIT, DEC-010)
 - [x] Changelog/release notes prepared.
 - [x] Final audit report completed.
 - [x] Release recommendation: **READY WITH LIMITATIONS** (see docs/release-audit.md).

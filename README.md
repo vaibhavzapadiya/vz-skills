@@ -60,4 +60,4 @@ Adaptive, composable, configurable, evidence-driven, risk-aware, safe by design,
 
 ## License
 
-Not yet chosen by the project owner (see `LICENSE-NOTICE.md` and DEC-010). Until then the repository is all-rights-reserved by default; do not redistribute.
+MIT. See `LICENSE`. The reference projects studied during research are also MIT; no code or text was copied from them (see `docs/research/source-register.md`).

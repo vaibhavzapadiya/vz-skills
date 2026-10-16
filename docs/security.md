@@ -48,4 +48,4 @@ Fixtures contain no real secrets. `fixtures/malicious-instructions/_env` holds a
 | SEC-001 | medium | Nested `node --test` inherited `NODE_TEST_CONTEXT` and reported exit 0 for a failing suite in the baseline runner | fixed; regression test TC-008 |
 | SEC-002 | low | Write guard's fixture exemption matched on absolute path, so any project under a `tests/` folder was exempt from the credential-content check | fixed; test added |
 | SEC-003 | low | Walker skipped `.github` (prefix match on `.git`), hiding CI evidence | fixed; TC-004 covers CI corroboration |
-| SEC-004 | info | No `LICENSE` file; distribution beyond private use needs the owner's decision | open (DEC-010) |
+| SEC-004 | info | No `LICENSE` file; distribution beyond private use needs the owner's decision | resolved: MIT chosen (DEC-010), LICENSE added |
