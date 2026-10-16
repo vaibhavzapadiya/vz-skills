@@ -100,8 +100,10 @@ test('unknown keys and typos are rejected with suggestions; wrong types and valu
     assert.match(msgs, /unknown key "testing.stratgy" \(did you mean "testing.strategy"\?\)/);
     assert.match(msgs, /"testing.require_baseline" must be true or false/);
     assert.match(msgs, /"review.depth" = "Thorough" is not allowed; use one of "quick", "standard", "thorough" \(case matters: did you mean "thorough"\?\)/);
-    // the typo'd profile did not change the effective profile
+    // the typo'd profile did not change the effective profile, and rejected values are not applied
     assert.equal(r.profile, 'BALANCED');
+    assert.equal(r.effective.review.depth, 'standard', 'invalid value must not leak into the effective config');
+    assert.equal(r.effective.testing.require_baseline, true);
   } finally { rmrf(dir); }
 });
 

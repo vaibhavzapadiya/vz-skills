@@ -232,6 +232,7 @@ function resolveConfig(opts = {}) {
   const explicit = {};
   for (const l of layers) for (const [k, v] of Object.entries(l.flat)) {
     if (k === 'profile' || k === '$schema' || k === '$comment' || !SCHEMA[k]) continue;
+    if (l.errors.some((e) => e.key === k)) continue; // a value that failed validation is never applied
     setDeep(effective, k, v); sources[k] = l.name; explicit[k] = { value: v, source: l.name };
   }
 
