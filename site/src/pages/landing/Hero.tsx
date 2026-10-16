@@ -44,7 +44,7 @@ export function Hero() {
               Evidence <span className="relative inline-block italic">before claims.<Underline /></span>
             </h1>
             <p className="mt-6 max-w-[30rem] text-lg leading-relaxed text-fg-muted [text-wrap:pretty]">
-              A disciplined lifecycle for Claude Code: discover, plan, build, test, review, and a final report that says exactly what was
+              Skills, agents and guardrails for Claude Code. They discover, plan, build, test and review, then report exactly what was
               verified.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">

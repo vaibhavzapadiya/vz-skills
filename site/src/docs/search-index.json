@@ -4,7 +4,7 @@
   "page": "Overview",
   "heading": "Overview",
   "anchor": "",
-  "text": "VZ Skills is a plugin for Claude Code. It makes Claude look before it changes things, and say exactly what was checked when it is done. npx vz-skills install --flat",
+  "text": "VZ Toolkit adds skills, agents and guardrails to Claude Code. It makes Claude look before it changes things, and say exactly what was checked when it is done. npx vz-skills install --flat",
   "to": "/docs"
  },
  {
@@ -12,7 +12,7 @@
   "page": "Overview",
   "heading": "What you get",
   "anchor": "what-you-get",
-  "text": "- 24 skills. Slash commands such as /discover , /plan and /verify . - 3 agents. Read-only helpers that review code with fresh eyes. - 3 hooks. They ask before risky commands and file writes.",
+  "text": "- 24 skills. Slash commands such as /discover , /plan and /verify . - 3 agents. Read-only helpers that review code with fresh eyes. - 3 hooks. They ask before risky commands and file writes. - An installer and a config file. One command installs it. One file sets how careful it is. The product is called VZ Toolkit. The plugin, the npm package and the commands use the name vz-skills , for example npx vz-skills install and /vz-skills:plan .",
   "to": "/docs#what-you-get"
  },
  {
@@ -284,7 +284,7 @@
   "page": "Security and limits",
   "heading": "Security and limits",
   "anchor": "",
-  "text": "Claude Code's permissions and sandbox are the security boundary. VZ Skills helps avoid accidents on top of them.",
+  "text": "Claude Code's permissions and sandbox are the security boundary. VZ Toolkit helps avoid accidents on top of them.",
   "to": "/docs/security"
  },
  {
@@ -324,7 +324,7 @@
   "page": "Security and limits",
   "heading": "Tested and not tested",
   "anchor": "tested-and-not-tested",
-  "text": "- Tested. Plugin structure, configuration, discovery on 17 sample repositories, every hook decision, both install forms, and packaging. 91 tests, no network. - Not tested. How the skills behave in live sessions. Three eval cases ship, but could not be run on the build machine. Running them needs a newer Claude Code (2.1.269 or later) and a signed-in account. - Not claimed. That VZ Skills does better than plain Claude Code. No comparison has been run.",
+  "text": "- Tested. Plugin structure, configuration, discovery on 17 sample repositories, every hook decision, both install forms, and packaging. 91 tests, no network. - Not tested. How the skills behave in live sessions. Three eval cases ship, but could not be run on the build machine. Running them needs a newer Claude Code (2.1.269 or later) and a signed-in account. - Not claimed. That VZ Toolkit does better than plain Claude Code. No comparison has been run.",
   "to": "/docs/security#tested-and-not-tested"
  },
  {

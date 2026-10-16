@@ -5,7 +5,7 @@ import { Accordion } from '@/components/Accordion';
 export const faqItems = [
   {
     id: 'faq-boundary',
-    question: 'Does VZ Skills replace Claude Code’s permissions or sandbox?',
+    question: 'Does VZ Toolkit replace Claude Code’s permissions or sandbox?',
     answer: (
       <p>
         No. Claude Code’s permissions and sandbox are the security boundary. VZ hooks are advisory: they can ask, deny, or stay silent,

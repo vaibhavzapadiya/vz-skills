@@ -1,6 +1,7 @@
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { MDXProvider } from '@mdx-js/react';
+import { SITE } from '@/lib/utils';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { DocsSidebar } from '@/components/DocsSidebar';
@@ -40,7 +41,7 @@ export default function DocsLayout() {
   }, [pathname]);
 
   useEffect(() => {
-    if (page) document.title = `${page.title} · VZ Skills docs`;
+    if (page) document.title = `${page.title} · ${SITE.name} docs`;
   }, [page]);
 
   if (!page) return <NotFound />;

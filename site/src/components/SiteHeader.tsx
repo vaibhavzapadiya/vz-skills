@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
-import { cn } from '@/lib/utils';
+import { SITE, cn } from '@/lib/utils';
 import { Wordmark } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 import { LinkButton } from './Button';
@@ -92,7 +92,7 @@ export function SiteHeader({ variant = 'landing', onOpenSearch }: { variant?: 'l
     >
       <Container size={variant === 'docs' ? 'wide' : 'page'} className="flex h-16 items-center justify-between gap-6">
         <div className="flex items-center gap-8">
-          <Link to="/" className="rounded-sm" aria-label="VZ Skills home">
+          <Link to="/" className="rounded-sm" aria-label={`${SITE.name} home`}>
             <Wordmark />
           </Link>
           {variant === 'landing' && (
@@ -196,7 +196,7 @@ export function SiteHeader({ variant = 'landing', onOpenSearch }: { variant?: 'l
           )}
           <div className="mt-2 border-t border-border pt-4">
             <LinkButton to={onHome ? '#install' : '/docs/getting-started'} className="w-full">
-              Install VZ Skills
+              Install {SITE.name}
             </LinkButton>
           </div>
         </Container>

@@ -24,7 +24,7 @@ export const docGroups: DocGroup[] = [
     id: 'start',
     title: 'Start here',
     pages: [
-      page('', 'Overview', 'What VZ Skills is, in a few lines.', 'start', () => import('./content/overview.mdx')),
+      page('', 'Overview', 'What VZ Toolkit is, in a few lines.', 'start', () => import('./content/overview.mdx')),
       page('getting-started', 'Getting started', 'Install it and make your first change.', 'start', () => import('./content/getting-started.mdx')),
       page('installation', 'Installation', 'The install forms, scopes, update and removal.', 'start', () => import('./content/installation.mdx')),
     ],

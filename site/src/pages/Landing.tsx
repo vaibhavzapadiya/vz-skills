@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { SITE } from '@/lib/utils';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { Reveal } from '@/components/Reveal';
@@ -12,7 +13,7 @@ import { Faq } from './landing/Faq';
 
 export function Landing() {
   useEffect(() => {
-    document.title = 'VZ Skills — a disciplined development lifecycle for Claude Code';
+    document.title = SITE.title;
   }, []);
 
   return (

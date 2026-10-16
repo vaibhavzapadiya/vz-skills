@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { SITE } from '@/lib/utils';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { Container } from '@/components/Section';
@@ -7,7 +8,7 @@ import { Label } from '@/components/Label';
 
 export default function NotFound() {
   useEffect(() => {
-    document.title = 'Page not found · VZ Skills';
+    document.title = `Page not found · ${SITE.name}`;
   }, []);
   return (
     <div className="flex min-h-dvh flex-col">

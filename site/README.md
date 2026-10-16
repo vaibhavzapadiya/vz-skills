@@ -1,6 +1,6 @@
-# VZ Skills website
+# VZ Toolkit website
 
-Landing page and documentation for the VZ Skills plugin. Vite, React 19, TypeScript, Tailwind CSS 4, React Router, MDX. Requires Node.js 22.18 or later (the search-index script imports a TypeScript data file directly).
+Landing page and documentation for the VZ Toolkit plugin (installed as `vz-skills`). Vite, React 19, TypeScript, Tailwind CSS 4, React Router, MDX. Requires Node.js 22.18 or later (the search-index script imports a TypeScript data file directly).
 
 ```bash
 cd site

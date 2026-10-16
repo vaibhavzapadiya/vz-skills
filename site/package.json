@@ -2,7 +2,7 @@
   "name": "vz-skills-site",
   "private": true,
   "version": "0.1.0",
-  "description": "Landing page and documentation website for VZ Skills (Vite, React, TypeScript, Tailwind CSS, MDX).",
+  "description": "Landing page and documentation website for VZ Toolkit (Vite, React, TypeScript, Tailwind CSS, MDX).",
   "type": "module",
   "scripts": {
     "dev": "node scripts/sync-changelog.mjs && node scripts/build-search-index.mjs && vite",

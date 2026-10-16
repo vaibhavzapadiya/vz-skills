@@ -28,8 +28,11 @@ export function textOf(node: unknown): string {
 }
 
 export const SITE = {
-  name: 'VZ Skills',
-  tagline: 'A disciplined development lifecycle for Claude Code.',
+  name: 'VZ Toolkit',
+  /** The installable plugin, npm package and command prefix keep this name. */
+  packageName: 'vz-skills',
+  title: 'VZ Toolkit: skills, agents and guardrails for Claude Code',
+  tagline: 'Skills, agents and guardrails for Claude Code.',
   version: '0.1.0',
   install: 'npx vz-skills install --flat',
   minClaude: '2.1.233',
