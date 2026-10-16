@@ -18,6 +18,9 @@ First implementation, built from the specification kit against Claude Code 2.1.2
 - Documentation: install, configuration, catalog (generated), hooks, agents, security, architecture, testing and evaluation, troubleshooting, contributing, research register and gap analysis.
 - Release packaging script with archive integrity verification.
 
+### Added (productivity skills)
+- `checkpoint` (save/resume task state in `.vz-skills/checkpoint.md`, verified against the repository on resume), `pr` (PR title and description from the verify evidence; creates nothing without an explicit request), `standup` (done / in progress / blocked / next from git and the checkpoint), `explain` (read-only explanation with `file:line` references), `retro` (friction with evidence and one small fix per item, applied by nothing). Routed by `using-vz-skills`; listed under "Productivity" in the catalog. Skill count is now 24.
+
 ### Added (discovery coverage)
 - Fixtures `ruby-app`, `php-app`, `maven-app`, `gradle-kotlin-app` with tests for the previously untested Ruby, PHP, Maven, and Gradle detectors (wrapper vs. bare tool, CONFIRMED vs. INFERRED labels, baseline-allowlist compatibility).
 - Node discovery: when no `lint` script exists but an ESLint config is present (`eslint.config.*`, `.eslintrc*`, or `package.json#eslintConfig`), `commands.lint` is reported as INFERRED `<pm> exec eslint .` (`npx eslint .` for npm); a Prettier config (`.prettierrc*`, `prettier.config.*`, or `package.json#prettier`) likewise yields INFERRED `<pm> exec prettier --check .` for `commands.format`. The config file is the evidence and is named in the basis. Declared scripts still win, and a dependency without a config file stays UNKNOWN.

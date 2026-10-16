@@ -63,7 +63,7 @@ claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin list
 claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin details vz-skills
 ```
 
-Observed output on 2.1.259: `vz-skills@inline ... Status: ✔ loaded`, and `details` lists 19 skills, 3 agents, and 2 hook events.
+Observed output on 2.1.259: `vz-skills@inline ... Status: ✔ loaded`, and `details` lists 24 skills, 3 agents, and 2 hook events.
 
 ## Option C: install from a clone as a local marketplace - *verified in an isolated config directory (same commands the npm CLI runs)*
 

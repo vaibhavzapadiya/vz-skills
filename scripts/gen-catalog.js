@@ -16,6 +16,7 @@ const GROUPS = {
   'User-run commands': ['setup', 'status', 'discover'],
   'Core lifecycle': ['using-vz-skills', 'clarify', 'plan', 'implement', 'test', 'debug', 'review', 'security-review', 'verify'],
   'Specialists': ['performance', 'frontend', 'backend', 'database', 'api-design', 'docs', 'release'],
+  'Productivity': ['checkpoint', 'pr', 'standup', 'explain', 'retro'],
 };
 
 function build() {

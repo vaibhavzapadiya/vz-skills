@@ -71,7 +71,8 @@ test('flat (unprefixed) install at user scope: skills/agents/runtime/hooks creat
     let r = cli(['install', '--flat'], env, 120000);
     assert.equal(r.status, 0, r.stdout + r.stderr);
     const skills = fs.readdirSync(path.join(cfg, 'skills')).sort();
-    assert.equal(skills.length, 19);
+    const expectedCount = fs.readdirSync(path.join(PLUGIN_ROOT, 'skills')).length;
+    assert.equal(skills.length, expectedCount);
     assert.ok(skills.includes('vz-status') && !skills.includes('status'), 'status renamed to vz-status');
     assert.ok(skills.includes('plan') && skills.includes('discover'));
     const plan = fs.readFileSync(path.join(cfg, 'skills', 'plan', 'SKILL.md'), 'utf8');
@@ -103,7 +104,7 @@ test('flat (unprefixed) install at user scope: skills/agents/runtime/hooks creat
     assert.match(ctx, /`\/discover`/, 'policy text rewritten to unprefixed command');
     // doctor sees it; a second install without --force refuses nothing (managed markers), update works
     r = cli(['doctor'], env, 120000);
-    assert.match(r.stdout, /Unprefixed \(flat\) user install: \d+\.\d+\.\d+ \(19 skills, 3 agents\)/);
+    assert.match(r.stdout, new RegExp(`Unprefixed \\(flat\\) user install: \\d+\\.\\d+\\.\\d+ \\(${expectedCount} skills, 3 agents\\)`));
     r = cli(['update', '--flat'], env, 120000);
     assert.equal(r.status, 0, r.stdout + r.stderr);
     // a foreign skill with the same name is protected unless --force

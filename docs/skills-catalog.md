@@ -36,6 +36,16 @@ Generated from the plugin frontmatter by `node scripts/gen-catalog.js`; do not e
 | `docs` | `/vz-skills:docs` `[what to document]` | Write or update documentation that matches the code: README sections, setup and usage guides, API reference, architecture notes, ADRs, and changelog entries, verified against the actual commands and behaviour. Use when docs are part of a change (per the profile's documentation.expectation) or when asked to document something. |
 | `release` | `/vz-skills:release` `[version or release scope]` | Release-readiness check and release preparation: full verification, changelog and version bump per the project's scheme, dependency and license review, rollback plan, and a go/no-go with evidence. Never publishes, tags, or pushes without the user's explicit instruction. Use when preparing a release, cutting a version, or asked "can we ship". |
 
+## Productivity
+
+| Skill | Invocation | Description |
+|---|---|---|
+| `checkpoint` | `/vz-skills:checkpoint` `[save | resume | show]` | Save the state of a long task to .vz-skills/checkpoint.md (criteria, slices with status labels, last commands and results, blockers, exact next action) and resume from it in a new session after verifying it still matches the repository. Use before context runs out, before ending a session mid-task, or when asked to continue earlier work. |
+| `pr` | `/vz-skills:pr` `[base branch] [--create]` | Write a pull request title and description from the evidence gathered during a task (what changed, acceptance criteria with status, checks run with results, baseline failures, risks, rollback, what is NOT VERIFIED), and only create or push the PR when explicitly asked. Use when a change is ready for review or when asked for a PR description. |
+| `standup` | `/vz-skills:standup` `[since: e.g. yesterday, 2 days ago, a commit]` | Produce a short, factual "what changed, what is in progress, what is blocked" summary from git history, the working tree, and the latest checkpoint, for a daily update or a handover. Use when asked what happened recently, for a status update, or at the start of a day on a repository. |
+| `explain` | `/vz-skills:explain` `[path, symbol, diff target, or question]` | Explain a module, file, function, diff, or error to a human reader (a new teammate, a reviewer, or yourself) with file:line references, the data flow, the reasons behind the design as far as the code and history show them, and explicit unknowns. Read-only. Use when asked how something works, what a change does, or why a piece of code exists. |
+| `retro` | `/vz-skills:retro` `[task or time window]` | After a task, review what slowed the work or weakened confidence (unknown commands, missing tests, flaky checks, unclear conventions, blocked tools) and turn each into a concrete, small improvement to the repository or its VZ configuration, proposed but not applied. Use at the end of a task, after a painful debugging session, or when asked how to make the repo easier to work in. |
+
 ## Agents
 
 | Agent | Model | Tools | Description |
@@ -52,4 +62,4 @@ Generated from the plugin frontmatter by `node scripts/gen-catalog.js`; do not e
 | PreToolUse | `Write|Edit|MultiEdit|NotebookEdit` | `scripts/hooks/write-guard.js` | 10 |
 | SessionStart | `startup|resume|clear|compact` | `scripts/hooks/session-context.js` | 20 |
 
-Total: 19 skills, 3 agents, 3 hooks.
+Total: 24 skills, 3 agents, 3 hooks.
