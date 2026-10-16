@@ -131,3 +131,43 @@ export const IconCornerDownLeft = (p: IconProps) => (
     <path d="m9 10-5 5 5 5" />
   </svg>
 );
+export const IconListCheck = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="m3.5 6 1.5 1.5L8 4.5" />
+    <path d="m3.5 13 1.5 1.5L8 11.5" />
+    <path d="M12 6h8M12 13h8M12 19h8" />
+    <path d="M4 19h.01" strokeWidth={2.5} />
+  </svg>
+);
+export const IconLayers = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="m12 3 9 5-9 5-9-5 9-5Z" />
+    <path d="m3 13 9 5 9-5" />
+  </svg>
+);
+export const IconCode = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="m8 7-5 5 5 5" />
+    <path d="m16 7 5 5-5 5" />
+    <path d="m14 4-4 16" />
+  </svg>
+);
+export const IconFlask = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M9 3h6" />
+    <path d="M10 3v6L4.5 18.5A1.5 1.5 0 0 0 5.8 21h12.4a1.5 1.5 0 0 0 1.3-2.5L14 9V3" />
+    <path d="M7.5 15h9" />
+  </svg>
+);
+export const IconEye = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+export const IconShieldCheck = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M12 3 4.5 6v6c0 4.5 3.2 7.6 7.5 9 4.3-1.4 7.5-4.5 7.5-9V6L12 3Z" />
+    <path d="m8.5 12 2.5 2.5 4.5-5" />
+  </svg>
+);
