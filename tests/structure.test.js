@@ -54,11 +54,13 @@ test('vz-validate CLI exits 0 and prints a summary', () => {
 });
 
 test('every skill has a unique name, a description, a real body, and only supported fields', () => {
-  const skillsDir = path.join(PLUGIN_ROOT, 'skills');
+  const { listSkillDirs } = require('./helpers');
+  const skills = listSkillDirs();
+  assert.ok(skills.length >= 19, 'skills discovered through the platform scan rules');
   const seen = new Set();
-  for (const d of fs.readdirSync(skillsDir)) {
-    const file = path.join(skillsDir, d, 'SKILL.md');
-    const { data, body, hasFrontmatter } = parseFrontmatter(fs.readFileSync(file, 'utf8'));
+  for (const s of skills) {
+    const d = s.name;
+    const { data, body, hasFrontmatter } = parseFrontmatter(fs.readFileSync(path.join(s.dir, 'SKILL.md'), 'utf8'));
     assert.equal(hasFrontmatter, true, `${d}: frontmatter`);
     assert.ok(!seen.has(d), `${d}: duplicate`);
     seen.add(d);
@@ -66,6 +68,32 @@ test('every skill has a unique name, a description, a real body, and only suppor
     assert.ok(body.length > 200, `${d}: body`);
     assert.ok(/## /.test(body), `${d}: has sections`);
   }
+});
+
+test('skill groups: every group folder is listed in plugin.json, so no skill is silently unreachable', () => {
+  const { listSkills } = require(path.join(SCRIPTS, 'lib', 'skills.js'));
+  const scan = listSkills(PLUGIN_ROOT);
+  assert.deepEqual(scan.unreachable, [], 'unreachable skills');
+  assert.ok(scan.groups.length >= 4, 'grouped layout');
+  for (const g of scan.groups) assert.ok(g.listed && g.count > 0, `${g.rel} listed and non-empty`);
+  const manifest = JSON.parse(fs.readFileSync(path.join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json'), 'utf8'));
+  for (const rel of manifest.skills) assert.ok(fs.existsSync(path.join(PLUGIN_ROOT, rel)), `manifest skills path exists: ${rel}`);
+  // the trap this guards against: a group folder missing from the manifest passes `claude plugin validate`
+  // but loads zero skills at runtime (observed on Claude Code 2.1.259). vz-validate must report it as an error.
+  const { tmpDir, rmrf } = require('./helpers');
+  const dir = tmpDir('unlisted');
+  try {
+    fs.cpSync(PLUGIN_ROOT, dir, { recursive: true, filter: (p) => !/[\\/]evals[\\/]results/.test(p) });
+    const mp = path.join(dir, '.claude-plugin', 'plugin.json');
+    const m = JSON.parse(fs.readFileSync(mp, 'utf8'));
+    m.skills = m.skills.filter((s) => s !== './skills/productivity');
+    fs.writeFileSync(mp, JSON.stringify(m, null, 2));
+    const r = validatePlugin(dir);
+    const msgs = r.errors.map((e) => e.message).join('\n');
+    assert.match(msgs, /skill would not load: group directory \.\/skills\/productivity is not listed/);
+    assert.equal(listSkills(dir).unreachable.length, 5);
+    assert.equal(listSkills(dir).skills.length, listSkills(PLUGIN_ROOT).skills.length - 5);
+  } finally { rmrf(dir); }
 });
 
 test('vz-validate catches a broken skill (unsupported field, bad name, missing description)', () => {

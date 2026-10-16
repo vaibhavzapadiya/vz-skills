@@ -4,6 +4,15 @@ Architecture decisions for the plugin, newest first. Do not silently change an a
 
 Prior art studied before the design (all MIT, accessed 2026-10-16; ideas only, no code or text copied): obra/superpowers, addyosmani/agent-skills, mattpocock/skills. Platform conventions were verified against the official Claude Code documentation pages for plugins (manifest reference, components, CLI reference, marketplace reference, install), skills, commands, hooks, sub-agents, and plugin evals, accessed 2026-10-16.
 
+### DEC-016 - Skills grouped in folders, each listed in the manifest
+
+- **Status:** ACCEPTED
+- **Date:** 2026-10-16
+- **Context:** 24 skills in one folder were hard to navigate. Claude Code scans `skills/<name>/SKILL.md` by default and additionally any directory listed in the manifest `skills` key. Experiment on 2.1.259: with `skills/<group>/<name>/` and no manifest entry, `claude plugin validate --strict` passes but `plugin details` shows zero skills; with the four group directories listed, all 24 load with unchanged names and context cost.
+- **Decision:** `skills/entry`, `skills/lifecycle`, `skills/specialists`, `skills/productivity`, each listed in `plugin.json` `skills`. `scripts/lib/skills.js` mirrors the scan rules and reports unreachable skills; `vz-validate.js`, the catalog generator (groups derived from folders), the flat installer (flattens to `<skills>/<name>`), and the tests all use it. A structure test simulates a missing manifest entry and asserts the validator reports it.
+- **Alternatives considered:** flat folder (works, but no structure); agents-style nested names (not how skills work; names would not change anyway).
+- **Consequences/trade-offs:** Adding a group requires a manifest edit; forgetting it is caught by `npm test` and `vz-validate.js` but not by the official validator.
+
 ### DEC-015 - Unprefixed commands via a flat install, not via the plugin
 
 - **Status:** ACCEPTED

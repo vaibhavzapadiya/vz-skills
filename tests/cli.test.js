@@ -71,7 +71,7 @@ test('flat (unprefixed) install at user scope: skills/agents/runtime/hooks creat
     let r = cli(['install', '--flat'], env, 120000);
     assert.equal(r.status, 0, r.stdout + r.stderr);
     const skills = fs.readdirSync(path.join(cfg, 'skills')).sort();
-    const expectedCount = fs.readdirSync(path.join(PLUGIN_ROOT, 'skills')).length;
+    const expectedCount = require('./helpers').listSkillDirs().length;
     assert.equal(skills.length, expectedCount);
     assert.ok(skills.includes('vz-status') && !skills.includes('status'), 'status renamed to vz-status');
     assert.ok(skills.includes('plan') && skills.includes('discover'));

@@ -47,7 +47,7 @@ test('plugin loads as a session-only plugin via --plugin-dir and lists every com
   assert.match(list.stdout, /Status: .*loaded/);
   const details = claude(['--plugin-dir', PLUGIN_ROOT, 'plugin', 'details', 'vz-skills']);
   assert.equal(details.status, 0, details.stderr);
-  const skillDirs = fs.readdirSync(path.join(PLUGIN_ROOT, 'skills')).sort();
+  const skillDirs = require('./helpers').listSkillDirs().map((s) => s.name).sort();
   const m = details.stdout.match(/Skills \((\d+)\)\s+(.+)/);
   assert.ok(m, 'skills line present');
   assert.equal(Number(m[1]), skillDirs.length);

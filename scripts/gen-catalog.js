@@ -1,49 +1,45 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * Generates docs/skills-catalog.md from the plugin's actual SKILL.md and agent frontmatter,
- * so the catalog cannot drift from the implementation. `--check` exits 1 if the file is stale.
+ * Generates docs/skills-catalog.md from the plugin's actual SKILL.md and agent frontmatter, so the
+ * catalog cannot drift from the implementation. Groups are derived from the skills/<group>/ folders
+ * (titles in scripts/lib/skills.js). `--check` exits 1 if the file is stale.
  */
 const fs = require('node:fs');
 const path = require('node:path');
 const { parseFrontmatter } = require('../plugins/vz-skills/scripts/lib/frontmatter');
+const { listSkills, groupTitle, orderedGroups } = require('../plugins/vz-skills/scripts/lib/skills');
 
 const ROOT = path.resolve(__dirname, '..');
 const PLUGIN = path.join(ROOT, 'plugins', 'vz-skills');
 const OUT = path.join(ROOT, 'docs', 'skills-catalog.md');
 
-const GROUPS = {
-  'User-run commands': ['setup', 'status', 'discover'],
-  'Core lifecycle': ['using-vz-skills', 'clarify', 'plan', 'implement', 'test', 'debug', 'review', 'security-review', 'verify'],
-  'Specialists': ['performance', 'frontend', 'backend', 'database', 'api-design', 'docs', 'release'],
-  'Productivity': ['checkpoint', 'pr', 'standup', 'explain', 'retro'],
-};
-
 function build() {
-  const skillsDir = path.join(PLUGIN, 'skills');
-  const skills = {};
-  for (const d of fs.readdirSync(skillsDir)) {
-    const { data, body } = parseFrontmatter(fs.readFileSync(path.join(skillsDir, d, 'SKILL.md'), 'utf8'));
-    skills[d] = { data, lines: body.split('\n').length };
+  const scan = listSkills(PLUGIN);
+  if (scan.unreachable.length) throw new Error(`unreachable skills (group not listed in plugin.json): ${scan.unreachable.map((u) => u.rel).join(', ')}`);
+  const byGroup = new Map();
+  for (const s of scan.skills) {
+    const { data, body } = parseFrontmatter(fs.readFileSync(path.join(s.dir, 'SKILL.md'), 'utf8'));
+    const key = s.group === null ? '(ungrouped)' : s.group;
+    if (!byGroup.has(key)) byGroup.set(key, []);
+    byGroup.get(key).push({ name: s.name, data, lines: body.split('\n').length, rel: s.rel });
   }
-  const listed = new Set(Object.values(GROUPS).flat());
-  for (const s of Object.keys(skills)) if (!listed.has(s)) (GROUPS['Other'] = GROUPS['Other'] || []).push(s);
   const L = [];
   L.push('# VZ Skills catalog');
   L.push('');
-  L.push('Generated from the plugin frontmatter by `node scripts/gen-catalog.js`; do not edit by hand. Invoke any skill as `/vz-skills:<name>` after a plugin install, or as `/<name>` after `npx vz-skills install --flat` (where `status` is `/vz-status`). Skills marked *user-run* have `disable-model-invocation: true` and are never auto-loaded by Claude.');
+  L.push('Generated from the plugin frontmatter by `node scripts/gen-catalog.js`; do not edit by hand. Groups are the folders under `plugins/vz-skills/skills/`. Invoke any skill as `/vz-skills:<name>` after a plugin install, or as `/<name>` after `npx vz-skills install --flat` (where `status` is `/vz-status`). Skills marked *user-run* have `disable-model-invocation: true` and are never auto-loaded by Claude.');
   L.push('');
-  for (const [group, names] of Object.entries(GROUPS)) {
-    L.push(`## ${group}`);
+  const groupNames = orderedGroups([...byGroup.keys()].filter((k) => k !== '(ungrouped)'));
+  if (byGroup.has('(ungrouped)')) groupNames.push('(ungrouped)');
+  for (const g of groupNames) {
+    L.push(`## ${g === '(ungrouped)' ? 'Ungrouped' : groupTitle(g)} (\`skills/${g === '(ungrouped)' ? '' : g + '/'}\`)`);
     L.push('');
     L.push('| Skill | Invocation | Description |');
     L.push('|---|---|---|');
-    for (const n of names) {
-      const s = skills[n];
-      if (!s) continue;
+    for (const s of byGroup.get(g)) {
       const userOnly = s.data['disable-model-invocation'] === true;
       const hint = s.data['argument-hint'] ? ` \`${String(s.data['argument-hint']).replace(/`/g, '')}\`` : '';
-      L.push(`| \`${n}\` | \`/vz-skills:${n}\`${hint}${userOnly ? ' (user-run)' : ''} | ${String(s.data.description).replace(/\|/g, '\\|')} |`);
+      L.push(`| \`${s.name}\` | \`/vz-skills:${s.name}\`${hint}${userOnly ? ' (user-run)' : ''} | ${String(s.data.description).replace(/\|/g, '\\|')} |`);
     }
     L.push('');
   }
@@ -63,7 +59,7 @@ function build() {
   L.push('|---|---|---|---|');
   for (const [event, groups] of Object.entries(hooks.hooks)) for (const g of groups) for (const h of g.hooks) L.push(`| ${event} | \`${g.matcher || '*'}\` | \`${h.args[0].replace('${CLAUDE_PLUGIN_ROOT}/', '')}\` | ${h.timeout} |`);
   L.push('');
-  L.push(`Total: ${Object.keys(skills).length} skills, ${fs.readdirSync(path.join(PLUGIN, 'agents')).length} agents, ${Object.values(hooks.hooks).flat().flatMap((g) => g.hooks).length} hooks.`);
+  L.push(`Total: ${scan.skills.length} skills in ${groupNames.length} groups, ${fs.readdirSync(path.join(PLUGIN, 'agents')).length} agents, ${Object.values(hooks.hooks).flat().flatMap((g) => g.hooks).length} hooks.`);
   L.push('');
   return L.join('\n');
 }

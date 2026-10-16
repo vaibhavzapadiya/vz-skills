@@ -40,6 +40,7 @@ First implementation, built from the specification kit against Claude Code 2.1.2
 - npm package `vz-skills` with a CLI: `npx vz-skills install|update|uninstall|try|doctor|path|validate`. The installer keeps a managed copy under `~/.vz-skills/marketplace`, registers it as a Claude Code marketplace, and installs the plugin at the chosen scope. The package ships only the plugin and the CLI. Verified end to end against an isolated `CLAUDE_CONFIG_DIR` (`tests/cli.test.js`). Not yet published to the registry.
 
 ### Changed
+- Skills are grouped into `skills/entry`, `skills/lifecycle`, `skills/specialists`, `skills/productivity`, each listed in `plugin.json` `skills` (DEC-016). Names and invocation are unchanged. `scripts/lib/skills.js` mirrors the platform scan; the validator and tests flag any group folder missing from the manifest, a case the official validator does not report.
 - Repository split: the specification kit and all process/tracker files moved out of the repository (DEC-013); `docs/decisions.md` keeps the decision log. Added a GitHub Actions workflow.
 
 ### Known limitations

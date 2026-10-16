@@ -15,5 +15,11 @@
     "security",
     "testing",
     "verification"
+  ],
+  "skills": [
+    "./skills/entry",
+    "./skills/lifecycle",
+    "./skills/specialists",
+    "./skills/productivity"
   ]
 }

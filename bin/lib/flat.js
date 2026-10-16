@@ -107,22 +107,25 @@ function installFlat(o) {
     const p = path.join(t.runtime, 'references', f);
     fs.writeFileSync(p, rewrite(fs.readFileSync(p, 'utf8'), runtimeRef));
   }
-  // skills
-  const skillsSrc = path.join(o.pluginRoot, 'skills');
+  // skills (grouped folders in the plugin flatten to <skills>/<name>; Claude Code does not nest skill names)
+  const { listSkills } = require(path.join(o.pluginRoot, 'scripts', 'lib', 'skills.js'));
+  const scan = listSkills(o.pluginRoot);
+  if (scan.unreachable.length) throw new Error(`plugin has skills that would not load (group not listed in plugin.json): ${scan.unreachable.map((u) => u.rel).join(', ')}`);
   const installedSkills = [];
   const collisions = [];
-  for (const name of fs.readdirSync(skillsSrc)) {
-    const dest = path.join(t.skills, flatName(name));
-    if (fs.existsSync(dest) && !fs.existsSync(path.join(dest, '.vz-skills-managed'))) collisions.push(flatName(name));
+  for (const s of scan.skills) {
+    const dest = path.join(t.skills, flatName(s.name));
+    if (fs.existsSync(dest) && !fs.existsSync(path.join(dest, '.vz-skills-managed'))) collisions.push(flatName(s.name));
   }
   if (collisions.length && !o.force) {
     throw new Error(`these skills already exist in ${t.skills} and were not created by vz-skills: ${collisions.join(', ')}. Re-run with --force to replace them, or remove them first.`);
   }
-  for (const name of fs.readdirSync(skillsSrc)) {
+  for (const s of scan.skills) {
+    const name = s.name;
     const target = flatName(name);
     const dest = path.join(t.skills, target);
     fs.rmSync(dest, { recursive: true, force: true });
-    fs.cpSync(path.join(skillsSrc, name), dest, { recursive: true });
+    fs.cpSync(s.dir, dest, { recursive: true });
     let text = fs.readFileSync(path.join(dest, 'SKILL.md'), 'utf8');
     text = rewrite(text, runtimeRef);
     if (target !== name) text = text.replace(/^name:\s*.*$/m, `name: ${target}`);

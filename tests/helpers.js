@@ -54,4 +54,9 @@ function git(dir, args) {
   return spawnSync('git', args, { cwd: dir, encoding: 'utf8', windowsHide: true, env: Object.assign({}, process.env, { GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' }) });
 }
 
-module.exports = { REPO_ROOT, PLUGIN_ROOT, SCRIPTS, FIXTURES, TMP_ROOT, tmpDir, rmrf, copyFixture, runNode, runHook, hasClaude, git };
+/** Every skill directory the platform would load, as [{name, dir, rel, group}] (see scripts/lib/skills.js). */
+function listSkillDirs(pluginRoot = PLUGIN_ROOT) {
+  return require(path.join(pluginRoot, 'scripts', 'lib', 'skills.js')).listSkills(pluginRoot).skills;
+}
+
+module.exports = { REPO_ROOT, PLUGIN_ROOT, SCRIPTS, FIXTURES, TMP_ROOT, tmpDir, rmrf, copyFixture, runNode, runHook, hasClaude, git, listSkillDirs };
