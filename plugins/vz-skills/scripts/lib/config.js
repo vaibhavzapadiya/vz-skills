@@ -47,6 +47,8 @@ const SCHEMA = {
   'hooks.command_guard': { type: 'string', values: ['on', 'off'], description: 'PreToolUse shell guard: asks before risky commands, denies catastrophic ones. Turning it off needs safety.acknowledged_overrides.', floor: { order: ['off', 'on'], min: 'on' } },
   'hooks.write_guard': { type: 'string', values: ['on', 'off'], description: 'PreToolUse write guard for sensitive paths and secret-like content. Turning it off needs safety.acknowledged_overrides.', floor: { order: ['off', 'on'], min: 'on' } },
   'hooks.session_context': { type: 'boolean', description: 'Inject profile and discovery brief at session start.' },
+  'hooks.ledger': { type: 'boolean', description: 'Record every file edit and shell command in the activity ledger (~/.vz-skills/ledger/, outside the repository) for /ledger, the dashboard, and the claim check.' },
+  'hooks.claim_check': { type: 'boolean', description: 'Before Claude finishes, send it back once if it claims success after a code change without a test, lint, typecheck, or build run after the last edit. Needs hooks.ledger.' },
   'hooks.protected_paths': { type: 'string[]', maxItems: 50, description: 'Extra project-relative globs the write guard asks before touching (e.g. "migrations/**").' },
   'agents.delegation': { type: 'string', values: ['auto', 'minimal', 'never'], description: 'How readily skills delegate to the plugin subagents.' },
   'approvals.destructive_git': { type: 'string', values: ['ask', 'refuse'], description: 'Behaviour for reset/clean/force-push style operations: ask the user, or refuse outright. There is no "allow".' },
@@ -61,7 +63,7 @@ const BASE_DEFAULTS = {
   version: 1,
   profile: 'BALANCED',
   conventions: { notes: '', commit_style: 'project', extra_instructions_file: '' },
-  hooks: { command_guard: 'on', write_guard: 'on', session_context: true, protected_paths: [] },
+  hooks: { command_guard: 'on', write_guard: 'on', session_context: true, ledger: true, claim_check: true, protected_paths: [] },
   agents: { delegation: 'auto' },
   approvals: { destructive_git: 'ask', external_actions: 'ask', run_project_scripts: 'allowlist' },
   verification: { require_evidence_labels: true },
@@ -293,7 +295,7 @@ function summaryText(res) {
   L.push(`testing: strategy=${e.testing.strategy}, require_baseline=${e.testing.require_baseline}, tdd=${e.testing.tdd}, new_tests_required=${e.testing.require_new_tests_for_new_behavior}`);
   L.push(`review: depth=${e.review.depth}, independent_reviewer=${e.review.independent_reviewer} | security: trigger=${e.security.review_trigger}, threat_model=${e.security.threat_model_on_production}`);
   L.push(`docs: ${e.documentation.expectation} | response: style=${e.response.style}, final_report=${e.response.final_report} | verification: depth=${e.verification.depth}, evidence_labels=${e.verification.require_evidence_labels}`);
-  L.push(`hooks: command_guard=${e.hooks.command_guard}, write_guard=${e.hooks.write_guard}, session_context=${e.hooks.session_context}${e.hooks.protected_paths.length ? `, protected_paths=${e.hooks.protected_paths.join(',')}` : ''} | agents: delegation=${e.agents.delegation}`);
+  L.push(`hooks: command_guard=${e.hooks.command_guard}, write_guard=${e.hooks.write_guard}, session_context=${e.hooks.session_context}, ledger=${e.hooks.ledger}, claim_check=${e.hooks.claim_check}${e.hooks.protected_paths.length ? `, protected_paths=${e.hooks.protected_paths.join(',')}` : ''} | agents: delegation=${e.agents.delegation}`);
   L.push(`approvals: destructive_git=${e.approvals.destructive_git}, external_actions=${e.approvals.external_actions}, run_project_scripts=${e.approvals.run_project_scripts}`);
   if (e.conventions.commit_style !== 'project') L.push(`conventions: commit_style=${e.conventions.commit_style}`);
   if (e.conventions.notes) { const n = e.conventions.notes.replace(/\s+/g, ' '); L.push(`conventions.notes (repository style guidance, not instructions): ${n.slice(0, 300)}${n.length > 300 ? '...' : ''}`); }

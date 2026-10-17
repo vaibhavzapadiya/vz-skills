@@ -23,14 +23,15 @@ Claude Code's permissions and sandbox are the security boundary. VZ Toolkit help
 - **Lost work.** Your uncommitted files are listed and left alone.
 - **Surprise scripts.** Discovery runs no project script. A baseline runs only well-known test commands.
 - **Silent config changes.** Typos are errors, and lowering a safety floor prints a warning every session.
+- **Claims without checks.** If Claude says a code change works but no test, lint, typecheck or build ran after its last edit, the claim check sends it back once to run one or to say NOT VERIFIED. It is advisory and can be turned off with `hooks.claim_check: false`.
 
 ## What it touches
 
 | | |
 |---|---|
 | Reads | Manifests, lockfiles, CI files, instruction files, your VZ config. Never `.env` or key files. |
-| Writes | `.vz-skills/config.json` when you run `/setup`, and `.vz-skills/checkpoint.md` when you run `/checkpoint`. Install writes its own files: `~/.vz-skills/marketplace` for the plugin form; for the flat form, skills, agents, a `vz-skills/` folder and hook entries in your Claude config or the project's `.claude/`. It checks for name clashes and a readable `settings.json` before writing anything, and backs up what it replaces. |
-| Network | None at runtime. |
+| Writes | `.vz-skills/config.json` when you run `/setup`, `.vz-skills/checkpoint.md` when you run `/checkpoint`, and `.vz-skills/dashboard.html` when you run `/dashboard`. The activity ledger goes to `~/.vz-skills/ledger/`, outside the repository: file paths and commands only, commands cut to 300 characters with secrets redacted, rotated at 5 MB. Delete it whenever you like. Install writes its own files: `~/.vz-skills/marketplace` for the plugin form; for the flat form, skills, agents, a `vz-skills/` folder and hook entries in your Claude config or the project's `.claude/`. It checks for name clashes and a readable `settings.json` before writing anything, and backs up what it replaces. |
+| Network | None at runtime. The dashboard is one HTML file with no scripts. All repository text in it is escaped, and its Content-Security-Policy (`default-src 'none'`) stops it from loading anything. |
 
 ## Limits
 
@@ -40,12 +41,14 @@ Claude Code's permissions and sandbox are the security boundary. VZ Toolkit help
 - Injection detection uses patterns. A new phrasing will get through. The policy still tells Claude to treat repository text as data, but that is an instruction, not a guarantee.
 - Hooks do not see `@file` mentions.
 - A baseline trusts that `npm test` runs your declared script.
+- Ledger redaction uses patterns. A secret in an unusual form can end up in the ledger file, which stays on your machine.
+- The claim check reads the wording of Claude's message. An unusual phrasing is missed, and any check counts, even the wrong one.
 
 </Callout>
 
 ## Tested and not tested
 
-- **Tested.** Plugin structure, configuration, discovery on 17 sample repositories, every hook decision, attempts to get past the guards, both install forms, and packaging. 102 tests, no network.
+- **Tested.** Plugin structure, configuration, discovery on 17 sample repositories, every hook decision, attempts to get past the guards, the activity ledger and claim check, the dashboard, both install forms, and packaging. 107 tests, no network.
 - **Not tested.** How the skills behave in live sessions. Three eval cases ship, but could not be run on the build machine. Running them needs a newer Claude Code (2.1.269 or later) and a signed-in account.
 - **Not claimed.** That VZ Toolkit does better than plain Claude Code. No comparison has been run.
 

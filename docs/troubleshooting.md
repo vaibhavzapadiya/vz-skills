@@ -15,6 +15,8 @@
 | `/vz-skills:...` does not autocomplete | plugin not loaded for this session | `claude plugin list` (add `--plugin-dir <path>` in front if you use the session-only form); check `/plugin` **Errors** tab; run `/reload-plugins` |
 | `claude plugin validate` warns about an unknown field | a frontmatter or manifest key not in the official list | run `node plugins/vz-skills/scripts/vz-validate.js` for the exact file; remove or rename the field |
 | Session starts without the VZ brief | `hooks.session_context: false`, hooks disabled platform-wide (`disableAllHooks`), or the hook failed | run `/vz-skills:status`; run the hook by hand: `echo '{"hook_event_name":"SessionStart","cwd":"."}' \| node plugins/vz-skills/scripts/hooks/session-context.js` and read stderr |
+| Claude goes back to run tests after saying it was done ("vz-skills claim check: ...") | the claim check: the final message claimed success after a code change, and no test, lint, typecheck, or build ran after the last edit (or the last one failed) | expected; let it run the check, or have it say NOT VERIFIED and why. It only sends Claude back once per stop. To turn it off: `hooks.claim_check: false` |
+| `/vz-skills:ledger` shows no activity | `hooks.ledger: false`, the plugin was not enabled when the work happened, or the edits were made outside Claude Code | run `/vz-skills:status` to check `hooks.ledger`; `node plugins/vz-skills/scripts/vz-ledger.js --path` prints the file it reads |
 | Every shell command asks for confirmation | the command guard is matching something in your command (for example `sudo` or `rm -r`) | read the reason in the prompt; it names the category. Adjust the command, or set `approvals.*` / `hooks.protected_paths` deliberately |
 | `git push`, `git tag v1.2.0`, or `gh pr create` asks for confirmation | expected: anything that leaves the machine asks (see `docs/hooks.md`) | confirm it, or set `approvals.external_actions: refuse` to deny these outright |
 | A shell command is denied | it matched a catastrophic pattern (see `docs/hooks.md`) | run it yourself in a terminal if you are sure; VZ will not run it |
@@ -37,6 +39,6 @@ Debugging tips
 - `claude --debug` shows hook invocations and skill loading.
 - `node plugins/vz-skills/scripts/vz-config.js --explain --project .` shows every effective value and its source.
 - `node plugins/vz-skills/scripts/vz-discover.js . --format json` is the full discovery report; `--format md` the readable one.
-- `npm test` in this repository runs 102 tests without network access, in about two minutes when `claude` is on PATH (most of that is the install-cycle tests in `tests/cli.test.js`).
+- `npm test` in this repository runs 107 tests without network access, in about two minutes when `claude` is on PATH (most of that is the install-cycle tests in `tests/cli.test.js`).
 
 Still stuck? Search or open an issue at <https://github.com/vaibhavzapadiya/vz-skills/issues>. Include the details listed in `docs/contributing.md#reporting-issues`.

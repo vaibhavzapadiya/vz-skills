@@ -28,11 +28,20 @@ VZ Skills is a set of small workflows. This skill picks the path; it does not do
 | Service/handler/job work | `backend` (inside the lifecycle) | |
 | Schema/migration/query work | `database` (inside the lifecycle) | |
 | New or changed public API | `api-design` (inside `plan`) | |
-| Docs/README/ADR | `docs` | |
+| Docs/README | `docs` | |
+| Record or review an architecture decision | `adr` | Also proposed by `plan` for lasting decisions. |
 | "Ready to ship / release / cut a version" | `release` | Checklist, no publishing without authorization. |
 | Configure VZ for this repo | `/vz-skills:setup` | User-run. |
 | Context is running out / "continue where we left off" | `checkpoint` | Save before stopping; resume verifies the file against the repository first. |
+| "Commit this" | `commit` | Only on the user's request; stages this task's files by name. |
 | "Open a PR / write the PR description" | `pr` | Built from the `verify` evidence; creates nothing without an explicit request. |
+| "Where do we stand / project overview" | `dashboard` | Writes one HTML page from the repository's real state. |
+| "What did you change / run?" | `ledger` | Read-only, from the activity ledger. |
+| "What breaks if I change X?" | `impact` | Read-only; use before changing shared code. |
+| "Does this test really test the change?" | `prove-test` | Runs the test without the change in a temporary worktree. |
+| Update or audit dependencies | `deps` | One package at a time, release notes first. |
+| New to the repository / onboarding guide | `onboard` | |
+| Claude's code does not match the team's style | `learn-conventions` | Measures the conventions; saves them only on request. |
 | "What happened / status update / handover" | `standup` | Read-only summary from git, working tree, checkpoint. |
 | "How does X work / explain this diff" | `explain` | Read-only, `file:line` references, unknowns stated. |
 | "What slowed us down / how to make this repo easier" | `retro` | Proposes small improvements with evidence; applies nothing. |

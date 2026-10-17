@@ -50,6 +50,16 @@ export const skills: Skill[] = [
       'Runs the discovery engine: languages, frameworks, package manager, build/test/lint/format/typecheck commands, CI, layout, instruction files (scanned for injection attempts), git branch and dirty files, tools on PATH. Every fact is labelled CONFIRMED, INFERRED, UNKNOWN, or CONFLICTING. --baseline also runs the test suite once, only if the command is on a safe allowlist.',
   },
   {
+    name: 'learn-conventions',
+    command: '/learn-conventions',
+    args: '[area, e.g. tests, api, all]',
+    runs: 'auto',
+    group: 'entry',
+    summary: 'Measures the repository’s real conventions, with evidence counts.',
+    description:
+      'Samples up to 30 files per area and counts what the code really does: names, layout, errors, logging, imports, tests, and commit messages. Reports each convention with n of m files and an example path, lists mixed ones as open questions, and proposes short conventions.notes lines for the strong ones. Saves them to .vz-skills/config.json only when you ask.',
+  },
+  {
     name: 'using-vz-skills',
     command: '/using-vz-skills',
     runs: 'auto',
@@ -198,6 +208,16 @@ export const skills: Skill[] = [
       'Finds the contract source of truth (OpenAPI, GraphQL, protobuf, exported types, CLI help), classifies the change as additive, compatible, or breaking, designs the shape to match the existing API, defines errors and limits, adds contract tests, updates docs and changelog.',
   },
   {
+    name: 'prove-test',
+    command: '/prove-test',
+    args: '[test file or test name]',
+    runs: 'auto',
+    group: 'specialists',
+    summary: 'Checks a new test fails without the change and passes with it.',
+    description:
+      'Runs the new or changed test with the change, then without it in a temporary git worktree at the base commit, with only the test files copied in. PROVEN when it fails there and passes here; NOT PROVEN when it passes both ways. Your working tree and branch are never touched, and the worktree is removed afterwards. The test skill uses it for bug fixes and high-risk changes.',
+  },
+  {
     name: 'docs',
     command: '/docs',
     args: '[topic]',
@@ -208,6 +228,26 @@ export const skills: Skill[] = [
       'Writes documentation that matches the code: verifies every command before writing it, points behaviour claims at code or tests, updates the right existing file (README, docs, ADR, changelog) in the project’s voice, checks links and the docs build.',
   },
   {
+    name: 'adr',
+    command: '/adr',
+    args: '[new <title> | supersede <number> | list]',
+    runs: 'auto',
+    group: 'specialists',
+    summary: 'Architecture decision records in the repository\u2019s own format.',
+    description:
+      'Records a lasting technical decision (dependency, data model, public API, infrastructure, security model) with its context, options and consequences, in the repository\u2019s existing ADR format and numbering; supersedes or deprecates old records without rewriting them, and lists them. Proposes docs/adr/ and asks before creating it when the repository has no ADRs yet.',
+  },
+  {
+    name: 'deps',
+    command: '/deps',
+    args: '[package | outdated | audit | patch | minor | major]',
+    runs: 'auto',
+    group: 'specialists',
+    summary: 'Dependency upgrades one package at a time, release notes first.',
+    description:
+      'Lists outdated packages and audit findings with the ecosystem’s own tools, plans the order (security fixes, then patch, minor, and majors one at a time), and waits for your go-ahead. Each step reads the release notes, upgrades through the package manager (never by editing the lockfile), runs the affected checks, and rolls back on failure. A major upgrade of a core dependency starts with a proposed ADR and a plan.',
+  },
+  {
     name: 'release',
     command: '/release',
     args: '[version]',
@@ -216,6 +256,16 @@ export const skills: Skill[] = [
     summary: 'Release readiness with a go/no-go; publishing only when you say so.',
     description:
       'Freezes scope, runs full verification, audits dependencies, drafts the version bump and changelog, inspects the artifact, writes a rollback plan, and gives a go/no-go. Tagging, pushing, and publishing happen only when you say so, one step at a time.',
+  },
+  {
+    name: 'commit',
+    command: '/commit',
+    args: '[message hint]',
+    runs: 'auto',
+    group: 'productivity',
+    summary: 'Commit only this task\u2019s files, in the repository\u2019s style.',
+    description:
+      'Stages only the files the task changed, by name (never git add -A), checks the staged diff for secrets and stray files, writes the message in the repository\u2019s commit style, and lets the project\u2019s git hooks run (never --no-verify). Asks before committing straight to the default branch of a repository that works through pull requests. Commits only when you ask; never pushes.',
   },
   {
     name: 'checkpoint',
@@ -248,6 +298,26 @@ export const skills: Skill[] = [
       'Produces a short, factual summary from git history, the working tree, and the latest checkpoint, in roughly 10 to 15 lines. Read-only. Use for a daily update or a handover.',
   },
   {
+    name: 'dashboard',
+    command: '/dashboard',
+    args: '[output path]',
+    runs: 'auto',
+    group: 'productivity',
+    summary: 'One HTML page with where the project stands.',
+    description:
+      'Writes .vz-skills/dashboard.html from the repository’s real state: the current task from the checkpoint, settings, stack and commands, git, architecture decisions, AI activity from the ledger, instruction files and risks, and docs. The page has no scripts and loads nothing from the network; all repository text is escaped. Then sums it up in five lines.',
+  },
+  {
+    name: 'ledger',
+    command: '/ledger',
+    args: '[last | all | <session id>]',
+    runs: 'auto',
+    group: 'productivity',
+    summary: 'What Claude edited and ran, and which checks passed.',
+    description:
+      'Reads the activity ledger, which a hook writes as each edit and command happens, and reports files changed, commands run, and checks with their results, failed ones first. Covers only calls made through Claude Code’s tools while the plugin is enabled. Read-only. The ledger lives outside the repository, in ~/.vz-skills/ledger/.',
+  },
+  {
     name: 'explain',
     command: '/explain',
     args: '[path, symbol, diff, or question]',
@@ -256,6 +326,26 @@ export const skills: Skill[] = [
     summary: 'Explains code or a diff with file:line references and stated unknowns.',
     description:
       'Explains a module, function, diff, or error to a human reader with file:line references, the data flow, the reasons behind the design as far as the code and history show them, inferences labelled as such, and what was not read. Read-only.',
+  },
+  {
+    name: 'impact',
+    command: '/impact',
+    args: '<symbol, file, route, config key, or table>',
+    runs: 'auto',
+    group: 'productivity',
+    summary: 'What a change would break, before you make it.',
+    description:
+      'Finds the definition and its users with file:line, the tests that cover it, whether it is public (package exports, HTTP routes, CLI flags, persisted formats), and how often it has changed, then rates the risk and suggests a safe approach. Says what a text search cannot see. Read-only. plan uses it before changing shared code.',
+  },
+  {
+    name: 'onboard',
+    command: '/onboard',
+    args: '[audience or focus]',
+    runs: 'auto',
+    group: 'productivity',
+    summary: 'A one-page getting-started guide from the repository itself.',
+    description:
+      'Writes a guide a new developer can use in an hour: what the project is, how to set up, run, and test it (each command with its evidence label), a map of the folders, the main flows with file:line, conventions, first tasks, and gotchas. Prints it; writes docs/ONBOARDING.md only when you ask.',
   },
   {
     name: 'retro',
@@ -273,5 +363,5 @@ export const skillGroups: Array<{ id: SkillGroup; title: string; blurb: string }
   { id: 'entry', title: 'Entry points', blurb: 'Configure, inspect, and orient. Two of these only you can run.' },
   { id: 'lifecycle', title: 'Lifecycle', blurb: 'Run in this order for a typical change. The router decides which steps a request needs.' },
   { id: 'specialists', title: 'Specialists', blurb: 'Overlays that plug into plan, implement, and review when the change touches their area.' },
-  { id: 'productivity', title: 'Productivity', blurb: 'The work around the work: continuity, handover, communication. Read-only except checkpoint, which writes one file.' },
+  { id: 'productivity', title: 'Productivity', blurb: 'The work around the work: commits, continuity, handover, status, and impact. Most are read-only; checkpoint and dashboard write one file each, commit commits when you ask, and onboard writes its guide only when you ask.' },
 ];

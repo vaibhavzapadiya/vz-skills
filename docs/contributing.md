@@ -4,7 +4,7 @@
 
 ```bash
 git clone https://github.com/vaibhavzapadiya/vz-skills.git && cd vz-skills
-npm test                                   # node scripts/run-tests.js: 102 tests, no installs, no network
+npm test                                   # node scripts/run-tests.js: 107 tests, no installs, no network
                                            # (CLI and platform tests also use `claude` when it is on PATH)
 claude plugin validate ./plugins/vz-skills --strict
 claude --plugin-dir ./plugins/vz-skills    # try it in a session

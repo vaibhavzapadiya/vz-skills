@@ -20,7 +20,7 @@ A PR description is the `verify` report rewritten for a reviewer. It must not cl
 0. **Check what the PR would contain.** Run `git status --porcelain` and `git branch --show-current`.
    - Empty branch name (detached HEAD), or the current branch equals the base: stop and say a PR needs a feature branch.
    - `git log <base>..HEAD` is empty: stop; there is nothing to propose.
-   - Files changed by this task are uncommitted: say they are not part of the PR and ask whether to commit them first (see `implement`, step 8). Do not commit them yourself as part of this skill.
+   - Files changed by this task are uncommitted: say they are not part of the PR and ask whether to commit them first with `/vz-skills:commit`. Do not commit them yourself as part of this skill.
 1. **Title**: one line, under 72 characters, imperative, in the discovered commit style.
 2. **Description** in this order, omitting empty sections:
 

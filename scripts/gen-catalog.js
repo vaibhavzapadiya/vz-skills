@@ -59,7 +59,7 @@ function build() {
   L.push('|---|---|---|---|');
   for (const [event, groups] of Object.entries(hooks.hooks)) for (const g of groups) for (const h of g.hooks) L.push(`| ${event} | \`${g.matcher || '*'}\` | \`${h.args[0].replace('${CLAUDE_PLUGIN_ROOT}/', '')}\` | ${h.timeout} |`);
   L.push('');
-  L.push(`Total: ${scan.skills.length} skills in ${groupNames.length} groups, ${fs.readdirSync(path.join(PLUGIN, 'agents')).length} agents, ${Object.values(hooks.hooks).flat().flatMap((g) => g.hooks).length} hooks.`);
+  L.push(`Total: ${scan.skills.length} skills in ${groupNames.length} groups, ${fs.readdirSync(path.join(PLUGIN, 'agents')).length} agents, ${new Set(Object.values(hooks.hooks).flat().flatMap((g) => g.hooks).map((h) => h.args[0])).size} hooks on ${Object.keys(hooks.hooks).length} events.`);
   L.push('');
   return L.join('\n');
 }

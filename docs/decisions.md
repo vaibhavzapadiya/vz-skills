@@ -4,6 +4,15 @@ Architecture decisions for the plugin, newest first. Do not silently change an a
 
 Prior art studied before the design (all MIT, accessed 2026-10-16; ideas only, no code or text copied): obra/superpowers, addyosmani/agent-skills, mattpocock/skills. Platform conventions were verified against the official Claude Code documentation pages for plugins (manifest reference, components, CLI reference, marketplace reference, install), skills, commands, hooks, sub-agents, and plugin evals, accessed 2026-10-16.
 
+### DEC-017 - An activity ledger and a one-shot claim check
+
+- **Status:** ACCEPTED (revises DEC-007)
+- **Date:** 2026-10-17
+- **Context:** Final reports could say "tests pass" when no test ran after the last edit, and there was no record of what Claude edited and ran apart from the conversation. DEC-007 rejected a Stop hook that re-runs verification because of the loop risk.
+- **Decision:** Add a `PostToolUse`/`PostToolUseFailure` hook that appends one line per edit or command to a ledger outside the repository (`~/.vz-skills/ledger/`, redacted, rotated at 5 MB), and a `Stop` hook that compares a success claim in the final message with the ledger. It runs nothing itself: it sends Claude back at most once (`stop_hook_active`) to run a check or say NOT VERIFIED. Both fail open and can be turned off (`hooks.ledger`, `hooks.claim_check`).
+- **Alternatives considered:** a Stop hook that runs the tests (slow, runs project scripts, loop risk); storing the ledger in `.vz-skills/` (could be committed by accident); no record (claims stay unchecked).
+- **Consequences/trade-offs:** Two more hooks fire on every edit, command, and stop. Claims are matched with patterns, so unusual wording is missed. Covered by `tests/activity.test.js`.
+
 ### DEC-016 - Skills grouped in folders, each listed in the manifest
 
 - **Status:** ACCEPTED
@@ -108,7 +117,7 @@ Prior art studied before the design (all MIT, accessed 2026-10-16; ideas only, n
 
 ### DEC-007 - Three hooks only
 
-- **Status:** ACCEPTED
+- **Status:** REVISED by DEC-017 (adds the activity ledger and the claim check)
 - **Date:** 2026-10-16
 - **Context:** Hooks fire on every event for every project once the plugin is enabled (S-07). Each one must earn its cost.
 - **Decision:** `PreToolUse` on `Bash|PowerShell` (command guard), `PreToolUse` on `Write|Edit|MultiEdit` (write guard: sensitive paths + obvious secrets), `SessionStart` (profile + discovery brief as `additionalContext`). No Stop, UserPromptSubmit, PostToolUse, or network hooks.

@@ -58,6 +58,8 @@ node plugins/vz-skills/scripts/vz-config.js --profiles
 | `hooks.command_guard` | `on`, `off` | on |
 | `hooks.write_guard` | `on`, `off` | on |
 | `hooks.session_context` | true or false | true |
+| `hooks.ledger` | true or false | true |
+| `hooks.claim_check` | true or false | true |
 | `hooks.protected_paths` | up to 50 globs, such as `migrations/**` | none |
 | `agents.delegation` | `auto`, `minimal`, `never` | auto |
 | `approvals.destructive_git` | `ask`, `refuse` | ask |
@@ -82,7 +84,7 @@ Three keys cannot be lowered by accident: `hooks.command_guard`, `hooks.write_gu
 It is then applied, and every session start prints a `SAFETY DOWNGRADE` warning.
 
 <Callout kind="warning" title="Only you can turn a guard off">
-An acknowledgment in a repository's `.vz-skills/config.json` is ignored with an error, and the guard stays on. A repository you cloned must not be able to switch off the checks that protect you from it. If a project file has its own `safety.acknowledged_overrides` list, it replaces yours, so the key must be in both.
+An acknowledgment in a repository's `.vz-skills/config.json` is ignored with an error, and the guard stays on. A repository you cloned must not be able to switch off the checks that protect you from it. If a project file has its own `safety.acknowledged_overrides` list, the two lists add up, but a guard counts as acknowledged only when your own file lists it.
 </Callout>
 
 PRODUCTION also refuses values below its own minimums, unless acknowledged the same way. Those can be acknowledged in the project file too.

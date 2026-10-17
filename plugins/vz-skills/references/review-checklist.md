@@ -7,6 +7,7 @@ Apply in order; stop early for `review.depth: quick` after section 1, do section
 - Edge cases: empty input, null/undefined, boundaries (0, 1, max), unicode, very large input, concurrent calls, time zones, retries.
 - Error paths: are failures surfaced, logged without secrets, and not swallowed? Are partial writes rolled back?
 - Does every new code path have a test, or an explicit NOT VERIFIED note?
+- Do the tests check behaviour rather than implementation details, avoid sleeps and real network or clock dependencies, and fail if the change is reverted?
 
 ## 2. Safety and scope
 - Untouched dirty files remain untouched. No unrelated formatting churn.
@@ -18,6 +19,8 @@ Apply in order; stop early for `review.depth: quick` after section 1, do section
 - Follows discovered conventions (naming, layout, error handling, logging) rather than importing another ecosystem's habits.
 - No duplicated logic that an existing helper already covers (search before adding).
 - Public interfaces: backwards compatible, or the break is called out with a migration note.
+- New configuration or environment variables: documented, with a safe default or a clear startup error when missing; nothing secret committed as a default.
+- Data and schema changes work during a rolling deploy (old and new code running at once) and have a rollback path.
 - Complexity proportionate to the problem; no speculative abstractions.
 
 ## 4. Thorough extras

@@ -1,5 +1,5 @@
 {
-  "description": "VZ Skills advisory guards: ask before risky shell commands and sensitive writes, deny catastrophic ones, and inject the core policy plus a repository brief at session start. Hooks fail open and are not a security boundary; Claude Code permissions remain authoritative. Configure via .vz-skills/config.json (hooks.*).",
+  "description": "VZ Skills advisory guards: ask before risky shell commands and sensitive writes, deny catastrophic ones, and inject the core policy plus a repository brief at session start, record edits and commands in an activity ledger outside the repository, and send Claude back once if it claims success after a code change without running a check. Hooks fail open and are not a security boundary; Claude Code permissions remain authoritative. Configure via .vz-skills/config.json (hooks.*).",
   "hooks": {
     "PreToolUse": [
       {
@@ -8,7 +8,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/hooks/command-guard.js"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/command-guard.js"
+            ],
             "timeout": 10,
             "statusMessage": "vz-skills: checking command"
           }
@@ -20,7 +22,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/hooks/write-guard.js"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/write-guard.js"
+            ],
             "timeout": 10,
             "statusMessage": "vz-skills: checking write target"
           }
@@ -34,9 +38,56 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-context.js"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-context.js"
+            ],
             "timeout": 20,
             "statusMessage": "vz-skills: loading profile and repository brief"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/ledger.js"
+            ],
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/ledger.js"
+            ],
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/claim-check.js"
+            ],
+            "timeout": 10,
+            "statusMessage": "vz-skills: checking claims against what ran"
           }
         ]
       }

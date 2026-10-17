@@ -1,5 +1,5 @@
 <Lead>
-The installer you run with `npx`, and three small scripts inside the plugin.
+The installer you run with `npx`, and five small scripts inside the plugin.
 </Lead>
 
 ## `npx vz-skills`
@@ -32,6 +32,8 @@ node scripts/vz-config.js [--explain | --profiles | --schema] [--project <dir>]
 node scripts/vz-config.js --init [FAST|BALANCED|PRODUCTION]   # any case
 node scripts/vz-config.js --validate <file>
 node scripts/vz-validate.js [plugin folder]
+node scripts/vz-ledger.js [--project <dir>] [--session <id> | --last-session] [--limit <n>] [--format md|json] [--path]
+node scripts/vz-dashboard.js [--project <dir>] [--out <file> | --out -] [--no-git]
 ```
 
 | Script | Use it to |
@@ -39,5 +41,7 @@ node scripts/vz-validate.js [plugin folder]
 | `vz-discover.js` | Print what discovery sees. `--run-baseline` runs the test command once, if it is on the safe list. |
 | `vz-config.js` | Show settings and where they come from, create a config file, or validate one. |
 | `vz-validate.js` | Check the plugin's own structure. |
+| `vz-ledger.js` | Show the activity ledger: files edited, commands run, and checks with pass or fail, per session. Shows the last 200 entries by default. `--path` prints where the ledger file is. |
+| `vz-dashboard.js` | Write the project dashboard to `.vz-skills/dashboard.html`, or to the file after `--out` (`--out -` prints it). `--no-git` skips the git sections. |
 
 Exit codes: `0` is fine, `1` means a configuration error (or a failed step), `2` means a usage error.

@@ -1,5 +1,5 @@
 <Lead>
-Three hooks and three agents. The hooks are advisory: they can ask, deny, or stay quiet. Claude Code's own permissions stay in charge.
+Five hooks and three agents. The hooks are advisory: they can ask, deny, send Claude back once, or stay quiet. Claude Code's own permissions stay in charge.
 </Lead>
 
 <Callout kind="warning" title="They fail open">
@@ -13,6 +13,8 @@ If a hook crashes or times out, it makes no decision and your command runs as no
 | Command guard | Before every shell command | Asks about risky commands. Denies catastrophic ones. |
 | Write guard | Before every file write | Asks about sensitive files. Denies dangerous targets. |
 | Session brief | When a session starts | Adds the core policy, your profile, and a short repository summary. |
+| Activity ledger | After every file edit and shell command | Adds one line to a record outside the repository. Never asks or denies. |
+| Claim check | When Claude is about to finish | Sends Claude back once if it claims success after a code change with no check run since. |
 
 Each call takes about 100 to 300 ms.
 
@@ -27,6 +29,7 @@ The guard splits a command line into its parts (at `;`, `&&`, `|`, subshells and
   - force-pushing or deleting `main` or `master`, in any form (`-f`, `--force-with-lease`, `+main`, `:main`, `HEAD:main`).
 - **Asks, because it leaves your machine:** any `git push`, creating or deleting a tag, `gh pr create`, `merge`, `close`, `comment`, `edit` or `review`, `gh issue` and `gh release` changes, `gh repo create`, `edit` or `delete`, `npm version`, `npm publish`, `docker push`, `terraform apply`, `kubectl apply` (unless `--dry-run`), and other deploys.
 - **Asks, because it can lose work:** `git reset --hard`, `git clean -f`, `git checkout -- .`, `git restore <file>`, `git stash drop`, `git branch -D`, force-pushing other branches, `git rebase -i`.
+- **Asks, because it skips your checks:** `--no-verify` on `git commit`, `push` or `merge` (and `git commit -n`), which skips the project's git hooks, often its lint and secret checks.
 - **Asks, for other reasons:** `sudo`, other recursive deletes, piping a download into a shell, reading or searching `.env` or key files (`.env.example` is fine), printing secret variables, `DROP TABLE` and `DELETE FROM` without `WHERE`, global installs, and `rm` or `mv` inside protected paths.
 - **Quiet:** everything else, such as `npm test`.
 
@@ -36,6 +39,18 @@ The guard follows symlinks and junctions to the real target, and ignores case on
 
 - **Denied:** writes inside `.git/`, credential folders in your home (`~/.ssh`, `~/.aws`, `~/.docker`, `~/.config/gh`, ...), your Claude Code user settings, and system folders.
 - **Asks:** `.env` files (including `prod.env` and `.envrc`), key and certificate files, `CLAUDE.md` and `AGENTS.md`, `.mcp.json`, the project's `.claude/` settings, agents, commands, skills and hooks, anything in `~/.claude/`, shell startup files such as `.bashrc`, lockfiles, paths outside the project, protected paths, and content that looks like a credential.
+
+### Activity ledger
+
+Each edit and command is recorded in `~/.vz-skills/ledger/`, one file per project, outside the repository so it is never committed. It keeps the file path or the command, never file contents. Commands are cut to 300 characters, and tokens, passwords and `*_SECRET=` style values are replaced with `[REDACTED]`. Tests, lint, typecheck and build commands are marked as checks, with pass or fail. The file rotates at 5 MB.
+
+Read it with `/ledger` or `/dashboard`. Delete the file to start fresh. Turn it off with `hooks.ledger: false`.
+
+### Claim check
+
+When Claude ends with "all tests pass", "fixed", "done" or "ready to merge" after changing code, the claim check looks at the ledger. If no test, lint, typecheck or build ran after the last code edit, or the last one failed while the message says it passed, Claude is sent back to run the check or to say NOT VERIFIED.
+
+It sends Claude back only once per stop. It stays quiet for questions, docs-only edits, and messages that already say NOT VERIFIED or BLOCKED. It reads words, not code, so an unusual phrasing is missed. Turn it off with `hooks.claim_check: false`.
 
 ### Too big to check
 
@@ -50,6 +65,8 @@ A command over 32 KB, or hook input over 2 MB, gets a question instead of passin
 | Protect folders | `hooks.protected_paths: ["migrations/**"]` |
 | Turn a guard off | `hooks.command_guard` or `hooks.write_guard` set to `"off"`, plus an acknowledged override in your own `~/.vz-skills/config.json`. A repository's config cannot do this. |
 | Stop the session brief | `hooks.session_context: false` |
+| Stop recording activity (also stops the claim check) | `hooks.ledger: false` |
+| Stop the claim check | `hooks.claim_check: false` |
 
 ### What they do not do
 

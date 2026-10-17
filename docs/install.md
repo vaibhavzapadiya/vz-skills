@@ -52,7 +52,7 @@ Claude Code namespaces plugin skills as `/<plugin>:<skill>` and offers no settin
 | `project` | `.claude/skills/`, `.claude/agents/` | `.claude/vz-skills/` | merged into `.claude/settings.json` using `${CLAUDE_PROJECT_DIR}` (portable, commit it) |
 | `local` | same as project | same as project | merged into `.claude/settings.local.json` (personal) |
 
-Rewrites: `${CLAUDE_PLUGIN_ROOT}` becomes the runtime path; `/vz-skills:<name>` becomes `/<name>`; agent references lose the prefix (`@agent-vz-skills:repo-analyst` becomes `@agent-repo-analyst`); `status` is renamed `vz-status` because a skill named `status` would replace Claude Code's built-in `/status` (custom skills override bundled commands of the same name; `/review` is intentionally allowed to override). Each installed skill carries a `.vz-skills-managed` marker, and each installed agent contains the text "VZ Skills plugin". An existing skill without the marker, or an agent file of the same name without that text (one you wrote), is a collision. The install checks everything before it writes anything: skill and agent collisions, and that the target `settings.json` parses. If a check fails, nothing is changed, and the error names the colliding items or the malformed file. `--force` replaces colliding skills and agents, after copying them to `<base>/vz-skills-backups/<timestamp>/`, where `<base>` is your Claude config directory (user scope) or the project's `.claude/`. `settings.json` is backed up beside itself (`settings.json.vz-backup-<timestamp>`) before every write; only the last three backups are kept. `uninstall --flat` removes only the hook groups whose commands point into the runtime directory.
+Rewrites: `${CLAUDE_PLUGIN_ROOT}` becomes the runtime path; `/vz-skills:<name>` becomes `/<name>`; agent references lose the prefix (`@agent-vz-skills:repo-analyst` becomes `@agent-repo-analyst`); `status` is renamed `vz-status` because a skill named `status` would replace Claude Code's built-in `/status` (custom skills override bundled commands of the same name; `/review` is intentionally allowed to override). Each installed skill carries a `.vz-skills-managed` marker, and each installed agent contains the text "VZ Skills plugin". An existing skill without the marker, or an agent file of the same name without that text (one you wrote), is a collision. The install checks everything before it writes anything: skill and agent collisions, and that the target `settings.json` parses. If a check fails, nothing is changed, and the error names the colliding items or the malformed file. `--force` replaces colliding skills and agents, after copying them to `<base>/vz-skills-backups/<timestamp>/`, where `<base>` is your Claude config directory (user scope) or the project's `.claude/`. `settings.json` is backed up beside itself (`settings.json.vz-backup-<timestamp>`) before every write; only the last three backups are kept. The install merges the hooks for every event in the plugin's `hooks.json` (`PreToolUse`, `SessionStart`, `PostToolUse`, `PostToolUseFailure`, `Stop`) into the settings file, after any hooks you already have. `uninstall --flat` removes only the hook groups whose commands point into the runtime directory.
 
 Do not combine a flat install and a plugin install in the same scope: you would get every skill twice in the listing.
 
@@ -71,7 +71,7 @@ claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin list
 claude --plugin-dir /path/to/VZ-skills/plugins/vz-skills plugin details vz-skills
 ```
 
-Observed output on 2.1.259: `vz-skills@inline ... Status: ✔ loaded`, and `details` lists 24 skills, 3 agents, and 2 hook events. Claude Code 2.1.233 words the status as `✔ enabled`; other versions may word it differently.
+Observed output on 2.1.259: `vz-skills@inline ... Status: ✔ loaded`, and `details` lists every skill, agent, and hook event (today 33 skills, 3 agents, and 5 hook events). Claude Code 2.1.233 words the status as `✔ enabled`; other versions may word it differently.
 
 ## Option C: install from a clone as a local marketplace - *verified in an isolated config directory (same commands the npm CLI runs)*
 
@@ -132,7 +132,7 @@ Inside a session the equivalent is `/plugin marketplace add vaibhavzapadiya/vz-s
 What is left behind on purpose:
 
 - `.vz-skills/config.json` in projects where you ran `setup` (it is yours), and `~/.vz-skills/config.json` if you created one;
-- `~/.vz-skills/` itself, unless you ran `uninstall --purge` (which removes `~/.vz-skills/marketplace` only);
+- `~/.vz-skills/` itself, unless you ran `uninstall --purge` (which removes `~/.vz-skills/marketplace` only). It also holds the activity ledger, `~/.vz-skills/ledger/`; delete that folder to remove the record of edits and commands;
 - after a flat install: the `settings.json.vz-backup-<timestamp>` files beside your settings file (the last three), and `vz-skills-backups/` in your Claude config directory or `.claude/` if you ever used `--force`. Delete them by hand once you no longer need them.
 
 ## Troubleshooting

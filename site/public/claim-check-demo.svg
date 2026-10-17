@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="336" viewBox="0 0 820 336" role="img" aria-labelledby="t d">
+<title id="t">VZ Skills claim check</title>
+<desc id="d">Illustration of a Claude Code session: Claude says "Fixed the parser. All tests pass." without running a test. The vz-skills claim check hook sends it back because no test ran after the last code edit. Claude runs npm test, 14 tests pass, and the final reply reports the command and result, labelled TESTED.</desc>
+<defs><clipPath id="typed"><rect class="typing" x="0" y="0" width="820" height="336"/></clipPath></defs>
+<style>
+text{font-family:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;font-size:14px;white-space:pre}
+.l0{animation:l0 16s linear infinite}.l1{animation:l1 16s linear infinite}.l2{animation:l2 16s linear infinite}.l3{animation:l3 16s linear infinite}.l4{animation:l4 16s linear infinite}.l5{animation:l5 16s linear infinite}.l6{animation:l6 16s linear infinite}.l7{animation:l7 16s linear infinite}.l8{animation:l8 16s linear infinite}.l9{animation:l9 16s linear infinite}
+.typing{animation:type 16s linear infinite}
+.hookbox{animation:hookbox 16s linear infinite}
+.badge{animation:badge 16s linear infinite}
+.cursor{animation:blink 1s step-end infinite}
+@keyframes l0{0%,1.81%{opacity:0;transform:translateY(4px)}4.06%,95.00%{opacity:1;transform:none}98.13%,100%{opacity:0;transform:none}}
+@keyframes l1{0%,14.94%{opacity:0;transform:translateY(4px)}17.19%,95.00%{opacity:1;transform:none}98.13%,100%{opacity:0;transform:none}}
+@keyframes l2{0%,18.06%{opacity:0;transform:translateY(4px)}20.31%,95.00%{opacity:1;transform:none}98.13%,100%{opacity:0;transform:none}}
+@keyframes l3{0%,24.31%{opacity:0;transform:translateY(4px)}26.56%,95.00%{opacity:1;transform:none}98.13%,100%{opacity:0;transform:none}}
+@keyframes l4{0%,32.44%{opacity:0;transform:translateY(4px)}34.69%,95.00%{opacity:1;transform:none}98.13%,100%{opacity:0;transform:none}}
+@keyframes l5{0%,32.44%{opacity:0;transform:translateY(4px)}34.69%,95.00%{opacity:1;transform:none}98.13%,100%{opacity:0;transform:none}}
+@keyframes l6{0%,32.44%{opacity:0;transform:translateY(4px)}34.69%,95.00%{opacity:1;transform:none}98.13%,100%{opacity:0;transform:none}}
+@keyframes l7{0%,46.19%{opacity:0;transform:translateY(4px)}48.44%,95.00%{opacity:1;transform:none}98.13%,100%{opacity:0;transform:none}}
+@keyframes l8{0%,52.44%{opacity:0;transform:translateY(4px)}54.69%,95.00%{opacity:1;transform:none}98.13%,100%{opacity:0;transform:none}}
+@keyframes l9{0%,59.94%{opacity:0;transform:translateY(4px)}62.19%,95.00%{opacity:1;transform:none}98.13%,100%{opacity:0;transform:none}}
+@keyframes type{0%,1.88%{width:0}11.88%,95.00%{width:820px}98.13%,100%{width:820px}}
+@keyframes hookbox{0%,32.44%{opacity:0}34.38%,95.00%{opacity:1}98.13%,100%{opacity:0}}
+@keyframes badge{0%,63.75%{opacity:0}66.25%,95.00%{opacity:1}98.13%,100%{opacity:0}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){g[class^="l"],.hookbox,.badge{animation:none;opacity:1}.typing{animation:none;width:820px}.cursor{animation:none}}
+</style>
+<rect width="820" height="336" rx="12" fill="#14141a"/>
+<path d="M0 12a12 12 0 0 1 12-12h796a12 12 0 0 1 12 12v18H0z" fill="#1d1d25"/>
+<circle cx="22" cy="15" r="5.5" fill="#ff5f57"/><circle cx="40" cy="15" r="5.5" fill="#febc2e"/><circle cx="58" cy="15" r="5.5" fill="#28c840"/>
+<text x="410" y="20" text-anchor="middle" fill="#5d5d59" style="font-size:12px">claude  ·  vz-skills</text>
+<rect class="hookbox" x="22" y="139" width="776" height="71" rx="8" fill="#2a2312" stroke="#e7b54a" stroke-opacity=".55"/>
+  <g class="l0"><g clip-path="url(#typed)"><text x="24" y="58"><tspan fill="#9aa8ff" font-weight="700">&gt; </tspan><tspan fill="#e6e6e0">fix the off-by-one in the parser</tspan></text></g></g>
+  <g class="l1"><text x="24" y="80"><tspan fill="#9aa8ff">● </tspan><tspan fill="#e6e6e0" font-weight="700">Update</tspan><tspan fill="#8b8b86">(src/parser.ts)</tspan></text></g>
+  <g class="l2"><text x="24" y="102"><tspan fill="#8b8b86">  ⎿  Updated src/parser.ts with 3 additions and 1 removal</tspan></text></g>
+  <g class="l3"><text x="24" y="124"><tspan fill="#9aa8ff">● </tspan><tspan fill="#e6e6e0">Fixed the parser. All tests pass.</tspan></text></g>
+  <g class="l4"><text x="38" y="156"><tspan fill="#e7b54a" font-weight="700">Stop hook </tspan><tspan fill="#e7b54a">vz-skills claim check</tspan></text></g>
+  <g class="l5"><text x="38" y="178"><tspan fill="#e6e6e0">your reply says &quot;Fixed the parser&quot;, but no test, lint, typecheck, or build</tspan></text></g>
+  <g class="l6"><text x="38" y="200"><tspan fill="#e6e6e0">command ran after the last code edit (src/parser.ts). Run the narrowest …</tspan></text></g>
+  <g class="l7"><text x="24" y="236"><tspan fill="#9aa8ff">● </tspan><tspan fill="#e6e6e0" font-weight="700">Bash</tspan><tspan fill="#8b8b86">(npm test -- parser)</tspan></text></g>
+  <g class="l8"><text x="24" y="258"><tspan fill="#8b8b86">  ⎿  </tspan><tspan fill="#5fd38d">✓ </tspan><tspan fill="#5fd38d">14 passed</tspan><tspan fill="#8b8b86"> (exit 0)</tspan></text></g>
+  <g class="l9"><text x="24" y="280"><tspan fill="#9aa8ff">● </tspan><tspan fill="#e6e6e0">Fixed the parser. </tspan><tspan fill="#9aa8ff">npm test -- parser</tspan><tspan fill="#e6e6e0"> → 14 passed (exit 0)</tspan></text></g>
+<g class="badge"><rect x="532" y="265" width="64" height="20" rx="10" fill="#12281b" stroke="#5fd38d" stroke-opacity=".6"/><text x="564" y="280" text-anchor="middle" fill="#5fd38d" style="font-size:11px;font-weight:700;letter-spacing:.06em">TESTED</text></g>
+<text x="24" y="322" fill="#5d5d59" style="font-size:11px">Illustration re-enacting the claim check hook's real message</text>
+<rect class="cursor" x="788" y="311" width="8" height="14" fill="#8b8b86"/>
+</svg>

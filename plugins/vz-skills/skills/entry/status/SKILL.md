@@ -18,7 +18,7 @@ User-invoked, read-only. Use it to answer "what will VZ do here and why".
    ```
 
    Report: profile and its source (default / user / project / env), every key whose value comes from an explicit layer, all ERROR lines (config invalid; floors enforced), and all WARNING lines (acknowledged safety downgrades).
-2. **Hooks**: state which VZ hooks are active per config (`hooks.command_guard`, `hooks.write_guard`, `hooks.session_context`) and remind that they are advisory; `disableAllHooks` in Claude Code settings turns them off entirely (do not change that setting).
+2. **Hooks**: state which VZ hooks are active per config (`hooks.command_guard`, `hooks.write_guard`, `hooks.session_context`, `hooks.ledger`, `hooks.claim_check`) and remind that they are advisory; `disableAllHooks` in Claude Code settings turns them off entirely (do not change that setting).
 3. **Repository brief**:
 
    ```bash

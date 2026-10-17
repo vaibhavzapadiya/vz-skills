@@ -50,9 +50,17 @@ Yes, on purpose. Lowering a guard needs an acknowledged override in your own `~/
 
 Anything that leaves your machine asks first: pushes, tags, pull requests, releases, publishing and deploys. Set `approvals.external_actions: "refuse"` to deny them instead and run them yourself.
 
+### Why did Claude go back and run the tests?
+
+That is the claim check. Claude said something like "all tests pass" or "fixed" after changing code, but no test, lint, typecheck or build had run since its last edit, or the last one failed. Claude is sent back once to run the check or to say NOT VERIFIED. It never happens twice in a row. Turn it off with `hooks.claim_check: false`. See [Hooks and agents](/docs/guards#claim-check).
+
+### Where is the activity ledger stored?
+
+In `~/.vz-skills/ledger/`, one file per project, outside your repository, so it is never committed. It holds file paths and commands (cut to 300 characters, secrets redacted), not file contents. `/ledger` shows it. Delete the file to start fresh, or set `hooks.ledger: false` to stop recording.
+
 ### What does it cost?
 
-A small amount of context is added to each session. `claude plugin details` reports the exact figure. Each hook call takes 100 to 300 ms, and there are no network calls.
+A small amount of context is added to each session: about 2,800 tokens for 33 skills, measured with `claude plugin details` on Claude Code 2.1.233. That command reports the exact figure for your version. Each hook call takes 100 to 300 ms, and there are no network calls.
 
 ### License?
 

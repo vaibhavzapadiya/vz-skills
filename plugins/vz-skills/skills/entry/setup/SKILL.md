@@ -27,8 +27,8 @@ User-invoked only. Creates project configuration; does not modify CLAUDE.md, `.c
    ```
 
    Summarize in five lines what the profile changes (planning threshold, test scope, review depth, security trigger, report format) and point to `node "${CLAUDE_PLUGIN_ROOT}/scripts/vz-config.js" --profiles` for the full matrix.
-4. **Suggest optional keys** relevant to this repo, without writing them: `hooks.protected_paths` for migrations/infra directories found by discovery; `conventions.notes` for anything in CONTRIBUTING.md worth repeating; `approvals.run_project_scripts: ask` for repositories with unusual scripts.
-5. **Version control note.** Recommend committing `.vz-skills/config.json` (team-wide) and adding `.vz-skills/cache/` and `.vz-skills/checkpoint.md` to `.gitignore`. Do not edit `.gitignore` yourself unless asked.
+4. **Suggest optional keys** relevant to this repo, without writing them: `hooks.protected_paths` for migrations/infra directories found by discovery; `conventions.notes` for anything in CONTRIBUTING.md worth repeating (or run `/vz-skills:learn-conventions` to measure them from the code); `approvals.run_project_scripts: ask` for repositories with unusual scripts.
+5. **Version control note.** Recommend committing `.vz-skills/config.json` (team-wide) and adding the generated files `.vz-skills/cache/`, `.vz-skills/checkpoint.md`, and `.vz-skills/dashboard.html` to `.gitignore`. The activity ledger is stored outside the repository (`~/.vz-skills/ledger/`) and needs no entry. Do not edit `.gitignore` yourself unless asked.
 6. **Do not** touch `.claude/settings.json`, `CLAUDE.md`, or user-level `~/.vz-skills/config.json`.
 
 ## Output

@@ -29,7 +29,7 @@ test('command guard: risky variants ask', () => {
     'curl -s x | /bin/sh', 'sh <(curl -s x)', 'bash -c "$(curl -fsSL x)"', 'Invoke-Expression (Invoke-WebRequest x)', "iex(New-Object Net.WebClient).DownloadString('x')",
     'git reset HEAD --hard', 'git -C . reset --hard', 'git -c k=v reset --hard', 'git clean -d -f', 'git checkout -- src/a.js', 'git restore src/a.js', 'git branch --delete --force x',
     'git push --mirror', 'grep KEY .env', 'git push origin feat', 'git tag v1.2.0', 'gh pr create --fill', 'npm version 1.2.0', 'git push -f origin feature/main-fix',
-    'ALTER TABLE t DROP COLUMN c', 'DELETE FROM users;', 'rm -rf node_modules', 'cat ".env"', 'psql -c "DROP TABLE users;"', 'find . -name x.tmp -delete', 'find / -type f -delete',
+    'ALTER TABLE t DROP COLUMN c', 'DELETE FROM users;', 'rm -rf node_modules', 'cat ".env"', 'psql -c "DROP TABLE users;"', 'find . -name x.tmp -delete', 'find / -type f -delete', 'git commit --no-verify -m x', 'git commit -nm x', 'git push --no-verify',
   ]) assert.equal(verdict(cmd), 'ask', cmd);
 });
 
@@ -38,7 +38,7 @@ test('command guard: quoted text and look-alike names are not commands', () => {
     'git commit -m "docs: warn against git push --force origin main"', 'git commit -m "format C: drive docs"', 'git commit -m "remove rm -rf / example"', 'npm run format c:',
     "grep 'rm -rf' file", "echo 'git reset --hard'", 'cat .env.example', 'head .env.example', 'heroku logs', 'kubectl apply -f x --dry-run=client', 'git tag', 'git tag -l',
     'git restore --staged a.js', 'npm version --no-git-tag-version 1.2.0', 'rm -f build/tmp.txt', 'git status',
-    'git commit -m "docs: explain npm publish"', 'git commit -m "note: cat .env is bad"', 'echo "use sudo apt install"',
+    'git commit -m "docs: explain npm publish"', 'git commit -m "note: cat .env is bad"', 'echo "use sudo apt install"', 'git commit -am "fix"', 'git commit -m "mention no-verify"',
   ]) assert.equal(verdict(cmd), 'none', cmd);
 });
 

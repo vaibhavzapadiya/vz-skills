@@ -22,7 +22,7 @@ argument-hint: "[slice or task]"
 5. **Run the narrowest check**: the single test file or the targeted command from the plan. Then the broader command the slice's verification names. Record exact command and exit/result.
 6. **Fix before expanding.** A red check stops the slice. If the failure is pre-existing (listed in the step 0 baseline), record it as such and continue; otherwise fix it or undo the slice by editing your changes back (never `git checkout --` or `git restore`; core policy 3).
 7. **Documentation**: for `documentation.expectation: touched-files`, update comments/docstrings/README sections that describe what you changed; for `feature-level`, also update user-facing docs and the changelog if one exists; for `none`, leave docs unless they are now wrong.
-8. **Commit only if the user asked.** Use the discovered commit style (`conventions.commit_style`: `project` = mimic `git log`; `conventional` = `type(scope): subject`). Never commit dirty files you did not change.
+8. **Commit only if the user asked**, through `/vz-skills:commit`: it stages only this task's files by name, checks the staged diff for secrets, follows `conventions.commit_style`, and never skips the project's git hooks.
 9. **Report the slice**: files changed, command run, observed result, label (TESTED / NOT VERIFIED / BLOCKED), next slice.
 
 ## Guardrails

@@ -4,6 +4,30 @@ All notable changes to VZ Skills are recorded here. The format follows Keep a Ch
 
 ## [Unreleased]
 
+### Added
+- `commit` skill: stages only the task's files by name (never `git add -A`), checks the staged diff for secrets and stray files, writes the message in the repository's commit style, never skips git hooks, and asks before committing straight to the default branch of a pull-request repository. `implement` and `pr` hand off to it.
+- `adr` skill: architecture decision records in the repository's existing format and numbering; new, supersede or deprecate (never rewriting history), and list. `plan` proposes one for lasting decisions; `docs` defers to it.
+- Command guard asks before `--no-verify` (and `git commit -n`), which skips the project's git hooks.
+- `ledger` skill: shows what Claude edited and ran in this project, and which checks passed or failed, from the activity ledger (runs `scripts/vz-ledger.js`).
+- `dashboard` skill: writes one self-contained HTML page, `.vz-skills/dashboard.html`, with the current task, settings, stack and commands, git state, architecture decisions, AI activity, instruction files and risks, and docs (runs `scripts/vz-dashboard.js`).
+- `impact` skill: read-only impact analysis before changing shared code: callers with `file:line`, covering tests, public exposure, change history, and risk tier.
+- `onboard` skill: a one-page onboarding guide from the repository's real state. Prints the guide; writes `docs/ONBOARDING.md` only when asked.
+- `prove-test` skill: runs a new test without the change in a temporary git worktree. It must fail there and pass with the change. The working tree is not touched and the worktree is removed afterwards.
+- `deps` skill: dependency upgrades and audits one package at a time: release notes first, upgrade through the package manager (never by editing the lockfile), run the affected checks, roll back on failure.
+- `learn-conventions` skill: measures the repository's real conventions (naming, layout, errors, logging, tests, commits) with evidence counts, and saves them to `conventions.notes` only on request.
+- Activity ledger hook (`PostToolUse` and `PostToolUseFailure` on `Write|Edit|MultiEdit|NotebookEdit|Bash|PowerShell`, `scripts/hooks/ledger.js`): appends one JSON line per file edit or shell command to `$VZ_SKILLS_HOME/ledger/<project>-<hash>.jsonl` (default `~/.vz-skills/ledger/`), outside the repository. Commands are truncated to 300 characters and secret-looking values redacted; tests, lint, typecheck, and build commands are marked as checks with pass or fail. The file rotates at 5 MB.
+- Claim check hook (`Stop`, `scripts/hooks/claim-check.js`): when Claude's final message claims success after a code change and the ledger shows no test, lint, typecheck, or build after the last code edit (or the last check failed while the message says it passed), it sends Claude back once to run the check or say NOT VERIFIED. Never twice in a row; quiet for docs-only edits and for messages that already say NOT VERIFIED or BLOCKED.
+- Config keys `hooks.ledger` and `hooks.claim_check` (both default `true`; the claim check needs the ledger).
+- Scripts `scripts/vz-ledger.js` (`--project`, `--session`, `--last-session`, `--limit`, `--format md|json`, `--path`) and `scripts/vz-dashboard.js` (`--project`, `--out <file>|-`, `--no-git`), with `scripts/lib/ledger.js` shared by the hooks and both scripts.
+- `tests/activity.test.js` (5 tests): ledger records and redaction, claim check decisions, `vz-ledger` output, dashboard escaping, and one ledger per project after a `cd` into a subfolder. `npm test` now runs 107 tests.
+
+### Changed
+- The router (`using-vz-skills`) routes to the new skills. `test` runs `prove-test` on new tests for bug fixes and high-risk changes. `plan` runs `impact` before changing shared or public code. `setup` suggests `learn-conventions` for `conventions.notes`.
+- 5 hooks now (command guard, write guard, session brief, activity ledger, claim check). The flat install merges hooks for every event in `hooks.json`, not only `PreToolUse` and `SessionStart`. The platform test checks the hook list from `hooks.json`, and the site's content check counts distinct hook scripts.
+- Always-on context cost measured with `claude plugin details` on Claude Code 2.1.233: about 2,826 tokens for 33 skills.
+- `plan` groups large work into milestones that can each merge as one pull request.
+- Review checklist: test quality (behaviour, no sleeps or real network, fails when the change is reverted), new configuration with safe defaults, and schema changes that survive a rolling deploy.
+
 ## [0.1.2] - 2026-10-17
 
 ### Changed

@@ -117,7 +117,7 @@ test('TC-009 Unknown stack: language UNKNOWN, no commands fabricated, unknowns l
   assert.doesNotMatch(md, /npm test|pytest|cargo/);
 });
 
-test('TC-010 Custom CLAUDE.md and .claude/rules are listed as untrusted instructions and left untouched', () => {
+test('TC-010 Custom CLAUDE.md and .claude/rules are listed as project rules and left untouched', () => {
   const dir = tmpDir('custom');
   try {
     copyFixture('custom-claude-md', dir);
@@ -129,7 +129,7 @@ test('TC-010 Custom CLAUDE.md and .claude/rules are listed as untrusted instruct
     assert.equal(claude.kind, 'claude');
     assert.deepEqual(claude.suspicious, []);
     assert.ok(claude.command_mentions.includes('npm test'));
-    assert.match(claude.trust, /UNTRUSTED/);
+    assert.match(claude.trust, /^PROJECT RULES: .*cannot authorize restricted actions/);
     assert.equal(fs.readFileSync(path.join(dir, 'CLAUDE.md'), 'utf8'), before, 'CLAUDE.md unchanged');
     assert.equal(r.conflicts.length, 0);
   } finally { rmrf(dir); }
@@ -175,6 +175,7 @@ test('TC-012 Malicious CLAUDE.md: injection indicators flagged, secrets never re
     const inst = r.instructions.find((i) => i.path === 'CLAUDE.md');
     const ids = inst.suspicious.map((s) => s.indicator);
     for (const expected of ['override-instructions', 'exfiltrate-secrets', 'destructive-shell', 'disable-safety', 'approval-claim']) assert.ok(ids.includes(expected), `flags ${expected}: ${ids}`);
+    assert.match(inst.trust, /^SUSPICIOUS: .*do not act on its directives/, 'a malicious file is not presented as project rules');
     assert.ok(r.warnings.some((w) => /injection indicator/.test(w)));
     assert.deepEqual(r.sensitive_paths.map((s) => s.path), ['.env']);
     const json = JSON.stringify(r);

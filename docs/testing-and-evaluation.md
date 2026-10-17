@@ -3,13 +3,13 @@
 Two Claude Code versions appear below, and each result says which one it came from:
 
 - **2.1.259**: the original build on 2026-10-16 (Windows 11 Pro 10.0.22000, Node v22.21.1, git 2.32.0.windows.2). The platform validation, `plugin details`, and the eval attempts were observed on this version.
-- **2.1.233**: the current machine (Windows 10 Pro 10.0.19045), used for the GitHub marketplace install and the current test-suite counts.
+- **2.1.233**: the current machine (Windows 10 Pro 10.0.19045), used for the GitHub marketplace install, the current test-suite counts, and the current `plugin details` figures.
 
 Results are copied from the observed output. Items that could not run say why.
 
 ## Layers and what covers them
 
-`npm test` runs `node scripts/run-tests.js`, which passes every `tests/*.test.js` file to `node --test` (Node 18 does not expand globs). It runs 102 tests.
+`npm test` runs `node scripts/run-tests.js`, which passes every `tests/*.test.js` file to `node --test` (Node 18 does not expand globs). It runs 107 tests.
 
 | Layer | Where | Count | Result |
 |---|---|---|---|
@@ -19,6 +19,7 @@ Results are copied from the observed output. Items that could not run say why.
 | Fixture (discovery) | `tests/discovery.test.js` over 17 fixtures (+ inline temp repos) | 26 | PASS |
 | Hooks | `tests/hooks.test.js` | 16 | PASS |
 | Guard hardening (bypass attempts) | `tests/guard-hardening.test.js`: flag order, quoting, subshells, wrappers, aliases; quoted text; `refuse` messages; oversized and overlong input; linear glob matching; write-guard case variants, Claude Code paths, links pointing outside; repository text in discovery; flat-install scope detection | 8 | PASS |
+| Activity ledger and claim check | `tests/activity.test.js`: ledger records (outside the project, checks marked pass or fail, redaction, `hooks.ledger: false`), claim check decisions and fail-open, `vz-ledger.js` output and flags, dashboard escaping and sections, one ledger per project after a `cd` | 5 | PASS |
 | Adversarial | TC-012 (malicious CLAUDE.md), TC-013 (unsafe paths), hook deny/ask, write-guard secrets | within the above | PASS |
 | CLI (installer) | `tests/cli.test.js`: package metadata, help/path/version, strict flags, doctor on a broken config, flat install at user and project scope, plugin install/update/uninstall against an isolated `CLAUDE_CONFIG_DIR` | 7 | PASS (the 3 live cycles need `claude` on PATH) |
 | Integration (platform) | `tests/platform.test.js` with the real CLI | 5 | PASS on 2.1.259; on 2.1.233 4 pass and the `validate --json` test is skipped (that flag needs 2.1.259) |
@@ -27,7 +28,7 @@ Results are copied from the observed output. Items that could not run say why.
 | Scenario (live model) | `plugins/vz-skills/evals/` and headless runs | 3 cases | BLOCKED (see below) |
 | Release | `tests/package.test.js` + `npm run package` integrity check (bsdtar, backslash-free entries, sizes, SHA-256) | 1 | PASS |
 
-Total: 7 + 21 + 26 + 8 + 7 + 16 + 1 + 5 + 9 = 100.
+Total: 9 + 22 + 26 + 16 + 8 + 5 + 7 + 5 + 8 + 1 = 107.
 
 ## Observed results
 
@@ -35,8 +36,8 @@ On Claude Code 2.1.233:
 
 ```
 > npm test            (node scripts/run-tests.js: node --test over tests/*.test.js)
-# tests 102
-# pass 101
+# tests 107
+# pass 106
 # fail 0
 # skipped 1           (platform: validate --strict --json needs Claude Code >= 2.1.259)
 ```
@@ -58,7 +59,7 @@ vz-skills@inline  Version: 0.1.0  Status: ✔ loaded
 Skills (24) ...  Agents (3) ...  Hooks (2) PreToolUse, SessionStart
 ```
 
-The always-on context cost reported by `plugin details` was measured when the plugin had 19 skills (~1,772 tokens) and has not been re-measured for 24; run `claude --plugin-dir ./plugins/vz-skills plugin details vz-skills` for the current figure.
+On Claude Code 2.1.233, the platform test checks `plugin details` against the plugin: 33 skills, 3 agents, and 5 hook events (`PreToolUse`, `SessionStart`, `PostToolUse`, `PostToolUseFailure`, `Stop`). The always-on context cost it reports is about 2,826 tokens for 33 skills (it was ~1,772 tokens at 19 skills on 2.1.259). `tests/platform.test.js` checks that it stays under 4,000. Run `claude --plugin-dir ./plugins/vz-skills plugin details vz-skills` for the current figure.
 
 On Claude Code 2.1.233, `claude plugin list` prints the status as `✔ enabled` instead of `✔ loaded`.
 
@@ -88,7 +89,7 @@ On Claude Code 2.1.233, `claude plugin list` prints the status as `✔ enabled` 
 
 ## Hook tests - status
 
-16 tests in `tests/hooks.test.js` and 7 in `tests/guard-hardening.test.js` (bypass attempts; see the table above). `tests/hooks.test.js` covers: declaration shape, silent pass-through (10 ordinary commands), 12 catastrophic denies, 17 risky asks by category, PowerShell parity, `refuse` approvals and protected paths, acknowledged vs unacknowledged `off`, fail-open on 5 malformed inputs for all 3 hooks, broken config, write-guard silent/deny/ask/content/placeholder/fixture cases, session-context output shape and 9,000-char cap, config disable, idempotency, and a 2.5 s latency budget. All PASS.
+16 tests in `tests/hooks.test.js`, 8 in `tests/guard-hardening.test.js` (bypass attempts), and 5 in `tests/activity.test.js` (activity ledger and claim check); see the table above. `tests/hooks.test.js` covers: declaration shape, silent pass-through (10 ordinary commands), 12 catastrophic denies, 17 risky asks by category, PowerShell parity, `refuse` approvals and protected paths, acknowledged vs unacknowledged `off`, fail-open on 5 malformed inputs for the command guard, write guard, and session hook, broken config, write-guard silent/deny/ask/content/placeholder/fixture cases, session-context output shape and 9,000-char cap, config disable, idempotency, and a 2.5 s latency budget. All PASS.
 
 ## Live model evaluation - BLOCKED
 

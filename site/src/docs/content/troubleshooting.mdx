@@ -20,6 +20,8 @@ Start with `npx vz-skills doctor`. It checks Node, Claude Code, the install, and
 | `/status` shows Claude's status, not VZ's | Expected after a flat install | Use `/vz-status` |
 | Every command asks for confirmation | The command guard matched something, such as `sudo` or `rm -r` | Read the prompt; it names the reason. Change the command or your settings. |
 | A command is denied | It matched a catastrophic pattern | Run it yourself in a terminal if you are sure |
+| The claim check keeps sending Claude back to run tests | Claude claimed success after a code change, and no test, lint, typecheck or build ran after the last edit | Let it run a check, or have it say NOT VERIFIED and why. Or set `hooks.claim_check: false` |
+| `/ledger` shows nothing | `hooks.ledger` is false, or the work happened outside Claude Code or before the install | Check `hooks.ledger` with `/vz-status` |
 | No session brief at start | `hooks.session_context` is false, or hooks are disabled | Run `/vz-status` |
 | `vz-config.js` exits with 1 | A config error | Read the `ERROR:` lines. Each names the key and the fix. |
 | A command is `UNKNOWN` | Nothing in your manifest, Makefile or CI names it | Tell Claude the command, or add a script. It will not guess. |

@@ -27,8 +27,9 @@ Never claim a result you did not observe. A test that was not run is NOT VERIFIE
    Always run at least targeted scope; raise scope for high-risk tiers regardless of profile.
 4. **Fill gaps.** If `require_new_tests_for_new_behavior` is true and a changed behaviour has no test, write one in the repository's existing style (framework, location, naming). If no framework exists, propose the ecosystem default for the stack and ask before adding a dependency; without approval, record NOT VERIFIED.
 5. **Run and observe.** Execute the chosen commands with their real output. Capture: command, exit code, counts (passed/failed/skipped), failing test names, and duration if shown. Do not truncate failure messages that explain the cause.
-6. **Classify each failure**: pre-existing (in baseline), caused by this change (fix it, or undo it by editing it back; core policy 3), environmental (missing service/tool -> BLOCKED with the exact reason), flaky (re-run once; report both results).
-7. **Report** in a table: command, scope, result, status. End with `Next: review` or `Next: debug <failure>`.
+6. **Prove new tests where it matters.** For a bug fix, or when the risk tier is high, run `/vz-skills:prove-test` on the new tests: a test that also passes without the change does not verify the criterion.
+7. **Classify each failure**: pre-existing (in baseline), caused by this change (fix it, or undo it by editing it back; core policy 3), environmental (missing service/tool -> BLOCKED with the exact reason), flaky (re-run once; report both results).
+8. **Report** in a table: command, scope, result, status. End with `Next: review` or `Next: debug <failure>`.
 
 ## Rules
 

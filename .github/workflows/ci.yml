@@ -22,4 +22,5 @@ jobs:
       # Platform tests (tests/platform.test.js) skip automatically when the `claude` CLI is absent.
       - run: npm test
       - run: node scripts/gen-catalog.js --check
+      - run: node scripts/gen-demo-svg.js --check
       - run: node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills

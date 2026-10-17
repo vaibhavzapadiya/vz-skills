@@ -232,6 +232,8 @@ function judgeGit(toks) {
   const shortHas = (ch) => flags.some((f) => /^-[a-zA-Z]+$/.test(f) && f.includes(ch));
   const out = [];
   const destructive = () => out.push({ id: 'destructive-git', why: 'destructive git operation that can discard uncommitted or committed work' });
+  // the project's pre-commit / commit-msg / pre-push hooks are often its lint and secret checks
+  if (['commit', 'push', 'merge', 'am', 'rebase', 'cherry-pick', 'revert'].includes(sub) && (flags.includes('--no-verify') || (sub === 'commit' && shortHas('n')))) out.push({ id: 'hook-bypass', why: "skips the repository's git hooks (--no-verify)" });
   switch (sub) {
     case 'push': {
       const positional = rest.filter((t) => !t.startsWith('-'));

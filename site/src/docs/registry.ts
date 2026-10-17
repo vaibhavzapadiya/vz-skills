@@ -41,8 +41,8 @@ export const docGroups: DocGroup[] = [
     id: 'reference',
     title: 'Reference',
     pages: [
-      page('commands', 'Commands', 'All 24 skills, by group.', 'reference', () => import('./content/commands.mdx')),
-      page('guards', 'Hooks and agents', 'What the guards ask or deny, and the three review agents.', 'reference', () => import('./content/guards.mdx')),
+      page('commands', 'Commands', 'All 33 skills, by group.', 'reference', () => import('./content/commands.mdx')),
+      page('guards', 'Hooks and agents', 'What the guards ask or deny, the activity ledger and claim check, and the three review agents.', 'reference', () => import('./content/guards.mdx')),
       page('cli', 'CLI', 'The installer and the scripts inside the plugin.', 'reference', () => import('./content/cli.mdx')),
     ],
   },

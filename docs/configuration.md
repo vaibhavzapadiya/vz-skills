@@ -81,6 +81,8 @@ All keys are optional. Unknown keys are **errors** (with a "did you mean" hint),
 | `hooks.command_guard` | `on` \| `off` | on | **Safety floor `on`.** |
 | `hooks.write_guard` | `on` \| `off` | on | **Safety floor `on`.** |
 | `hooks.session_context` | boolean | true | |
+| `hooks.ledger` | boolean | true | Records every file edit and shell command in the activity ledger, `~/.vz-skills/ledger/` (outside the repository), for `/vz-skills:ledger`, the dashboard, and the claim check. See `docs/hooks.md`. |
+| `hooks.claim_check` | boolean | true | Before Claude finishes, sends it back once if it claims success after a code change with no test, lint, typecheck, or build run after the last edit. Needs `hooks.ledger`. |
 | `hooks.protected_paths` | string[] (<= 50 project-relative globs) | [] | e.g. `"migrations/**"`; the guards ask before touching them. Matched in linear time. |
 | `agents.delegation` | `auto` \| `minimal` \| `never` | auto | `auto` delegates whenever the skill's own condition holds; `minimal` only when the risk tier is high; `never` does not delegate. |
 | `approvals.destructive_git` | `ask` \| `refuse` | ask | No `allow` exists. `refuse` makes the command guard deny instead of ask. |

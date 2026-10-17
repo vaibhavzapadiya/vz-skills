@@ -18,11 +18,12 @@ let proj;
 test.before(() => { proj = tmpDir('hookproj'); fs.writeFileSync(path.join(proj, 'package.json'), '{"name":"x"}'); });
 test.after(() => rmrf(proj));
 
-test('hooks.json declares exactly the three VZ hooks with exec-form node commands and short timeouts', () => {
+test('hooks.json declares exactly the VZ hooks with exec-form node commands and short timeouts', () => {
   const h = JSON.parse(fs.readFileSync(path.join(PLUGIN_ROOT, 'hooks', 'hooks.json'), 'utf8'));
-  assert.deepEqual(Object.keys(h.hooks).sort(), ['PreToolUse', 'SessionStart']);
-  const all = [...h.hooks.PreToolUse, ...h.hooks.SessionStart].flatMap((g) => g.hooks);
-  assert.equal(all.length, 3);
+  assert.deepEqual(Object.keys(h.hooks).sort(), ['PostToolUse', 'PostToolUseFailure', 'PreToolUse', 'SessionStart', 'Stop']);
+  const all = Object.values(h.hooks).flat().flatMap((g) => g.hooks);
+  assert.equal(all.length, 6, 'command guard, write guard, session brief, ledger (success and failure), claim check');
+  assert.deepEqual(h.hooks.PostToolUse, h.hooks.PostToolUseFailure, 'the ledger records failed tool calls the same way');
   for (const hk of all) {
     assert.equal(hk.type, 'command');
     assert.equal(hk.command, 'node');

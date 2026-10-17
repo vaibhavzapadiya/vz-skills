@@ -91,8 +91,9 @@ test('skill groups: every group folder is listed in plugin.json, so no skill is 
     const r = validatePlugin(dir);
     const msgs = r.errors.map((e) => e.message).join('\n');
     assert.match(msgs, /skill would not load: group directory \.\/skills\/productivity is not listed/);
-    assert.equal(listSkills(dir).unreachable.length, 5);
-    assert.equal(listSkills(dir).skills.length, listSkills(PLUGIN_ROOT).skills.length - 5);
+    const productivity = fs.readdirSync(path.join(PLUGIN_ROOT, 'skills', 'productivity')).length;
+    assert.equal(listSkills(dir).unreachable.length, productivity);
+    assert.equal(listSkills(dir).skills.length, listSkills(PLUGIN_ROOT).skills.length - productivity);
   } finally { rmrf(dir); }
 });
 

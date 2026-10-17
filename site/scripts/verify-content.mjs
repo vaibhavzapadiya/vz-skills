@@ -48,7 +48,8 @@ for (const g of siteGroups) if (!pluginGroups.includes(g)) fail(`skill groups: s
 const counts = (k) => Number(new RegExp(`${k}: (\\d+)`).exec(utilsTs)?.[1]);
 const agentsOnDisk = readdirSync(join(plugin, 'agents')).filter((f) => f.endsWith('.md')).length;
 const hooksJson = JSON.parse(read(join(plugin, 'hooks', 'hooks.json')));
-const hookCount = Object.values(hooksJson.hooks).reduce((n, arr) => n + arr.reduce((m, g) => m + g.hooks.length, 0), 0);
+// distinct hook scripts: the ledger runs on both PostToolUse and PostToolUseFailure but is one hook
+const hookCount = new Set(Object.values(hooksJson.hooks).flat().flatMap((g) => g.hooks).map((h) => (h.args || [h.command]).join(" "))).size;
 if (counts('skills') !== onDisk.length) fail(`SITE.counts.skills=${counts('skills')} but plugin has ${onDisk.length}`);
 if (counts('agents') !== agentsOnDisk) fail(`SITE.counts.agents=${counts('agents')} but plugin has ${agentsOnDisk}`);
 if (counts('hooks') !== hookCount) fail(`SITE.counts.hooks=${counts('hooks')} but hooks.json declares ${hookCount}`);

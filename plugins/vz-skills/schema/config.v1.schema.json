@@ -240,6 +240,14 @@
           "type": "boolean",
           "description": "Inject profile and discovery brief at session start."
         },
+        "ledger": {
+          "type": "boolean",
+          "description": "Record every file edit and shell command in the activity ledger (~/.vz-skills/ledger/, outside the repository) for /ledger, the dashboard, and the claim check."
+        },
+        "claim_check": {
+          "type": "boolean",
+          "description": "Before Claude finishes, send it back once if it claims success after a code change without a test, lint, typecheck, or build run after the last edit. Needs hooks.ledger."
+        },
         "protected_paths": {
           "type": "array",
           "items": {

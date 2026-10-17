@@ -57,7 +57,11 @@ test('plugin loads as a session-only plugin via --plugin-dir and lists every com
   assert.deepEqual(m[2].split(',').map((s) => s.trim()).sort(), skillDirs);
   const a = details.stdout.match(/Agents \((\d+)\)\s+(.+)/);
   assert.equal(Number(a[1]), 3);
-  assert.match(details.stdout, /Hooks \(2\)\s+PreToolUse, SessionStart/);
+  const events = Object.keys(JSON.parse(fs.readFileSync(path.join(PLUGIN_ROOT, 'hooks', 'hooks.json'), 'utf8')).hooks);
+  const hl = details.stdout.match(/Hooks \((\d+)\)\s+([^\n(]+)/);
+  assert.ok(hl, 'hooks line present');
+  assert.equal(Number(hl[1]), events.length);
+  assert.deepEqual(hl[2].split(',').map((s) => s.trim()).sort(), events.sort());
   const cost = details.stdout.match(/Always-on:\s+~([\d,]+) tok/);
   assert.ok(cost, 'always-on cost reported');
   assert.ok(Number(cost[1].replace(/,/g, '')) < 4000, `always-on cost ${cost[1]} should stay small`);

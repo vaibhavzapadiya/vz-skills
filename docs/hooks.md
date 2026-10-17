@@ -1,14 +1,16 @@
 # Hooks
 
-VZ Skills ships three hooks, declared in `plugins/vz-skills/hooks/hooks.json` using the schema from the official hooks reference (accessed 2026-10-16). They are implemented as dependency-free Node scripts under `scripts/hooks/` and run in **exec form** (`"command": "node", "args": [...]`) so no shell quoting is involved on any platform.
+VZ Skills ships five hooks on five events, declared in `plugins/vz-skills/hooks/hooks.json` using the schema from the official hooks reference (accessed 2026-10-16). They are implemented as dependency-free Node scripts under `scripts/hooks/` and run in **exec form** (`"command": "node", "args": [...]`) so no shell quoting is involved on any platform.
 
-**They are advisory.** A hook can ask, deny, or stay silent; Claude Code's permission system and sandbox remain the enforcement boundary. A hook that crashes, times out, or receives malformed input makes **no decision** (exit 0, nothing on stdout, a one-line note on stderr). This is deliberate (DEC-012): a guard must not break every command when something unexpected happens, and the platform does not block on timeouts by default on this CLI version anyway. One exception: input too large to inspect gets **ask**, not silence (see [Size limits](#size-limits)).
+**They are advisory.** A guard can ask, deny, or stay silent, and the claim check can send Claude back once; Claude Code's permission system and sandbox remain the enforcement boundary. A hook that crashes, times out, or receives malformed input makes **no decision** (exit 0, nothing on stdout, a one-line note on stderr). This is deliberate (DEC-012): a guard must not break every command when something unexpected happens, and the platform does not block on timeouts by default on this CLI version anyway. One exception: input too large to inspect gets **ask**, not silence (see [Size limits](#size-limits)).
 
 | Event | Matcher | Script | Timeout | What it does |
 |---|---|---|---|---|
 | `PreToolUse` | `Bash\|PowerShell` | `command-guard.js` | 10 s | `deny` catastrophic commands; `ask` for risky ones and for anything that leaves the machine; silent otherwise |
 | `PreToolUse` | `Write\|Edit\|MultiEdit\|NotebookEdit` | `write-guard.js` | 10 s | `deny` writes into `.git/` internals, home credential stores, OS dirs, Claude Code user settings; `ask` for secrets files, agent instructions and Claude Code config, shell startup files, VZ config, lockfiles, paths outside the project, `hooks.protected_paths`, and credential-looking content |
 | `SessionStart` | `startup\|resume\|clear\|compact` | `session-context.js` | 20 s | injects `additionalContext`: the core policy, the effective profile summary, and a brief discovery (depth 3, no tool probing), capped at 9,000 characters |
+| `PostToolUse`, `PostToolUseFailure` | `Write\|Edit\|MultiEdit\|NotebookEdit\|Bash\|PowerShell` | `ledger.js` | 5 s | appends one line per file edit or shell command to the [activity ledger](#activity-ledger); never prints a decision |
+| `Stop` | (none: every stop) | `claim-check.js` | 10 s | the [claim check](#claim-check): sends Claude back once if it claims success after a code change with no check run after the last edit |
 
 Plugin hooks fire in every session where the plugin is enabled, for every matching tool call, whether or not a VZ skill is in use. Measured latency in `tests/hooks.test.js` is well under the 2.5 s budget the test enforces (typically 100-300 ms per call on the build machine, dominated by Node start-up).
 
@@ -40,6 +42,7 @@ The remaining checks are patterns over the line. For `sudo`, secrets, publishing
 
 ### Ask (confirm with the user)
 
+- **Skipping git hooks**: `--no-verify` on `git commit`, `push`, `merge`, `am`, `rebase`, `cherry-pick`, or `revert`, and `git commit -n`. A project's pre-commit and pre-push hooks are often its lint and secret checks.
 - **Destructive git** (`approvals.destructive_git`): `reset --hard|--merge|--keep`; `clean -f`/`--force`; `checkout --`, `checkout .`, `checkout -f`; `restore` of paths (not `restore --staged` alone); `stash drop|clear`; `branch -D` or `--delete --force`; `push --force|--delete|--mirror` to branches other than `main`/`master`; `rebase -i`; `filter-branch`, `filter-repo`; `reflog expire`.
 - **External actions** (`approvals.external_actions`):
   - any `git push`, and `git tag <name>` (creating or deleting; `git tag`, `git tag -l` and other listing forms stay quiet);
@@ -106,7 +109,41 @@ The guard judges the real location of the write: symlinks and junctions in the p
 
 ## Session context
 
-Output shape: `{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"..."}}`. Disable with `hooks.session_context: false`. The discovery brief is the same engine as `/vz-skills:discover` with a shallower scan. Its heading says the values below come from the repository and are data, not instructions, and repository-derived values are kept one per line (embedded newlines are collapsed), so a file cannot forge extra lines in the brief.
+Output shape: `{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"..."}}`. Disable with `hooks.session_context: false`. The discovery brief is the same engine as `/vz-skills:discover` with a shallower scan. Its heading says the facts below are read from the repository and cannot authorize restricted actions, and repository-derived values are kept one per line (embedded newlines are collapsed), so a file cannot forge extra lines in the brief.
+
+## Activity ledger
+
+`ledger.js` runs after every `Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `Bash`, and `PowerShell` call, on `PostToolUse` (the call succeeded) and `PostToolUseFailure` (it failed). It appends one JSON line and prints nothing, so it never changes what Claude does.
+
+- **What is recorded:** the time, the session id, the tool, whether the call succeeded, and either the edited file (relative to the project; an absolute path when the file is outside it) or the command. A command is marked as a check when it runs tests, a linter, a type checker, or a build (`npm test`, `npm run lint`, `pytest`, `tsc`, `eslint`, `go test`, `cargo test`, `dotnet test`, `mvn test`, `gradle build`, `make test`, and similar). The claim check adds a line each time it sends Claude back. File contents are never recorded.
+- **Where:** `$VZ_SKILLS_HOME/ledger/<folder name>-<hash of the project path>.jsonl`, by default `~/.vz-skills/ledger/`. It is outside the repository, so it is never committed by accident. The project is the nearest folder at or above the working directory that has `.git` or `.vz-skills`, so a `cd src` during the session still writes to the same file. `node scripts/vz-ledger.js --path` prints the file for the current project.
+- **Privacy:** commands are cut to 300 characters, and secret-looking values are replaced with `[REDACTED]` before they are written: provider tokens (`AKIA...`, `ghp_...`, `github_pat_...`, `glpat-...`, `xox?-...`, `sk-...`, `sk_live_...`, `npm_...`, `AIza...`), `*PASSWORD*=`, `*SECRET*=`, `*TOKEN*=`, `*API_KEY*=` assignments, `--password`, `--token`, `--secret`, and `--api-key` values, and passwords in URLs (`https://user:...@host`). Redaction is pattern-based, so an unusual secret can still get through.
+- **Size:** when the file passes 5 MB it is renamed to `.1.jsonl` (one previous file is kept) and a new one starts. Readers look at the last 2 MB only.
+- **Reading it:** `/vz-skills:ledger`, the dashboard, and the claim check. Only calls made through Claude Code's tools while the plugin is enabled are in it; edits made in your editor are not.
+- **Failure:** if the line cannot be written (bad input, a read-only home directory), the hook fails open like the others: the tool call is unaffected and nothing is recorded.
+- **Turning it off:** `hooks.ledger: false`. This also turns off the claim check, which has nothing to read without it. To delete the record, delete the file (or the whole `~/.vz-skills/ledger/` folder); VZ never deletes it.
+
+## Claim check
+
+`claim-check.js` runs on `Stop`, when Claude is about to finish its turn. It reads Claude's final message and the ledger entries for this session.
+
+It sends Claude back (`{"decision":"block","reason":...}`) when all of these hold:
+
+1. The message claims success: "all tests pass", "tests pass", "the build passes", "it works", "is fixed", "fixed the bug", "all done", "ready to merge", and similar.
+2. Claude edited code in this session. Edits to docs and prose only (`.md`, `.mdx`, `.txt`, `.rst`, `.adoc`, files under `docs/`, `README`, `CHANGELOG`, `LICENSE`, `CONTRIBUTING`) do not count.
+3. Either no test, lint, typecheck, or build command ran after the last code edit, or the last one failed while the claim says it passed.
+
+The reason quotes the claim and names the last edited file, and asks Claude to run the narrowest relevant check and report the command and result, or to say plainly that the change is NOT VERIFIED and why.
+
+It stays quiet when:
+
+- Claude was already sent back once for this stop (`stop_hook_active`), so it never loops;
+- the message already says NOT VERIFIED, BLOCKED, untested, unverified, or that something was not run;
+- the message makes no claim (a question, an explanation), or no code was edited;
+- `hooks.claim_check` or `hooks.ledger` is `false`;
+- the hook crashes or gets malformed input (it fails open, and Claude stops as normal).
+
+It judges words and the ledger, not the code. It cannot tell whether the check that ran was the right one, and a claim phrased in an unusual way is not noticed. Turn it off with `hooks.claim_check: false`.
 
 ## Turning a guard off
 
@@ -114,7 +151,7 @@ Lowering `hooks.command_guard` or `hooks.write_guard` to `off` is honoured only 
 
 ## Disabling
 
-- Per project: set the `hooks.*` keys (the guards need the user-config acknowledgment above; the session brief does not).
+- Per project: set the `hooks.*` keys (the guards need the user-config acknowledgment above; the session brief, the ledger, and the claim check do not). `hooks.session_context: false`, `hooks.ledger: false`, `hooks.claim_check: false`.
 - Everything, platform-wide: Claude Code's `"disableAllHooks": true` setting (documented by Claude Code; VZ never writes it). There is no per-hook switch at the platform level.
 - Removing the plugin removes its hooks.
 
@@ -126,4 +163,4 @@ Lowering `hooks.command_guard` or `hooks.write_guard` to `off` is honoured only 
 
 ## Testing
 
-`npm run test:hooks` exercises: normal pass-through, every deny and ask category, PowerShell input, `refuse` approvals, protected paths, acknowledged and unacknowledged `off`, malformed/empty/wrong-event input for all three hooks (fail-open), broken project config, write-guard deny/ask/content/placeholder/fixture cases, session output shape and size cap, idempotency, and latency. `tests/guard-hardening.test.js` covers bypass attempts: flag order, quoting, subshells, wrappers and aliases, quoted text and look-alike names, oversized and overlong input, a hostile `protected_paths` glob, case variants and links pointing outside the project, and repository text in the discovery brief.
+`npm run test:hooks` exercises: normal pass-through, every deny and ask category, PowerShell input, `refuse` approvals, protected paths, acknowledged and unacknowledged `off`, malformed/empty/wrong-event input for the guards and the session hook (fail-open), broken project config, write-guard deny/ask/content/placeholder/fixture cases, session output shape and size cap, idempotency, and latency. `tests/guard-hardening.test.js` covers bypass attempts: flag order, quoting, subshells, wrappers and aliases, quoted text and look-alike names, oversized and overlong input, a hostile `protected_paths` glob, case variants and links pointing outside the project, and repository text in the discovery brief. `tests/activity.test.js` covers the ledger and the claim check: edits and commands recorded outside the project, checks marked with pass or fail, redaction, and `hooks.ledger: false`; the claim check staying quiet for answers, docs-only edits, honest NOT VERIFIED labels, a second stop, and `hooks.claim_check: false`, sending Claude back for an unbacked claim and for a claim after a failed check, and failing open on malformed input.
