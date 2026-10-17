@@ -34,7 +34,6 @@ const RENAMES = { status: 'vz-status' };
 const KEEP_BACKUPS = 3;
 // Every shipped agent says this in its body; it identifies agent files vz-skills wrote.
 const AGENT_SIGNATURE = /VZ Skills plugin/;
-const HOOK_EVENTS_ORDER = ['PreToolUse', 'SessionStart'];
 
 function configDir() {
   return process.env.CLAUDE_CONFIG_DIR ? path.resolve(process.env.CLAUDE_CONFIG_DIR) : path.join(os.homedir(), '.claude');
@@ -180,7 +179,7 @@ function installFlat(o) {
   const settings = removeOurHooks(existingSettings, hookMarkers(runtimeRef, t.runtime));
   const ours = buildHooks(o.pluginRoot, runtimeRef);
   settings.hooks = settings.hooks || {};
-  for (const event of HOOK_EVENTS_ORDER) if (ours[event]) settings.hooks[event] = [...(settings.hooks[event] || []), ...ours[event]];
+  for (const event of Object.keys(ours)) settings.hooks[event] = [...(settings.hooks[event] || []), ...ours[event]];
   writeJsonWithBackup(t.settings, settings);
   // manifest for uninstall
   const manifest = { version: o.version, scope: o.scope, installed_at: new Date().toISOString(), skills: installedSkills, agents: installedAgents, settings: t.settings, runtimeRef };
