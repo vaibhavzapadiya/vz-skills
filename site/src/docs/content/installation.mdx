@@ -24,11 +24,23 @@ Add `--scope` to choose where it goes.
 | `project` | The repository's `.claude/` | Your team. Commit it. |
 | `local` | The repository's `.claude/`, hooks in `settings.local.json` | Only you, in one repository |
 
+## From the GitHub marketplace
+
+The [GitHub repository](https://github.com/vaibhavzapadiya/vz-skills) is a Claude Code marketplace, so you can skip npm. Inside Claude Code:
+
+```text
+/plugin marketplace add vaibhavzapadiya/vz-skills
+/plugin install vz-skills@vz-skills-marketplace
+```
+
+From a shell, the same two steps are `claude plugin marketplace add vaibhavzapadiya/vz-skills` and `claude plugin install vz-skills@vz-skills-marketplace`. Commands look like `/vz-skills:plan`.
+
 ## From a clone
 
 ```bash
-claude --plugin-dir ./plugins/vz-skills                       # one session, nothing installed
-claude plugin marketplace add /path/to/VZ-skills              # or install from the clone
+git clone https://github.com/vaibhavzapadiya/vz-skills.git
+claude --plugin-dir ./vz-skills/plugins/vz-skills             # one session, nothing installed
+claude plugin marketplace add ./vz-skills                     # or install from the clone
 claude plugin install vz-skills@vz-skills-marketplace
 ```
 
@@ -42,6 +54,6 @@ npx vz-skills uninstall              # add --flat for the flat form, --purge to 
 
 Your `.vz-skills/config.json` files are never removed.
 
-<Callout kind="note" title="Not on npm yet">
-Until it is published, use a packed tarball (`npm pack`, then `npx --yes ./vz-skills-0.1.0.tgz install --flat`) or a clone.
+<Callout kind="note" title="Where it is published">
+The installer is the [`vz-skills` package on npm](https://www.npmjs.com/package/vz-skills). The source, issues and releases are on [GitHub](https://github.com/vaibhavzapadiya/vz-skills).
 </Callout>

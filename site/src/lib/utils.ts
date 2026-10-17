@@ -35,6 +35,14 @@ export const SITE = {
   tagline: 'Skills, agents and guardrails for Claude Code.',
   version: '0.1.0',
   install: 'npx vz-skills install --flat',
+  repo: 'https://github.com/vaibhavzapadiya/vz-skills',
+  repoSlug: 'vaibhavzapadiya/vz-skills',
+  npm: 'https://www.npmjs.com/package/vz-skills',
+  /** Claude Code's plugin manager, straight from the GitHub repository (no npm). */
+  marketplace: {
+    add: '/plugin marketplace add vaibhavzapadiya/vz-skills',
+    install: '/plugin install vz-skills@vz-skills-marketplace',
+  },
   minClaude: '2.1.233',
   recommendedClaude: '2.1.259',
   minNode: '18',

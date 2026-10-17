@@ -12,7 +12,7 @@
   "page": "Overview",
   "heading": "What you get",
   "anchor": "what-you-get",
-  "text": "- 24 skills. Slash commands such as /discover , /plan and /verify . - 3 agents. Read-only helpers that review code with fresh eyes. - 3 hooks. They ask before risky commands and file writes. - An installer and a config file. One command installs it. One file sets how careful it is. The product is called VZ Toolkit. The plugin, the npm package and the commands use the name vz-skills , for example npx vz-skills install and /vz-skills:plan .",
+  "text": "- 24 skills. Slash commands such as /discover , /plan and /verify . - 3 agents. Read-only helpers that review code with fresh eyes. - 3 hooks. They ask before risky commands and file writes. - An installer and a config file. One command installs it. One file sets how careful it is. The product is called VZ Toolkit. The plugin, the npm package and the commands use the name vz-skills , for example npx vz-skills install and /vz-skills:plan . The source is on GitHub.",
   "to": "/docs#what-you-get"
  },
  {
@@ -44,7 +44,7 @@
   "page": "Getting started",
   "heading": "Steps",
   "anchor": "steps",
-  "text": "npx vz-skills install --flat Restart Claude Code. Commands now look like /plan and /discover . Until it is published, run npm pack in a clone, then npx --yes ./vz-skills-0.1.0.tgz install --flat . /vz-status Shows your profile, hook status, and a short look at the repository. It changes nothing. /setup BALANCED Creates .vz-skills/config.json . BALANCED is the default even without it. add rate limiting to the login endpoint Claude picks the steps it needs, works in small slices, and ends with a report.",
+  "text": "npx vz-skills install --flat Restart Claude Code. Commands now look like /plan and /discover . npx fetches the vz-skills package from npm. You can also add the GitHub repository as a plugin marketplace instead. See Installation. /vz-status Shows your profile, hook status, and a short look at the repository. It changes nothing. /setup BALANCED Creates .vz-skills/config.json . BALANCED is the default even without it. add rate limiting to the login endpoint Claude picks the steps it needs, works in small slices, and ends with a report.",
   "to": "/docs/getting-started#steps"
  },
  {
@@ -82,9 +82,17 @@
  {
   "slug": "installation",
   "page": "Installation",
+  "heading": "From the GitHub marketplace",
+  "anchor": "from-the-github-marketplace",
+  "text": "The GitHub repository is a Claude Code marketplace, so you can skip npm. Inside Claude Code: /plugin marketplace add vaibhavzapadiya/vz-skills /plugin install vz-skills@vz-skills-marketplace From a shell, the same two steps are claude plugin marketplace add vaibhavzapadiya/vz-skills and claude plugin install vz-skills@vz-skills-marketplace . Commands look like /vz-skills:plan .",
+  "to": "/docs/installation#from-the-github-marketplace"
+ },
+ {
+  "slug": "installation",
+  "page": "Installation",
   "heading": "From a clone",
   "anchor": "from-a-clone",
-  "text": "claude --plugin-dir ./plugins/vz-skills one session, nothing installed claude plugin marketplace add /path/to/VZ-skills or install from the clone claude plugin install vz-skills@vz-skills-marketplace",
+  "text": "git clone https://github.com/vaibhavzapadiya/vz-skills.git claude --plugin-dir ./vz-skills/plugins/vz-skills one session, nothing installed claude plugin marketplace add ./vz-skills or install from the clone claude plugin install vz-skills@vz-skills-marketplace",
   "to": "/docs/installation#from-a-clone"
  },
  {
@@ -92,7 +100,7 @@
   "page": "Installation",
   "heading": "Check, update, remove",
   "anchor": "check-update-remove",
-  "text": "npx vz-skills doctor check Node, Claude Code, and the install npx vz-skills@latest update add --flat for the flat form npx vz-skills uninstall add --flat for the flat form, --purge to clean up fully Your .vz-skills/config.json files are never removed. Until it is published, use a packed tarball ( npm pack , then npx --yes ./vz-skills-0.1.0.tgz install --flat ) or a clone.",
+  "text": "npx vz-skills doctor check Node, Claude Code, and the install npx vz-skills@latest update add --flat for the flat form npx vz-skills uninstall add --flat for the flat form, --purge to clean up fully Your .vz-skills/config.json files are never removed. The installer is the vz-skills package on npm. The source, issues and releases are on GitHub.",
   "to": "/docs/installation#check-update-remove"
  },
  {
@@ -492,7 +500,7 @@
   "page": "Contributing",
   "heading": "Run it locally",
   "anchor": "run-it-locally",
-  "text": "git clone && cd VZ-skills npm test all suites, no installs, no network claude plugin validate ./plugins/vz-skills --strict claude --plugin-dir ./plugins/vz-skills try it in a session",
+  "text": "git clone https://github.com/vaibhavzapadiya/vz-skills.git && cd vz-skills npm test all suites, no installs, no network claude plugin validate ./plugins/vz-skills --strict claude --plugin-dir ./plugins/vz-skills try it in a session",
   "to": "/docs/contributing#run-it-locally"
  },
  {

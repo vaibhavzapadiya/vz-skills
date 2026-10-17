@@ -4,7 +4,7 @@ import { SITE, cn } from '@/lib/utils';
 import { Wordmark } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 import { LinkButton } from './Button';
-import { IconMenu, IconX } from './Icons';
+import { IconGithub, IconMenu, IconPackage, IconX } from './Icons';
 import { Container } from './Section';
 
 const landingLinks = [
@@ -140,6 +140,16 @@ export function SiteHeader({ variant = 'landing', onOpenSearch }: { variant?: 'l
               <kbd className="rounded-xs border border-border bg-bg-sunken px-1.5 py-px font-mono text-[0.6875rem] text-fg-faint">Ctrl K</kbd>
             </button>
           )}
+          <a
+            href={SITE.repo}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`${SITE.name} on GitHub`}
+            title={`GitHub: ${SITE.repoSlug}`}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors duration-fast hover:bg-bg-sunken hover:text-fg"
+          >
+            <IconGithub size={18} />
+          </a>
           <ThemeToggle />
           <LinkButton to={onHome ? '#install' : '/docs/getting-started'} size="sm" className="hidden sm:inline-flex">
             Install
@@ -194,6 +204,14 @@ export function SiteHeader({ variant = 'landing', onOpenSearch }: { variant?: 'l
               Search docs
             </button>
           )}
+          <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-4">
+            <a href={SITE.repo} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md px-3 py-2.5 text-base text-fg hover:bg-bg-sunken">
+              <IconGithub size={18} /> GitHub
+            </a>
+            <a href={SITE.npm} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md px-3 py-2.5 text-base text-fg hover:bg-bg-sunken">
+              <IconPackage size={18} /> npm
+            </a>
+          </div>
           <div className="mt-2 border-t border-border pt-4">
             <LinkButton to={onHome ? '#install' : '/docs/getting-started'} className="w-full">
               Install {SITE.name}

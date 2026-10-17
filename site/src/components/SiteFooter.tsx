@@ -3,9 +3,10 @@ import { Container } from './Section';
 import { Wordmark } from './Logo';
 import { LinkButton } from './Button';
 import { CommandLine } from './CodeBlock';
-import { IconArrowRight } from './Icons';
+import { IconArrowRight, IconArrowUpRight, IconGithub, IconPackage } from './Icons';
 import { SITE } from '@/lib/utils';
 
+/** `to` starting with http opens in a new tab; everything else is a docs route. */
 const columns: Array<{ title: string; links: Array<{ to: string; label: string }> }> = [
   {
     title: 'Start',
@@ -32,6 +33,15 @@ const columns: Array<{ title: string; links: Array<{ to: string; label: string }
       { to: '/docs/troubleshooting', label: 'Troubleshooting' },
       { to: '/docs/faq', label: 'FAQ' },
       { to: '/docs/changelog', label: 'Changelog' },
+    ],
+  },
+  {
+    title: 'Source',
+    links: [
+      { to: SITE.repo, label: 'GitHub repository' },
+      { to: SITE.npm, label: 'npm package' },
+      { to: `${SITE.repo}/issues`, label: 'Report an issue' },
+      { to: '/docs/contributing', label: 'Contributing' },
     ],
   },
 ];
@@ -89,17 +99,42 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
                 </li>
               ))}
             </ul>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <a
+                href={SITE.repo}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-raised px-2.5 py-1 font-mono text-xs text-fg-muted transition-colors duration-fast hover:border-border-strong hover:text-fg"
+              >
+                <IconGithub size={14} /> {SITE.repoSlug}
+              </a>
+              <a
+                href={SITE.npm}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-raised px-2.5 py-1 font-mono text-xs text-fg-muted transition-colors duration-fast hover:border-border-strong hover:text-fg"
+              >
+                <IconPackage size={14} /> npm: {SITE.packageName}
+              </a>
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4">
           {columns.map((c) => (
             <nav key={c.title} aria-label={c.title}>
               <h2 className="eyebrow">{c.title}</h2>
               <ul className="mt-4 space-y-2.5">
                 {c.links.map((l) => (
                   <li key={l.to}>
-                    <Link to={l.to} className="text-sm text-fg-muted transition-colors duration-fast hover:text-fg">
-                      {l.label}
-                    </Link>
+                    {/^https?:/.test(l.to) ? (
+                      <a href={l.to} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-fg-muted transition-colors duration-fast hover:text-fg">
+                        {l.label}
+                        <IconArrowUpRight size={12} className="text-fg-faint" />
+                      </a>
+                    ) : (
+                      <Link to={l.to} className="text-sm text-fg-muted transition-colors duration-fast hover:text-fg">
+                        {l.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
