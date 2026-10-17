@@ -86,9 +86,16 @@ claude plugin list
 
 Expect `vz-skills@vz-skills-marketplace` with `Status: ✔ loaded`. In a session, type `/vz-skills:` and the skills should autocomplete; run `/vz-skills:status` for a read-only self-check.
 
-## Option D: from a git host
+## Option D: from GitHub - *verified in an isolated config directory on Claude Code 2.1.233*
 
-Push this repository to a git host and add it as a marketplace by URL, for example `claude plugin marketplace add your-org/vz-skills` for GitHub or the full clone URL for other hosts. Then install as in Option B. Not exercised during the build (no remote was configured): **NOT VERIFIED**.
+The repository is published at <https://github.com/vaibhavzapadiya/vz-skills> and its root is the marketplace.
+
+```bash
+claude plugin marketplace add vaibhavzapadiya/vz-skills
+claude plugin install vz-skills@vz-skills-marketplace --scope user
+```
+
+Inside a session the equivalent is `/plugin marketplace add vaibhavzapadiya/vz-skills` then `/plugin install vz-skills@vz-skills-marketplace`. Scopes are as in Option C. For other git hosts, pass the full clone URL to `marketplace add`.
 
 ## First use in a project
 

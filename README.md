@@ -27,6 +27,7 @@ Requires Claude Code 2.1.233+ (2.1.259+ recommended) and Node.js 18+. Nothing el
 | Unprefixed commands (recommended) | `npx vz-skills install --flat` | `/plan`, `/discover`, `/review`, `/vz-status` |
 | The plugin as one unit | `npx vz-skills install` | `/vz-skills:plan`, `/vz-skills:discover`, ... |
 | Just a look, nothing written | `npx vz-skills try` | `/vz-skills:...` for one session |
+| The plugin from the GitHub marketplace, no npm | `/plugin marketplace add vaibhavzapadiya/vz-skills` then `/plugin install vz-skills@vz-skills-marketplace` | `/vz-skills:plan`, `/vz-skills:discover`, ... |
 
 Add `--scope project` to install into the current repository's `.claude/` (committable, shared with your team) or `--scope local` for yourself in this repository only. Check everything with `npx vz-skills doctor`; update with `npx vz-skills@latest update [--flat]`; remove with `npx vz-skills uninstall [--flat]`.
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "vz-skills-marketplace",
-  "description": "Local marketplace for the VZ Skills plugin (Claude Code only, v1).",
+  "description": "Marketplace for the VZ Skills plugin (Claude Code only, v1). Add with: claude plugin marketplace add vaibhavzapadiya/vz-skills",
   "owner": {
     "name": "Vaibhav Zapadiya"
   },
