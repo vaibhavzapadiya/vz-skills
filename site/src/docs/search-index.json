@@ -610,6 +610,22 @@
  {
   "slug": "changelog",
   "page": "Changelog",
+  "heading": "[0.2.1] - 2026-10-17",
+  "anchor": "021-2026-10-17",
+  "text": "The plugin and the CLI are unchanged from 0.2.0. This is the first release built by the release workflow.",
+  "to": "/docs/changelog#021-2026-10-17"
+ },
+ {
+  "slug": "changelog",
+  "page": "Changelog",
+  "heading": "Changed",
+  "anchor": "changed",
+  "text": "- Releases are built by GitHub Actions and staged on npm with provenance through npm Trusted Publishing (no stored npm token); a maintainer makes each version public with npm stage approve and 2FA. The npm page links every version to the exact commit and workflow run that built it. - The website deploys automatically after CI passes on main .",
+  "to": "/docs/changelog#changed"
+ },
+ {
+  "slug": "changelog",
+  "page": "Changelog",
   "heading": "Added",
   "anchor": "added",
   "text": "- commit skill: stages only the task's files by name (never git add -A ), checks the staged diff for secrets and stray files, writes the message in the repository's commit style, never skips git hooks, and asks before committing straight to the default branch of a pull-request repository. implement and pr hand off to it. - adr skill: architecture decision records in the repository's existing format and numbering; new, supersede or deprecate (never rewriting history), and list. plan proposes one for lasting decisions; docs defers to it. - Command guard asks before --no-verify (and git commit -n ), which skips the project's git hooks. - ledger skill: shows what Claude edited and ran in this project, and which checks passed or failed, from the activity ledger (runs scripts/vz-ledger.js ). - dashboard skill: writes one self-contained HTML page, .vz-skills/dashboard.html , with the current task, settings, stack and commands, git state, architecture decisions, AI activity, instruction files and risks, and docs (runs scripts/vz-dashboard.js ). - impact skill: read-only impact analysis before changing shared code: callers with file:line , covering tests, public exposure, change history, and risk tier. - onboard skill: a one-page onboarding guide from the repository's real state. Prints the guide; writes docs/ONBOARDING.md only when asked. - prove-test skill: runs a new test without the change in a temporary git worktree. It must fail there and pass with the change. The working tree is not touched and the worktree is removed afterwards. - deps skill: dependency upgrades and audits one package at a time: release notes first, upgrade through the package manager (never by editing the lockfile), run the affected checks, roll back on failure. - learn-conventions skill: measures the repository's real conventions (naming, layout, errors, logging, tests, commits) with evidence counts, and saves them to conventions.notes only on request. - Activity ledger hook ( PostToolUse and PostToolUseFailure on Write Edit MultiEdit NotebookEdit Bash PowerShell , scripts/hooks/ledger.js ): appends one JSON line per file edit or shell command to $VZ SKILLS HOME/ledger/ - .jsonl (default ~/.vz-skills/ledger/ ), outside the repository. Commands are truncated to 300 characters and secret-looking values redacted; tests, lint, typecheck, and build commands are marked as checks with pass or fail. The file rotates at 5 MB. - Claim check hook ( Stop , scripts/hooks/claim-check.js ): when Claude's final message claims success after a code change and the ledger shows no test, lint, typecheck, or build after the last code edit (or the last check failed while the message says it passed), it sends Claude back once to run the check or say NOT VERIFIED. Never twice in a row; quiet for docs-only edits and for messages that already say NOT VERIFIED or BLOCKED. - Config keys hooks.ledger and hooks.claim check (both default true ; the claim check needs the ledger). - Scripts scripts/vz-ledger.js ( --project , --session , --last-session , --limit , --format md json , --path ) and scripts/vz-dashboard.js ( --project , --out - , --no-git ), with scripts/lib/ledger.js shared by the hooks and both scripts. - tests/activity.test.js (5 tests): ledger records and redaction, claim check decisions, vz-ledger output, dashboard escaping, and one ledger per project after a cd into a subfolder. npm test now runs 107 tests.",

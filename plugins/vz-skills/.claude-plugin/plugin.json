@@ -1,7 +1,7 @@
 {
   "name": "vz-skills",
   "displayName": "VZ Skills",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Configurable, evidence-driven development lifecycle skills for Claude Code: repository discovery, requirements clarification, planning, incremental implementation, testing, debugging, review, security, and honest verification reports.",
   "author": {
     "name": "Vaibhav Zapadiya"

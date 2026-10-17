@@ -4,6 +4,14 @@ All notable changes to VZ Skills are recorded here. The format follows Keep a Ch
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-17
+
+The plugin and the CLI are unchanged from 0.2.0. This is the first release built by the release workflow.
+
+### Changed
+- Releases are built by GitHub Actions and staged on npm with provenance through npm Trusted Publishing (no stored npm token); a maintainer makes each version public with `npm stage approve` and 2FA. The npm page links every version to the exact commit and workflow run that built it.
+- The website deploys automatically after CI passes on `main`.
+
 ## [0.2.0] - 2026-10-17
 
 ### Added
