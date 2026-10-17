@@ -1,0 +1,12 @@
+// Cloudflare Workers deployment for the VZ Toolkit website: an assets-only Worker (no server code)
+// that serves the static Vite build. Deploy with `npm run deploy` (builds first).
+{
+  "$schema": "https://unpkg.com/wrangler@4.136.1/config-schema.json",
+  "name": "vz-skills",
+  "compatibility_date": "2026-10-17",
+  "assets": {
+    "directory": "./dist",
+    // React Router uses real paths (/docs/guards); unknown paths get index.html and the app routes them.
+    "not_found_handling": "single-page-application"
+  }
+}

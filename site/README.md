@@ -45,4 +45,11 @@ Available inside MDX without imports: `Lead`, `Callout` (`note`, `tip`, `warning
 
 ## Deploying
 
-`npm run build` writes a static site to `dist/` and copies `index.html` to `404.html` so deep links work on hosts that serve a 404 page for unknown paths. To serve from a sub-path, set `VITE_BASE`, for example `VITE_BASE=/vz-skills/ npm run build`. No deployment is configured.
+`npm run build` writes a static site to `dist/` and copies `index.html` to `404.html` so deep links work on hosts that serve a 404 page for unknown paths. To serve from a sub-path, set `VITE_BASE`, for example `VITE_BASE=/vz-skills/ npm run build`.
+
+The site is deployed to Cloudflare Workers as an assets-only Worker named `vz-skills` (`wrangler.jsonc`). Unknown paths return `index.html` (`not_found_handling: single-page-application`) so React Router handles deep links.
+
+```bash
+npx wrangler login   # once, in a browser
+npm run deploy       # build, then wrangler deploy
+```

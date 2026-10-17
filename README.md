@@ -4,6 +4,8 @@
 
 **A disciplined development lifecycle for Claude Code.** VZ Skills discovers a repository before touching it, turns vague requests into checkable criteria, plans in small verified slices, runs the right tests, reviews its own work, and reports exactly what was verified and what was not.
 
+Website and documentation: **[vz-skills.vaibhavzapadiya.workers.dev](https://vz-skills.vaibhavzapadiya.workers.dev)**
+
 ```bash
 npx vz-skills install --flat
 ```

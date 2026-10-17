@@ -8,6 +8,7 @@
     "dev": "node scripts/sync-changelog.mjs && node scripts/build-search-index.mjs && vite",
     "build": "node scripts/sync-changelog.mjs && node scripts/build-search-index.mjs && vite build && node scripts/postbuild.mjs",
     "preview": "vite preview",
+    "deploy": "npm run build && npx --yes wrangler@4.136.1 deploy",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check": "node scripts/verify-content.mjs",
     "verify": "npm run sync && npm run typecheck && npm run check && npm run build",
