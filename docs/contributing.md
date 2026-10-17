@@ -47,12 +47,16 @@ A pull request can merge when all four CI jobs pass (Ubuntu and Windows, Node 18
 
 ## Releasing
 
-1. Update `plugins/vz-skills/.claude-plugin/plugin.json` `version` and `CHANGELOG.md`.
-2. `npm test`, `claude plugin validate ./plugins/vz-skills --strict`, `node scripts/gen-catalog.js --check`.
-3. `npm run package` builds `dist/vz-skills-<version>.zip` and verifies its integrity (listing, byte counts, required files).
-4. Re-read `docs/testing-and-evaluation.md` and update it with the observed results of this release's checks.
-5. Tag with `claude plugin tag ./plugins/vz-skills` if you publish through a git marketplace (it creates `vz-skills--v<version>`); push only with the owner's authorization.
-6. Publish to npm (owner only): `npm pack` (runs `prepack`: catalog check and structural validation), inspect the tarball list (plugin + CLI only, no tests/fixtures/docs), test it with `npx --yes ./vz-skills-<version>.tgz doctor`, and `npm publish`. The npm version must equal `plugin.json` `version` (`tests/cli.test.js` checks this).
+Releases are published by `.github/workflows/release.yml` when a version tag is pushed. Only the maintainer can push `v*` tags (a tag ruleset enforces it).
+
+1. Update `version` in `package.json` and `plugins/vz-skills/.claude-plugin/plugin.json` (they must match), and move the `CHANGELOG.md` `[Unreleased]` entries under `## [X.Y.Z] - <date>`. Run `npm run sync` in `site/` so the website shows the new version.
+2. Run `npm test`, `claude plugin validate ./plugins/vz-skills --strict`, and `npm pack --dry-run` (the file list must hold only the plugin and the CLI). Re-read `docs/testing-and-evaluation.md` and update it with this release's observed results.
+3. Commit and push to `main`; wait for CI.
+4. Tag and push: `git tag -a vX.Y.Z -m "vz-skills X.Y.Z" && git push origin vX.Y.Z`.
+
+The workflow then checks that the tag matches both versions, that the tagged commit is on `main`, and that `CHANGELOG.md` has the section; runs the tests and every validator; publishes to npm with provenance through npm Trusted Publishing (no npm token is stored); and creates the GitHub release with that CHANGELOG section as its notes. Re-running it for a version already on npm skips the publish. The website deploys separately after CI passes on `main` (`.github/workflows/deploy-site.yml`).
+
+`npm run package` still builds `dist/vz-skills-<version>.zip` for distributing the plugin without npm.
 
 ## Reporting issues
 

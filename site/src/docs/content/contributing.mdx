@@ -55,7 +55,7 @@ site/                 this website
 
 ## Release
 
-Update the version in `plugin.json` and `package.json`, add a `CHANGELOG.md` entry, then run `npm test`, `claude plugin validate ./plugins/vz-skills --strict`, and `npm run package`. Publishing to npm is the owner's step.
+Update the version in `plugin.json` and `package.json`, add a `CHANGELOG.md` section for it, run `npm test` and `claude plugin validate ./plugins/vz-skills --strict`, push to `main`, then push a tag `vX.Y.Z`. The release workflow checks the versions, runs the tests, publishes to npm with provenance, and creates the GitHub release. Only the maintainer can push release tags.
 
 ## This website
 

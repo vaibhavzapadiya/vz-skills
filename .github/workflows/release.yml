@@ -1,0 +1,92 @@
+name: release
+
+# Publish vz-skills to npm when a version tag (vX.Y.Z) is pushed, with provenance, then create the
+# GitHub release from that version's CHANGELOG section.
+#
+# Publishing uses npm Trusted Publishing (OIDC): npm verifies that this workflow in this repository is
+# publishing, so no npm token is stored anywhere, and provenance is attached automatically.
+# One-time setup on npmjs.com: package vz-skills -> Settings -> Trusted Publisher -> GitHub Actions,
+# user vaibhavzapadiya, repository vz-skills, workflow release.yml, environment npm.
+#
+# Release steps: bump the version in package.json and plugins/vz-skills/.claude-plugin/plugin.json,
+# move the CHANGELOG [Unreleased] entries under "## [X.Y.Z] - <date>", commit and push to main, then
+#   git tag -a vX.Y.Z -m "vz-skills X.Y.Z" && git push origin vX.Y.Z
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: write   # create the GitHub release
+      id-token: write   # npm Trusted Publishing and provenance
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # to check that the tag is on main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Use an npm that supports Trusted Publishing (11.5.1 or later)
+        run: npm install -g npm@11 && npm --version
+
+      - name: Check the tag matches the versions and is on main
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG=$(node -p "require('./package.json').version")
+          PLUGIN=$(node -p "require('./plugins/vz-skills/.claude-plugin/plugin.json').version")
+          echo "tag $TAG, package.json $PKG, plugin.json $PLUGIN"
+          [ "$TAG" = "$PKG" ] || { echo "::error::tag v$TAG does not match package.json $PKG"; exit 1; }
+          [ "$TAG" = "$PLUGIN" ] || { echo "::error::tag v$TAG does not match plugin.json $PLUGIN"; exit 1; }
+          grep -q "^## \[$TAG\]" CHANGELOG.md || { echo "::error::CHANGELOG.md has no '## [$TAG]' section"; exit 1; }
+          git fetch origin main --quiet
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::the tagged commit is not on main"; exit 1; }
+
+      - name: Test and validate
+        run: |
+          npm test
+          node scripts/gen-catalog.js --check
+          node scripts/gen-config-schema.js --check
+          node scripts/gen-demo-svg.js --check
+          node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills
+
+      - name: Publish to npm with provenance
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "vz-skills@$VERSION" version >/dev/null 2>&1; then
+            echo "::notice::vz-skills@$VERSION is already on npm; skipping the publish."
+          else
+            npm publish --provenance --access public
+          fi
+
+      - name: Create the GitHub release from the CHANGELOG
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          # the lines between "## [<version>]" and the next "## [" heading (plain string matching, no regex escapes)
+          awk -v v="$VERSION" '
+            index($0, "## [" v "]") == 1 { on = 1; next }
+            on && index($0, "## [") == 1 { exit }
+            on { print }
+          ' CHANGELOG.md > release-notes.md
+          [ -s release-notes.md ] || { echo "::error::no release notes found for $VERSION in CHANGELOG.md"; exit 1; }
+          printf '\n---\nInstall or update: `npx vz-skills@%s install` (or `update`). Published to npm with provenance from this workflow run.\n' "$VERSION" >> release-notes.md
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "::notice::release $GITHUB_REF_NAME already exists; leaving it as is."
+          else
+            gh release create "$GITHUB_REF_NAME" --title "vz-skills $VERSION" --notes-file release-notes.md --verify-tag
+          fi
