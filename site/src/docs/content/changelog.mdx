@@ -4,6 +4,8 @@ All notable changes to VZ Skills are recorded here. The format follows Keep a Ch
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-17
+
 ### Security
 - Command guard reads commands by structure instead of matching the whole line. It splits the line into simple commands (outside quotes, at `;`, `&&`, `||`, `|`, `&`, newlines, parentheses, braces, backticks, and `$( )`), skips wrappers such as `sudo`, `env`, `nohup`, and environment assignments, and judges `rm`/`Remove-Item` (and `ri`, `del`, `erase`, `rd`, `rmdir`), `find -delete`, `format`, and `git` from their real flags and arguments. Flag order, quoting, and subshells no longer change the outcome. Quoted text is not a command, except the argument of `bash -c`/`sh -c`, `pwsh -Command`, `cmd /c`, `eval`, and `iex`, which is read as a command line of its own. PowerShell tool calls are read with PowerShell's backtick escapes and line continuations.
 - Command guard denies recursive deletes of `/`, the home directory (`~`, `$HOME`, `${HOME}`), the working directory (`.`, `*`), parent directories (`..`, `../..`), drive roots (`C:\`, `C:/`, `/c`, `/mnt/c`), and system directories (`/etc`, `/usr`, `/home`, `C:\Windows`, ...); `--no-preserve-root`; `find <root> -delete` with no filter; and force-push or deletion of `main`/`master` in any argument order, including `+main`, `:main`, and `HEAD:main` refspecs. Force-pushing other branches asks.

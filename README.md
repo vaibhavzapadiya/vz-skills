@@ -203,7 +203,7 @@ Three safety keys have floors (the two guards and the evidence labels); lowering
 
 ## Status
 
-Version 0.1.0, published on npm as [`vz-skills@0.1.0`](https://www.npmjs.com/package/vz-skills), with honest limits:
+Version 0.1.1, published on npm as [`vz-skills`](https://www.npmjs.com/package/vz-skills), with honest limits:
 
 - **Verified by automated tests:** plugin structure, discovery across 17 sample repositories (including dirty trees, malicious instruction files, malformed manifests, missing tools), configuration and profiles, hooks and guard bypass attempts, both install modes, packaging, and documentation accuracy. `npm test` runs 102 tests with no installs and no network.
 - **Not yet measured:** how well the prose skills perform in live sessions. An eval suite ships in `plugins/vz-skills/evals`; running it needs a newer Claude Code than the build machine had. No "better than plain Claude Code" claim is made.

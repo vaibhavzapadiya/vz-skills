@@ -30,7 +30,7 @@ Copied plugin 0.1.0 to ...\.vz-skills\marketplace\plugins\vz-skills
 ✔ Successfully installed plugin: vz-skills@vz-skills-marketplace (scope: user)
 ```
 
-Other commands: `npx vz-skills try` (one session, nothing written), `npx vz-skills doctor`, `npx vz-skills@latest update`, `npx vz-skills uninstall [--purge]`, `npx vz-skills path`, `npx vz-skills validate`. `tests/cli.test.js` exercises the whole install/update/uninstall cycle in isolation whenever the `claude` CLI is available. The package is [`vz-skills` on npm](https://www.npmjs.com/package/vz-skills) (0.1.0). To test an unreleased version from a clone, `npm pack` there and run `npx --yes ./vz-skills-<version>.tgz install`.
+Other commands: `npx vz-skills try` (one session, nothing written), `npx vz-skills doctor`, `npx vz-skills@latest update`, `npx vz-skills uninstall [--purge]`, `npx vz-skills path`, `npx vz-skills validate`. `tests/cli.test.js` exercises the whole install/update/uninstall cycle in isolation whenever the `claude` CLI is available. The package is [`vz-skills` on npm](https://www.npmjs.com/package/vz-skills). To test an unreleased version from a clone, `npm pack` there and run `npx --yes ./vz-skills-<version>.tgz install`.
 
 Flags are strict per subcommand:
 
