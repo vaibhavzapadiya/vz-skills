@@ -12,7 +12,7 @@ export function Profiles() {
     <Section id="profiles">
       <Container>
         <SectionHeading
-          number="03"
+          number="06"
           eyebrow="Profiles"
           title="One setting scales the rigor."
           lead="Pick FAST, BALANCED or PRODUCTION per repository. Auth, payments, migrations and secrets are always treated as high risk."

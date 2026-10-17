@@ -8,5 +8,19 @@
     "directory": "./dist",
     // React Router uses real paths (/docs/guards); unknown paths get index.html and the app routes them.
     "not_found_handling": "single-page-application"
+  },
+  // Matches the observability settings in the Cloudflare dashboard, so a deploy does not reset them.
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": false,
+      "head_sampling_rate": 1,
+      "persist": true
+    }
   }
 }

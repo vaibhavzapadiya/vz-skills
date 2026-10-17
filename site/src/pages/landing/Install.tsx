@@ -21,7 +21,7 @@ export function Install() {
       <Container>
         <div className="panel mx-auto max-w-3xl p-6 sm:p-10">
           <SectionHeading
-            number="05"
+            number="08"
             eyebrow="Install"
             title="Two commands to a first check."
             lead={`Needs Claude Code ${SITE.minClaude}+ and Node.js ${SITE.minNode}+. Nothing else is installed.`}

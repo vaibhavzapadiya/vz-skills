@@ -34,7 +34,7 @@ export function HowItWorks() {
       <Container>
         <div className="container-card p-6 sm:p-10 lg:p-12">
           <SectionHeading
-            number="02"
+            number="03"
             eyebrow="How it works"
             title="Seven small steps."
             lead="The router picks the steps a request needs. A one-line fix skips most of them; a change to auth gets all of them."

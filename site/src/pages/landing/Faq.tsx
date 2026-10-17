@@ -67,7 +67,7 @@ export function Faq() {
       <Container>
         <div className="grid gap-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16">
           <div className="lg:sticky lg:top-24 lg:self-start">
-            <SectionHeading number="06" eyebrow="Questions" title="Questions." />
+            <SectionHeading number="09" eyebrow="Questions" title="Questions." />
             <p className="mt-6 text-sm leading-relaxed text-fg-muted">
               More in the <Link to="/docs/faq" className="text-accent underline underline-offset-4">documentation FAQ</Link> and the{' '}
               <Link to="/docs/troubleshooting" className="text-accent underline underline-offset-4">troubleshooting table</Link>.

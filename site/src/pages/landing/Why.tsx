@@ -7,11 +7,11 @@ const rows = [
   },
   {
     problem: '"Tests pass" is reported, but nothing ran after the last edit.',
-    answer: 'Verify re-runs the checks and records each command with its observed result.',
+    answer: 'A hook checks that a test actually ran after the last edit before Claude may claim success, and verify records every command with its observed result.',
   },
   {
     problem: 'Your uncommitted work gets reset along the way.',
-    answer: 'Dirty files are left alone, and risky git commands ask first.',
+    answer: 'Dirty files are left alone, commits stage only the task\'s own files, and risky git commands ask first.',
   },
 ];
 

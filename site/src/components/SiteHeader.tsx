@@ -8,9 +8,10 @@ import { IconGithub, IconMenu, IconPackage, IconX } from './Icons';
 import { Container } from './Section';
 
 const landingLinks = [
-  { href: '#why', label: 'Why' },
+  { href: '#proof', label: 'Proof' },
   { href: '#how-it-works', label: 'How it works' },
-  { href: '#profiles', label: 'Profiles' },
+  { href: '#skills', label: 'Skills' },
+  { href: '#dashboard', label: 'Dashboard' },
   { href: '#safety', label: 'Safety' },
   { href: '#faq', label: 'FAQ' },
 ];

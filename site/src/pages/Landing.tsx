@@ -5,7 +5,10 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { Reveal } from '@/components/Reveal';
 import { Hero } from './landing/Hero';
 import { Why } from './landing/Why';
+import { Proof } from './landing/Proof';
 import { HowItWorks } from './landing/HowItWorks';
+import { SkillsExplorer } from './landing/SkillsExplorer';
+import { DashboardPreview } from './landing/DashboardPreview';
 import { Profiles } from './landing/Profiles';
 import { Safety } from './landing/Safety';
 import { Install } from './landing/Install';
@@ -25,7 +28,16 @@ export function Landing() {
           <Why />
         </Reveal>
         <Reveal>
+          <Proof />
+        </Reveal>
+        <Reveal>
           <HowItWorks />
+        </Reveal>
+        <Reveal>
+          <SkillsExplorer />
+        </Reveal>
+        <Reveal>
+          <DashboardPreview />
         </Reveal>
         <Reveal>
           <Profiles />

@@ -44,8 +44,8 @@ export function Hero() {
               Evidence <span className="relative inline-block italic">before claims.<Underline /></span>
             </h1>
             <p className="mt-6 max-w-[30rem] text-lg leading-relaxed text-fg-muted [text-wrap:pretty]">
-              Skills, agents and guardrails for Claude Code. They discover, plan, build, test and review, then report exactly what was
-              verified.
+              Skills, agents and guardrails for Claude Code. It looks before it changes, works in small tested steps, proves its tests,
+              and cannot report "done" without evidence.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <LinkButton to="/docs/getting-started" size="lg">

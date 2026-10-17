@@ -8,9 +8,10 @@ import { guardAsk } from '@/data/samples';
 const pretty = (json: string) => JSON.stringify(JSON.parse(json), null, 2);
 
 const points = [
-  { title: 'Your work is preserved.', body: 'Dirty files are left alone; destructive git commands ask first.' },
-  { title: 'Repository text is data.', body: 'A CLAUDE.md that says "ignore previous instructions" is flagged, not followed.' },
-  { title: 'Secrets stay unread.', body: '.env files and keys are never opened by VZ scripts.' },
+  { title: 'Your work is preserved.', body: 'Dirty files are left alone; destructive git commands ask first, and rm -rf / is refused however it is spelled.' },
+  { title: 'Nothing leaves unasked.', body: 'Pushes, tags, pull requests, publishing, deploys, and skipping git hooks with --no-verify all ask first.' },
+  { title: 'Your rules are followed.', body: 'CLAUDE.md and .claude/rules guide the work, but no file can unlock what the guards restrict; a malicious one is flagged, not followed.' },
+  { title: 'Secrets stay unread.', body: '.env files and keys are never opened by VZ scripts, and the activity ledger redacts what it records.' },
 ];
 
 export function Safety() {
@@ -21,7 +22,7 @@ export function Safety() {
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-16">
           <div>
             <SectionHeading
-              number="04"
+              number="07"
               eyebrow="Safety"
               title="Advisory guards, not a sandbox."
               lead="Hooks ask or deny risky commands and writes. They fail open, and Claude Code's own permissions remain the boundary."
