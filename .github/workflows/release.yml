@@ -1,16 +1,20 @@
 name: release
 
-# Publish vz-skills to npm when a version tag (vX.Y.Z) is pushed, with provenance, then create the
-# GitHub release from that version's CHANGELOG section.
+# Stage vz-skills on npm when a version tag (vX.Y.Z) is pushed, with provenance, then create the
+# GitHub release from that version's CHANGELOG section. The maintainer then makes it public with
+#   npm stage approve vz-skills@X.Y.Z     (prompts for 2FA)
 #
-# Publishing uses npm Trusted Publishing (OIDC): npm verifies that this workflow in this repository is
-# publishing, so no npm token is stored anywhere, and provenance is attached automatically.
-# One-time setup on npmjs.com: package vz-skills -> Settings -> Trusted Publisher -> GitHub Actions,
-# user vaibhavzapadiya, repository vz-skills, workflow release.yml, environment npm.
+# This uses npm Trusted Publishing (OIDC): npm verifies that this workflow in this repository is the
+# one staging, so no npm token is stored anywhere. The trust relationship allows only "stage publish",
+# as npm recommends: a staged version is not public until a maintainer approves it with 2FA, so the
+# workflow alone can never publish. One-time setup on npmjs.com: package vz-skills -> Settings ->
+# Trusted Publisher -> GitHub Actions, user vaibhavzapadiya, repository vz-skills, workflow
+# release.yml, environment npm, permission stage publish.
 #
 # Release steps: bump the version in package.json and plugins/vz-skills/.claude-plugin/plugin.json,
 # move the CHANGELOG [Unreleased] entries under "## [X.Y.Z] - <date>", commit and push to main, then
 #   git tag -a vX.Y.Z -m "vz-skills X.Y.Z" && git push origin vX.Y.Z
+# and approve the staged version as above once the workflow finishes.
 
 on:
   push:
@@ -63,13 +67,22 @@ jobs:
           node scripts/gen-demo-svg.js --check
           node plugins/vz-skills/scripts/vz-validate.js plugins/vz-skills
 
-      - name: Publish to npm with provenance
+      - name: Stage on npm with provenance (public only after the maintainer approves)
         run: |
           VERSION=$(node -p "require('./package.json').version")
           if npm view "vz-skills@$VERSION" version >/dev/null 2>&1; then
-            echo "::notice::vz-skills@$VERSION is already on npm; skipping the publish."
+            echo "::notice::vz-skills@$VERSION is already published on npm; skipping."
           else
-            npm publish --provenance --access public
+            npm stage publish --provenance --access public
+            cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ### vz-skills@$VERSION is staged on npm
+
+          It is not public yet. Approve it from a terminal logged in to npm (prompts for 2FA):
+
+              npm stage approve vz-skills@$VERSION
+
+          Inspect it first with \`npm stage view vz-skills@$VERSION\` or \`npm stage download vz-skills@$VERSION\`; reject it with \`npm stage reject vz-skills@$VERSION\`.
+          EOF
           fi
 
       - name: Create the GitHub release from the CHANGELOG
@@ -84,7 +97,7 @@ jobs:
             on { print }
           ' CHANGELOG.md > release-notes.md
           [ -s release-notes.md ] || { echo "::error::no release notes found for $VERSION in CHANGELOG.md"; exit 1; }
-          printf '\n---\nInstall or update: `npx vz-skills@%s install` (or `update`). Published to npm with provenance from this workflow run.\n' "$VERSION" >> release-notes.md
+          printf '\n---\nInstall or update: `npx vz-skills@%s install` (or `update`). Built and staged on npm with provenance by this workflow run, then approved by the maintainer.\n' "$VERSION" >> release-notes.md
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             echo "::notice::release $GITHUB_REF_NAME already exists; leaving it as is."
           else

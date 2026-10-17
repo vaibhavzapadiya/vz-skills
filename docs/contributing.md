@@ -53,8 +53,9 @@ Releases are published by `.github/workflows/release.yml` when a version tag is 
 2. Run `npm test`, `claude plugin validate ./plugins/vz-skills --strict`, and `npm pack --dry-run` (the file list must hold only the plugin and the CLI). Re-read `docs/testing-and-evaluation.md` and update it with this release's observed results.
 3. Commit and push to `main`; wait for CI.
 4. Tag and push: `git tag -a vX.Y.Z -m "vz-skills X.Y.Z" && git push origin vX.Y.Z`.
+5. When the workflow finishes, approve the staged version from a terminal logged in to npm: `npm stage approve vz-skills@X.Y.Z` (prompts for 2FA). Until then it is not public. `npm stage view` and `npm stage download` let you inspect it first; `npm stage reject` discards it.
 
-The workflow then checks that the tag matches both versions, that the tagged commit is on `main`, and that `CHANGELOG.md` has the section; runs the tests and every validator; publishes to npm with provenance through npm Trusted Publishing (no npm token is stored); and creates the GitHub release with that CHANGELOG section as its notes. Re-running it for a version already on npm skips the publish. The website deploys separately after CI passes on `main` (`.github/workflows/deploy-site.yml`).
+The workflow then checks that the tag matches both versions, that the tagged commit is on `main`, and that `CHANGELOG.md` has the section; runs the tests and every validator; stages the package on npm with provenance through npm Trusted Publishing (no npm token is stored; the trust relationship allows only staging, as npm recommends, so the workflow alone can never make a version public); and creates the GitHub release with that CHANGELOG section as its notes. Re-running it for a version already published skips the staging. The website deploys separately after CI passes on `main` (`.github/workflows/deploy-site.yml`).
 
 `npm run package` still builds `dist/vz-skills-<version>.zip` for distributing the plugin without npm.
 
