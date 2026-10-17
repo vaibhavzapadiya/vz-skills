@@ -14,6 +14,14 @@
   ],
   "license": "MIT",
   "author": "Vaibhav Zapadiya",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vaibhavzapadiya/vz-skills.git"
+  },
+  "homepage": "https://github.com/vaibhavzapadiya/vz-skills#readme",
+  "bugs": {
+    "url": "https://github.com/vaibhavzapadiya/vz-skills/issues"
+  },
   "bin": {
     "vz-skills": "bin/vz-skills.js"
   },
