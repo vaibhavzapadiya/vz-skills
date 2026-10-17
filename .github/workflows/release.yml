@@ -2,7 +2,7 @@ name: release
 
 # Stage vz-skills on npm when a version tag (vX.Y.Z) is pushed, with provenance, then create the
 # GitHub release from that version's CHANGELOG section. The maintainer then makes it public with
-#   npm stage approve vz-skills@X.Y.Z     (prompts for 2FA)
+#   npm stage approve <stage-id>     (prompts for 2FA; the id is in the run summary and npm stage list vz-skills)
 #
 # This uses npm Trusted Publishing (OIDC): npm verifies that this workflow in this repository is the
 # one staging, so no npm token is stored anywhere. The trust relationship allows only "stage publish",
@@ -73,15 +73,20 @@ jobs:
           if npm view "vz-skills@$VERSION" version >/dev/null 2>&1; then
             echo "::notice::vz-skills@$VERSION is already published on npm; skipping."
           else
-            npm stage publish --provenance --access public
+            set -o pipefail   # the default shell lacks it; without it tee would hide a failed stage publish
+            npm stage publish --provenance --access public 2>&1 | tee stage.log
+            # approve, view, download, and reject take the stage id that npm prints ("staged with id <uuid>")
+            STAGE_ID=$(grep -o -E 'staged with id [0-9a-f-]{36}' stage.log | grep -o -E '[0-9a-f-]{36}' | head -1)
+            [ -n "$STAGE_ID" ] || STAGE_ID='<stage-id from: npm stage list vz-skills>'
+            echo "::notice::vz-skills@$VERSION staged with id $STAGE_ID; approve with: npm stage approve $STAGE_ID"
             cat >> "$GITHUB_STEP_SUMMARY" <<EOF
           ### vz-skills@$VERSION is staged on npm
 
           It is not public yet. Approve it from a terminal logged in to npm (prompts for 2FA):
 
-              npm stage approve vz-skills@$VERSION
+              npm stage approve $STAGE_ID
 
-          Inspect it first with \`npm stage view vz-skills@$VERSION\` or \`npm stage download vz-skills@$VERSION\`; reject it with \`npm stage reject vz-skills@$VERSION\`.
+          Inspect it first with \`npm stage view $STAGE_ID\` or \`npm stage download $STAGE_ID\`; reject it with \`npm stage reject $STAGE_ID\`. \`npm stage list vz-skills\` shows every staged version and its id.
           EOF
           fi
 
