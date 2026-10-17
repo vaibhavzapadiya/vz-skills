@@ -2,7 +2,7 @@
 name: status
 description: Show the VZ Skills state for this repository: effective profile and settings with their sources, configuration errors or safety-override warnings, hook status, and a brief repository discovery with git state. Read-only diagnostic.
 disable-model-invocation: true
-allowed-tools: Bash(node *), Read
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/scripts/vz-config.js" *), Bash(node "${CLAUDE_PLUGIN_ROOT}/scripts/vz-discover.js" *), Read
 ---
 
 # VZ Skills status
@@ -26,7 +26,7 @@ User-invoked, read-only. Use it to answer "what will VZ do here and why".
    ```
 
    Summarize stack, commands with labels, test presence, git branch and dirty files, instruction files and any suspicious indicators, conflicts, unknowns.
-4. **Cache**: if `.vz-skills/cache/discovery.json` exists, show its `written_at`; note it is refreshed when manifests or HEAD change.
+4. **Cache**: if `.vz-skills/cache/discovery.json` exists, show its `written_at`; it is stale if manifests or HEAD changed since then, and only `/vz-skills:discover` with `--cache` rewrites it.
 5. **Suggest** the next action: `/vz-skills:setup` when no project config exists; `/vz-skills:discover` for the full report; fix config errors when present.
 
 ## Output

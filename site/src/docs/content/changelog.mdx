@@ -2,6 +2,46 @@
 
 All notable changes to VZ Skills are recorded here. The format follows Keep a Changelog; versions follow semver and match `plugins/vz-skills/.claude-plugin/plugin.json`.
 
+## [Unreleased]
+
+### Security
+- Command guard reads commands by structure instead of matching the whole line. It splits the line into simple commands (outside quotes, at `;`, `&&`, `||`, `|`, `&`, newlines, parentheses, braces, backticks, and `$( )`), skips wrappers such as `sudo`, `env`, `nohup`, and environment assignments, and judges `rm`/`Remove-Item` (and `ri`, `del`, `erase`, `rd`, `rmdir`), `find -delete`, `format`, and `git` from their real flags and arguments. Flag order, quoting, and subshells no longer change the outcome. Quoted text is not a command, except the argument of `bash -c`/`sh -c`, `pwsh -Command`, `cmd /c`, `eval`, and `iex`, which is read as a command line of its own. PowerShell tool calls are read with PowerShell's backtick escapes and line continuations.
+- Command guard denies recursive deletes of `/`, the home directory (`~`, `$HOME`, `${HOME}`), the working directory (`.`, `*`), parent directories (`..`, `../..`), drive roots (`C:\`, `C:/`, `/c`, `/mnt/c`), and system directories (`/etc`, `/usr`, `/home`, `C:\Windows`, ...); `--no-preserve-root`; `find <root> -delete` with no filter; and force-push or deletion of `main`/`master` in any argument order, including `+main`, `:main`, and `HEAD:main` refspecs. Force-pushing other branches asks.
+- Command guard asks before external actions it used to let through: any `git push`, `git tag <name>` (creating or deleting; listing stays quiet), `gh pr create|merge|close|comment|edit|review`, `gh issue create|close|comment|edit`, `gh release create|delete|edit|upload`, `gh repo delete|create|edit`, and `npm|pnpm|yarn version <v>` (unless `--no-git-tag-version`). `approvals.external_actions: refuse` turns these into denies.
+- Command guard asks for more destructive operations: `git reset --merge|--keep`, `git checkout -f`, `git restore` of paths (not `--staged`), `git branch --delete --force`, `git push --mirror|--delete`; `ALTER TABLE ... DROP`, `TRUNCATE` without `TABLE`, and `DELETE FROM` without `WHERE`; `kubectl replace|scale|rollout|drain|patch`.
+- `git -C <dir>` and `git -c key=value` no longer hide the subcommand from the guard.
+- Commands longer than 32 KB, and hook input over 2 MiB, get "ask" instead of failing open.
+- Write guard resolves symlinks and junctions before judging a path (a link that leads outside the project asks), and compares paths without case on Windows and macOS.
+- Write guard denies more home credential stores (`.docker`, `.config/gh`, `.azure`, `.config/gcloud`, `.git-credentials`) and `~/.claude.json`; asks for shell startup files (`.bashrc`, `.zshrc`, `.profile`, PowerShell profiles), anything under `~/.claude/`, project `.claude/agents|commands|skills|hooks|rules|output-styles`, and `.mcp.json`.
+- Write guard secret detection: adds `glpat-`, `sk_live_`, `npm_` tokens, `ENCRYPTED PRIVATE KEY` blocks, JSON-style `"api_key": "..."`, and unquoted `SECRET=value` lines; `.env` detection covers `prod.env`-style names and `.envrc`. A `mock/` directory is no longer exempt from the content check (only `__mocks__/` is).
+- A project's own `.vz-skills/config.json` can no longer switch off its guards: lowering a hard safety floor (`hooks.command_guard`, `hooks.write_guard`, `verification.require_evidence_labels`) is honoured only when `safety.acknowledged_overrides` lists the key in the user config (`~/.vz-skills/config.json`). A project-only acknowledgment is an error and the floor stays.
+- `conventions.notes` and `conventions.extra_instructions_file` are treated as style guidance only and cannot authorize anything the core policy restricts.
+- Repository-derived values in the discovery report stay one per line (embedded newlines are collapsed) and the session brief labels them as data. TOML parsing is safe against prototype pollution, and `.sln` names with unusual characters never reach a command.
+- `hooks.protected_paths` globs are matched with a linear matcher, so a hostile glob cannot hang a hook.
+
+### Fixed
+- Command guard no longer reacts to a commit message (or any quoted text) that mentions a dangerous command.
+- Reading `.env.example`, `.env.sample`, `.env.template`, or `.env.dist` no longer asks; `grep`, `rg`, `findstr`, `Select-String`, `sed`, and `awk` on secret files now ask.
+- Write guard no longer flags kebab-case words that contain `sk-`: provider tokens must start at a word boundary.
+- `kubectl delete|apply|...` with `--dry-run` no longer asks; `heroku` asks only for mutating subcommands.
+- CLI: Windows paths with spaces work (arguments are quoted), and the Node `DEP0190` warning is gone.
+- CLI: `uninstall` when the plugin is not installed prints `Plugin ... is not installed at scope <scope>` instead of failing; `uninstall --flat` with nothing installed prints "Nothing to uninstall".
+- CLI: `doctor` recognises `Status: enabled` as well as `Status: loaded`.
+- CLI: detecting a `vz-skills-marketplace` registered from another path strips the `Directory (...)` wrapper before comparing paths.
+- Flat install checks everything first (skill and agent name collisions, a readable `settings.json`) and writes nothing if a check fails. A malformed `settings.json` gives an error naming the file. A same-named agent file you wrote is a collision, like skills.
+- Flat uninstall refuses, changing nothing, when the existing flat install was made with a different `--scope` (project vs local), and parses settings before deleting anything.
+- Discovery no longer crashes on a malformed `package.json` or `workspaces` field.
+- `vz-config.js --init` accepts the profile in any case (`production` becomes `PRODUCTION`).
+
+### Changed
+- CLI flags are strict per subcommand: unknown flags and typos exit 2, `--scope=x` is accepted, and `-h`/`--help` on a subcommand prints help instead of running it. `install` accepts `--flat --force --scope`; `update` accepts `--flat --scope`; `uninstall` accepts `--flat --purge --scope` (`--purge` with `--flat` is an error).
+- `update --flat` finds the scope of the existing flat install and no longer forces replacement; plain `update` passes `--scope` to `claude plugin update` (default `user`).
+- `install --flat --force` backs up the skills and agents it replaces to `<config or .claude>/vz-skills-backups/<timestamp>/` first. Only the last three `settings.json` backups are kept.
+- Core policy: undo your own edits by editing them back, never with `git checkout --`, `git restore`, `git stash`, or `git reset`; outside a git repository, list the files before editing and report integrity as NOT VERIFIED; any `git push`, creating tags, or creating pull requests needs the user's go-ahead; `approvals.run_project_scripts` (`allowlist` / `ask` / `refuse`) is defined there.
+- `agents.delegation` is defined in `references/risk-tiers.md`: `auto`, `minimal` (only when the risk tier is high), `never`. `repo-analyst` is used by `plan` and `explain` (no longer by `discover`).
+- Skills: `discover --baseline` maps to the script's `--run-baseline`; `implement` records a baseline before the first edit when `testing.require_baseline` is true or risk is high; `pr` handles uncommitted work, a detached HEAD, and an existing PR, and never prints secret values; `standup` takes multi-word windows and commit or tag ranges and separates other authors' commits; `checkpoint` resume re-runs a recorded command only if discovery CONFIRMED it, otherwise it asks.
+- `npm test` runs `node scripts/run-tests.js`: 102 tests, including the new `tests/guard-hardening.test.js`.
+
 ## [0.1.0] - 2026-10-16
 
 First implementation, built from the specification kit against Claude Code 2.1.259 and the official documentation accessed on 2026-10-16.
@@ -37,7 +77,7 @@ First implementation, built from the specification kit against Claude Code 2.1.2
 
 ### Added (distribution)
 - Unprefixed install: `npx vz-skills install --flat [--scope user|project|local]` places the skills, agents, runtime, and hooks into the Claude config or the project's `.claude/` so commands are `/<name>` instead of `/vz-skills:<name>` (`status` becomes `vz-status`). Project scope uses `${CLAUDE_PROJECT_DIR}` paths and is committable. Verified against an isolated config directory and a temporary project (`tests/cli.test.js`).
-- npm package `vz-skills` with a CLI: `npx vz-skills install|update|uninstall|try|doctor|path|validate`. The installer keeps a managed copy under `~/.vz-skills/marketplace`, registers it as a Claude Code marketplace, and installs the plugin at the chosen scope. The package ships only the plugin and the CLI. Verified end to end against an isolated `CLAUDE_CONFIG_DIR` (`tests/cli.test.js`). Not yet published to the registry.
+- npm package `vz-skills` with a CLI: `npx vz-skills install|update|uninstall|try|doctor|path|validate`. The installer keeps a managed copy under `~/.vz-skills/marketplace`, registers it as a Claude Code marketplace, and installs the plugin at the chosen scope. The package ships only the plugin and the CLI. Verified end to end against an isolated `CLAUDE_CONFIG_DIR` (`tests/cli.test.js`). Published to npm as `vz-skills@0.1.0`.
 
 ### Changed
 - Skills are grouped into `skills/entry`, `skills/lifecycle`, `skills/specialists`, `skills/productivity`, each listed in `plugin.json` `skills` (DEC-016). Names and invocation are unchanged. `scripts/lib/skills.js` mirrors the platform scan; the validator and tests flag any group folder missing from the manifest, a case the official validator does not report.

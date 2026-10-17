@@ -21,7 +21,7 @@ Schema changes are **high** risk by default: they are hard to undo and affect ru
 4. **Backfills** are separate, batched, idempotent, and resumable; never a single `UPDATE` over a huge table without a batch size and a stop condition.
 5. **Indexes and queries**: for each new query, state the predicate columns and whether an index covers them; run `EXPLAIN`/`EXPLAIN ANALYZE` locally when a database is available, otherwise mark NOT VERIFIED.
 6. **Tests**: migration applies on a fresh database and on a database with existing data (the project's test DB or an ephemeral one if the project supports it); model/repository tests for the new behaviour; a down-migration smoke test where the tool supports it.
-7. **Destructive statements** (`DROP`, `TRUNCATE`, mass `DELETE`, type narrowing): never run against anything but a local/test database, and only with the user's explicit confirmation in this conversation. The command guard will ask; do not work around it.
+7. **Destructive statements and migrations** (`DROP`, `TRUNCATE`, mass `DELETE`, dropped columns, type narrowing, applying or rolling back migrations): before running any, ask the user to confirm which database the command will reach and that it is local or test. Do not infer the target, and do not open `.env` files to find out (core policy 5). Run only with that confirmation in this conversation. The command guard catches some of these (`DROP TABLE`, `TRUNCATE TABLE`, unbounded `DELETE`, database reset commands), not all; do not rely on it.
 
 ## Rules
 

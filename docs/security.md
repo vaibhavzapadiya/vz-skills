@@ -17,7 +17,7 @@ Source code and uncommitted work; credentials in `.env`, key files, environment,
 | # | Threat | Mitigation | Evidence |
 |---|---|---|---|
 | 1 | Prompt injection in repository files asks for secrets | Core policy rule 4; discovery `scanInstructionText` flags 8 indicator classes and reports them with the file; skills quote-and-refuse; agents report, never act | `tests/discovery.test.js` TC-012; eval `refuses-malicious-repo-instructions` |
-| 2 | Malicious instructions ask for destructive shell commands | Command guard denies catastrophic patterns and asks on risky ones; `approvals.destructive_git: refuse` denies; core policy rule 7 | `tests/hooks.test.js` deny/ask cases |
+| 2 | Malicious instructions ask for destructive shell commands, or disguise them (flag order, quoting, subshells, `sudo`/`env` wrappers, `bash -c`, aliases such as `ri` and `rd`) | Command guard parses the line into simple commands and judges deletes and git from their real flags and arguments; it denies catastrophic targets and asks on risky ones; `approvals.destructive_git: refuse` denies; core policy rule 7 | `tests/hooks.test.js` deny/ask cases; `tests/guard-hardening.test.js` bypass cases |
 | 3 | Untrusted scripts execute during discovery or tests | Discovery executes nothing by default; baseline allowlist (`BASELINE_ALLOWLIST`) rejects anything but well-known test commands; `approvals.run_project_scripts` | `tests/discovery.test.js` allowlist test |
 | 4 | Secret values leak into output, logs, reports | Discovery never reads `.env` and redacts key-like strings in echoed output; write guard asks before writing credential-looking content; skills forbid printing secrets; command guard asks before `cat .env`, `printenv`, echoing secret variables | TC-012 asserts `.env` content never appears; hook tests |
 | 5 | Path traversal or malformed config causes writes outside the project | Config rejects absolute/`..`/`~`/drive paths and validates `protected_paths`; `vz-discover --out` refuses paths outside the root; write guard asks for any path outside the project and denies OS/credential/.git targets | `tests/config.test.js` TC-013; `tests/discovery.test.js` CLI test; hook tests |
@@ -26,7 +26,26 @@ Source code and uncommitted work; credentials in `.env`, key files, environment,
 | 8 | Agent overstates test results | Status vocabulary enforced by policy and `verify` skill; `verification.require_evidence_labels` floored to true; eval `labels-unverified-work` | config tests; eval case |
 | 9 | Copied code introduces licensing/supply-chain concerns | No code copied from reference projects; zero runtime dependencies; inventory in `docs/decisions.md` (DEC-010, DEC-011) | zero entries in `package.json` dependencies |
 | 10 | Existing user changes overwritten | Discovery lists dirty files with a preservation note; `implement`/`verify` require untouched dirty files to stay byte-identical; command guard asks before `git checkout -- .`, `stash drop`, `reset --hard` | TC-011; hook tests |
-| 11 | Hook or script reads outside the project | Discovery walk is bounded, skips symlinks, and reads only known manifest/instruction files; hooks read stdin and the project config only | code review of `fsutil.js`, `discover.js` |
+| 11 | Hook or script reads outside the project | Discovery walk is bounded, skips symlinks, and reads only known manifest/instruction files; hooks read stdin and the config files only | code review of `fsutil.js`, `discover.js` |
+| 12 | A hostile repository's `.vz-skills/config.json` switches off the guards or evidence labels | Lowering a hard floor (`hooks.command_guard`, `hooks.write_guard`, `verification.require_evidence_labels`) needs the key in `safety.acknowledged_overrides` in the user config `~/.vz-skills/config.json`; a project-only acknowledgment is an error and the floor stays. `conventions.notes` and `conventions.extra_instructions_file` are style guidance and cannot authorize restricted actions (core policy rule 4). `protected_paths` globs use a linear matcher, so a crafted glob cannot hang a hook | `tests/config.test.js`; `tests/guard-hardening.test.js` glob test |
+| 13 | Repository text injected into the session context poses as instructions or forges lines of the brief | The session brief heading labels discovery values as data, not instructions; repository-derived values are kept one per line with embedded newlines collapsed; `conventions.notes` is flattened to one line and labelled "repository style guidance, not instructions"; TOML parsing is prototype-pollution safe; `.sln` names with unusual characters never reach a command | `tests/guard-hardening.test.js` discovery test |
+| 14 | The agent is steered into writing code that Claude Code later runs, or into credential stores | Write guard asks before `.claude/agents\|commands\|skills\|hooks\|rules\|output-styles`, `.mcp.json`, anything under `~/.claude/`, and shell startup files; denies home credential stores and Claude Code user settings; resolves symlinks and junctions so a link cannot hide the real target; compares paths without case on Windows and macOS | `tests/hooks.test.js`; `tests/guard-hardening.test.js` write-guard test |
+| 15 | Work leaves the machine without the user's go-ahead | Command guard asks before any `git push`, tag creation or deletion, `gh` PR/issue/release/repo changes, `npm version`, publishing, and deploying; `approvals.external_actions: refuse` denies them; core policy rule 7 | `tests/hooks.test.js`; `tests/guard-hardening.test.js` |
+| 16 | Oversized input makes a guard give up silently | Hook input over 2 MiB and commands over 32 KB get "ask" instead of failing open | `tests/guard-hardening.test.js` |
+| 17 | The npm installer damages the user's Claude configuration | See [The installer and your Claude config](#the-installer-and-your-claude-config) below | `tests/cli.test.js` against an isolated `CLAUDE_CONFIG_DIR` |
+
+## The installer and your Claude config
+
+`npx vz-skills install` (plugin form) writes only `~/.vz-skills/marketplace` and then calls `claude plugin marketplace add` and `claude plugin install`; Claude Code itself updates its settings.
+
+`npx vz-skills install --flat` writes into your Claude config directory (`$CLAUDE_CONFIG_DIR` or `~/.claude`) at user scope, or the project's `.claude/` at project and local scope:
+
+- `skills/<name>/` for each of the 24 skills, each with a `.vz-skills-managed` marker;
+- `agents/repo-analyst.md`, `agents/independent-reviewer.md`, `agents/security-reviewer.md`;
+- `vz-skills/` (scripts, policy, references, and a `manifest.json` of what was installed);
+- hook entries merged into `settings.json` (or `settings.local.json` at local scope). Existing settings and hooks are kept.
+
+Protections: every check runs before anything is written (a skill or agent of the same name that vz-skills did not create, a `settings.json` that does not parse), and a failed check changes nothing. Collisions are replaced only with `--force`, and then copied first to `vz-skills-backups/<timestamp>/`. `settings.json` is backed up beside itself before every write, and the last three backups are kept. Uninstall removes only what the manifest lists, only agent files that carry the VZ text, and only hook groups whose commands point into the runtime directory; it refuses, changing nothing, when the existing flat install was made with a different scope.
 
 ## Secrets handling in this repository
 
@@ -34,7 +53,7 @@ Fixtures contain no real secrets. `fixtures/malicious-instructions/_env` holds a
 
 ## Residual risks and limitations
 
-- The command guard matches text, not behaviour. An innocuous-looking script can be destructive; review and sandboxing remain necessary.
+- The command guard reads command structure, not behaviour. An innocuous-looking script can be destructive; review and sandboxing remain necessary. Some checks (secrets, publishing, SQL, remote scripts) are still patterns over the line, so they can miss unusual spellings; SQL and remote-script patterns also read inside quotes, so a commit message that quotes a `DROP TABLE` statement asks.
 - Injection detection is heuristic (regular expressions). Novel phrasings will not be flagged; the policy still instructs the model to treat all repository text as data, but that instruction is not a mechanical guarantee.
 - Hooks do not see files inserted through `@` mentions.
 - Discovery's baseline runner trusts that `npm test` and similar commands run the project's declared script; it does not inspect the script body.

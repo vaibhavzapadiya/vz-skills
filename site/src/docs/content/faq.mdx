@@ -44,7 +44,11 @@ Run `/setup FAST` (or `BALANCED`, `PRODUCTION`). For one shell, set `VZ_SKILLS_P
 
 ### Can I turn the guards off?
 
-Yes, on purpose. Lowering a guard needs an acknowledged override, and every session then prints a warning.
+Yes, on purpose. Lowering a guard needs an acknowledged override in your own `~/.vz-skills/config.json`, and every session then prints a warning. A repository's config cannot turn the guards off for you.
+
+### Why does `git push` ask?
+
+Anything that leaves your machine asks first: pushes, tags, pull requests, releases, publishing and deploys. Set `approvals.external_actions: "refuse"` to deny them instead and run them yourself.
 
 ### What does it cost?
 

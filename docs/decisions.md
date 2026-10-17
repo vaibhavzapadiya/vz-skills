@@ -30,7 +30,7 @@ Prior art studied before the design (all MIT, accessed 2026-10-16; ideas only, n
 - **Decision:** Publish the repository's root package to npm as `vz-skills` with a `bin` CLI. `npx vz-skills install` copies the bundled plugin to `~/.vz-skills/marketplace` (a directory marketplace, read in place), registers it, and installs the plugin at the requested scope. `update` refreshes the copy; `uninstall --purge` removes everything the installer created. `try` wraps `claude --plugin-dir`. The npm `files` whitelist ships only `bin/`, `plugins/vz-skills/`, `.claude-plugin/`, README, LICENSE, CHANGELOG.
 - **Alternatives considered:** marketplace entry with an `npm` plugin source (still needs a hosted marketplace to add first); `command` plugin source running `npx vz-skills path` (same prerequisite; also prompts the user to accept a command); global `npm install -g` (unnecessary, `npx` suffices).
 - **Evidence/source:** marketplace reference (plugin and marketplace source tables), install reference; `tests/cli.test.js` runs the real cycle against an isolated `CLAUDE_CONFIG_DIR`.
-- **Consequences/trade-offs:** Two install channels (npm copy vs clone) must not both register `vz-skills-marketplace`; the CLI detects a registration pointing elsewhere and says how to switch. Publishing requires the owner's npm credentials and is a separate, authorized step.
+- **Consequences/trade-offs:** Two install channels (npm copy vs clone) must not both register `vz-skills-marketplace`; when `vz-skills-marketplace` is already registered, the CLI reads its source from `claude plugin marketplace list` (stripping the `Directory (...)` wrapper), compares that path with `~/.vz-skills/marketplace`, and if they differ prints a note on how to switch (`npx vz-skills uninstall --purge`, then install again). If registering fails outright, it suggests `claude plugin marketplace remove vz-skills-marketplace`. Publishing requires the owner's npm credentials and is a separate, authorized step.
 
 ### DEC-013 - Plugin repository holds only the plugin; the build kit lives beside it
 
@@ -128,7 +128,7 @@ Prior art studied before the design (all MIT, accessed 2026-10-16; ideas only, n
 - **Status:** ACCEPTED
 - **Date:** 2026-10-16
 - **Context:** A local directory marketplace needs `.claude-plugin/marketplace.json` at its root with relative plugin sources (S-09). Keeping the plugin under `plugins/vz-skills` keeps specification, tests, fixtures, and docs out of the installed plugin.
-- **Decision:** Repo root = marketplace root (`name: vz-skills-marketplace`). Plugin at `plugins/vz-skills/` with its own manifest. Tests at `tests/`, fixtures at `fixtures/`, docs at `docs/`, kit control files kept at `project/`, `spec/`, `quality/`, `tracking/`, `prompts/`, `templates/`, `research/`.
+- **Decision:** Repo root = marketplace root (`name: vz-skills-marketplace`). Plugin at `plugins/vz-skills/` with its own manifest. Tests at `tests/`, fixtures at `fixtures/`, docs at `docs/`, kit control files kept at `project/`, `spec/`, `quality/`, `tracking/`, `prompts/`, `templates/`, `research/` (moved out of the repository by DEC-013).
 - **Alternatives considered:** Plugin at repo root (would ship tests/fixtures/docs into every install).
 
 ### DEC-004 - Tracker location stays at `project/` (kit layout), research at `docs/research/`
@@ -136,7 +136,7 @@ Prior art studied before the design (all MIT, accessed 2026-10-16; ideas only, n
 - **Status:** SUPERSEDED by DEC-013 (the kit folder now holds these; paths below are relative to that folder)
 - **Date:** 2026-10-16
 - **Context:** The kit's protocol text references `docs/project/*.md` while the kit itself (and the build instructions) ship and name `project/*.md`.
-- **Decision:** `project/` remains the single source of truth; `docs/project/README.md` points there to satisfy the resume/audit prompts. Research outputs go to `docs/research/` as the master prompt requires.
+- **Decision:** `project/` remains the single source of truth; a pointer file in `docs/project/` pointed there to satisfy the resume/audit prompts. Research outputs went to `docs/research/` as the master prompt required. Since DEC-013 neither `docs/project/` nor `docs/research/` exists in this repository; both moved with the kit to `VZ-skills-kit`.
 - **Alternatives considered:** Moving the kit files (breaks the instructions the owner pasted).
 
 ### DEC-003 - Native platform permissions remain authoritative

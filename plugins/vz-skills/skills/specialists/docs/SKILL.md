@@ -16,7 +16,7 @@ Documentation that is wrong is worse than none. Every command or claim in a doc 
 ## Workflow
 
 1. **Find where it belongs.** Reuse the existing structure; do not create a parallel docs tree. For `touched-files`, update the sections that describe what changed. For `feature-level`, also add or update a user-facing section and a changelog entry under the current unreleased heading in the project's changelog format (Keep a Changelog, conventional, or whatever is present).
-2. **Verify every command** you write by running it (or its `--help`) if it is safe and CONFIRMED by discovery; otherwise copy it exactly from the manifest/CI and say where it came from. Never invent flags.
+2. **Verify every command** you write: run its `--help`/`--version`, or run it only if it is a test, lint, typecheck, or build command discovery CONFIRMED (core policy 7); never run commands that deploy, migrate, publish, or change data to check documentation; otherwise copy it exactly from the manifest/CI and say where it came from. Never invent flags.
 3. **Verify every behaviour claim** by pointing to the code or test that proves it. Prefer short, concrete examples (input -> output) over prose.
 4. **ADRs** (when the task involved a consequential decision and the repo keeps ADRs): context, decision, alternatives, consequences, status; one file in the existing numbering scheme.
 5. **Keep docs honest about limits**: known issues, unsupported platforms, and anything NOT VERIFIED are stated, not omitted.

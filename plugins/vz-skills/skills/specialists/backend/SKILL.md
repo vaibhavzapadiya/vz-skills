@@ -1,6 +1,6 @@
 ---
 name: backend
-description: Backend engineering checklist for services, handlers, jobs, and integrations: input validation, error handling, idempotency, transactions, observability, configuration, and tests within the discovered framework. Use inside plan/implement/review when the change touches server-side code.
+description: Backend engineering checklist for services, handlers, jobs, and integrations: input validation, error handling, idempotency, transactions, observability, configuration, and tests within the discovered framework. Use from plan (or directly) when the change touches server-side code.
 argument-hint: "[service, handler, or job]"
 ---
 

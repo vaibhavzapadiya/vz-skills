@@ -3,8 +3,9 @@
 ## Local development
 
 ```bash
-git clone <this repo> && cd VZ-skills
-npm test                                   # all suites, no installs, no network
+git clone https://github.com/vaibhavzapadiya/vz-skills.git && cd vz-skills
+npm test                                   # node scripts/run-tests.js: 102 tests, no installs, no network
+                                           # (CLI and platform tests also use `claude` when it is on PATH)
 claude plugin validate ./plugins/vz-skills --strict
 claude --plugin-dir ./plugins/vz-skills    # try it in a session
 ```
@@ -35,8 +36,8 @@ Edit skills live: most SKILL.md edits apply without restarting (`/reload-skills`
 3. `npm run package` builds `dist/vz-skills-<version>.zip` and verifies its integrity (listing, byte counts, required files).
 4. Re-read `docs/testing-and-evaluation.md` and update it with the observed results of this release's checks.
 5. Tag with `claude plugin tag ./plugins/vz-skills` if you publish through a git marketplace (it creates `vz-skills--v<version>`); push only with the owner's authorization.
-6. Publish to npm (owner only): set `repository` and `homepage` in `package.json` once the repo has a public URL, then `npm pack` (runs `prepack`: catalog check and structural validation), inspect the tarball list (plugin + CLI only, no tests/fixtures/docs), test it with `npx --yes ./vz-skills-<version>.tgz doctor`, and `npm publish`. The npm version must equal `plugin.json` `version` (`tests/cli.test.js` checks this).
+6. Publish to npm (owner only): `npm pack` (runs `prepack`: catalog check and structural validation), inspect the tarball list (plugin + CLI only, no tests/fixtures/docs), test it with `npx --yes ./vz-skills-<version>.tgz doctor`, and `npm publish`. The npm version must equal `plugin.json` `version` (`tests/cli.test.js` checks this).
 
 ## Reporting issues
 
-Include: Claude Code version (`claude --version`), OS, the skill or hook involved, the command or prompt, observed vs expected, and `node plugins/vz-skills/scripts/vz-config.js --explain --project .` output with any secrets redacted.
+Open an issue at <https://github.com/vaibhavzapadiya/vz-skills/issues>. Include: Claude Code version (`claude --version`), OS, the skill or hook involved, the command or prompt, observed vs expected, and `node plugins/vz-skills/scripts/vz-config.js --explain --project .` output with any secrets redacted.

@@ -1,6 +1,6 @@
 ---
 name: frontend
-description: Frontend engineering checklist for UI components, pages, state, styling, accessibility, and client-side performance within the discovered framework and conventions. Use inside plan/implement/review when the change touches user interface code (React, Vue, Svelte, Angular, plain DOM, CSS).
+description: Frontend engineering checklist for UI components, pages, state, styling, accessibility, and client-side performance within the discovered framework and conventions. Use from plan (or directly) when the change touches user interface code (React, Vue, Svelte, Angular, plain DOM, CSS).
 argument-hint: "[component or page]"
 ---
 

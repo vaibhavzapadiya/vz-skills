@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review a diff, branch, or pull request for correctness, scope, safety, and maintainability at the profile's review depth, producing ranked findings with file references. Use before declaring a change done, when asked to review code, or to get an independent second look via the independent-reviewer agent.
+description: Review a diff, branch, or pull request for correctness, scope, safety, and maintainability at the profile's review depth, producing ranked findings with file references. Use when asked to review a diff, branch, or PR, as the review step after `test` in the VZ lifecycle, or to get an independent second look via the independent-reviewer agent. For "is it done?" use `verify`.
 argument-hint: "[diff target: staged | branch | PR number | path]"
 ---
 
@@ -21,8 +21,8 @@ Review is read-only. It produces findings; `implement` applies fixes if the user
 2. **Trace criteria to changes.** For each acceptance criterion, name the hunks that satisfy it. Hunks that map to no criterion are scope creep: finding, severity minor unless risky.
 3. **Walk the checklist** for the configured depth. Read surrounding code, not just the diff, for anything that changes control flow, interfaces, or data.
 4. **Run cheap checks** that are CONFIRMED available: lint, typecheck, and the targeted tests if `test` has not already run them this session. Record commands and results; do not re-run a long full suite just for review.
-5. **Delegate when configured.** With `review.independent_reviewer: always`, or `auto` and risk tier medium/high (and `agents.delegation` not `never`), invoke the `vz-skills:independent-reviewer` agent with: the diff, the criteria, the risk tier, and the checklist path. Merge its findings with yours, de-duplicated, and mark which reviewer raised each.
-6. **Security trigger.** If the diff touches sensitive paths, or `security.review_trigger` says `material-changes`/`always`, run `/vz-skills:security-review` and include its findings.
+5. **Delegate when configured.** With `review.independent_reviewer: always`, or `auto` and risk tier medium/high, and `agents.delegation` allows it (see `${CLAUDE_PLUGIN_ROOT}/references/risk-tiers.md`), invoke the `vz-skills:independent-reviewer` agent with: the diff, the criteria, the risk tier, `review.depth`, and the absolute checklist path `${CLAUDE_PLUGIN_ROOT}/references/review-checklist.md`. Pass your own findings last, after the agent has the diff, so it forms its view first. Merge its findings with yours, de-duplicated, and mark which reviewer raised each.
+6. **Security trigger.** Run `/vz-skills:security-review` and include its findings when the diff touches sensitive paths (risk tier high), or `security.review_trigger` is `material-changes` and the tier is medium or high, or the trigger is `always`.
 7. **Rank and report.** Blocker / major / minor, each with `file:line`, what, why, fix. End with a verdict: `approve`, `approve with minors`, or `request changes`, and the status of each criterion (VERIFIED / NOT VERIFIED).
 
 ## Rules

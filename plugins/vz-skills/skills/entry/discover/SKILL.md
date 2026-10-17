@@ -2,7 +2,7 @@
 name: discover
 description: Discover a repository's stack, package manager, build/test/lint commands, CI, layout, project instructions, and git state with evidence labels (CONFIRMED / INFERRED / UNKNOWN / CONFLICTING). Use before planning or changing an unfamiliar repository, when asked "what is this project", or when a command to run is uncertain.
 argument-hint: "[path] [--baseline]"
-allowed-tools: Bash(node *), Read, Glob, Grep
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/scripts/vz-discover.js" *), Read, Glob, Grep
 ---
 
 # Discover the repository
@@ -15,9 +15,10 @@ Run deterministic discovery first, then interpret. Do not guess commands that th
 node "${CLAUDE_PLUGIN_ROOT}/scripts/vz-discover.js" <path-or-.> --format md
 ```
 
-- Default path is the current project root. Pass `$0` when the user gave one.
-- Add `--run-baseline` **only** if the user asked for a baseline test run (`--baseline` argument) or the active profile is PRODUCTION and the task will touch tested code. The engine refuses commands that are not on its allowlist and reports them as `BLOCKED`; never work around that by running an arbitrary script yourself without first telling the user what it is and why.
+- Default path is the current project root. Pass `$0` as the path only when it does not start with `--`; the `--baseline` argument means add `--run-baseline` (the script itself has no `--baseline` flag).
+- Add `--run-baseline` **only** if the user asked for a baseline test run, or `testing.require_baseline` is true (or the risk tier is high) and the task will change tested code, and in every case only when `approvals.run_project_scripts` allows it: `refuse` -> do not add it and report the baseline BLOCKED; `ask` -> name the test command and wait for a yes. The engine refuses commands that are not on its allowlist and reports them as `BLOCKED`; never work around that by running an arbitrary script yourself without first telling the user what it is and why.
 - Add `--cache` after `/vz-skills:setup` has created `.vz-skills/`; otherwise run without it.
+- Warnings on stderr (for example Node deprecation warnings) with exit code 0 are not failures.
 - If the script itself fails (exit 2 or 3), report the error verbatim and fall back to manual inspection with Read/Glob/Grep, labelling everything you conclude as INFERRED.
 
 ## 2. Read the report critically

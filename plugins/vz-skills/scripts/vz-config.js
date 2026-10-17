@@ -24,7 +24,7 @@ function main() {
     else if (['--summary', '--json', '--explain', '--schema', '--profiles'].includes(a)) o.mode = a.slice(2);
     else if (a === '--no-user') o.noUser = true;
     else if (a === '--validate') o.validate = argv[++i];
-    else if (a === '--init') { o.init = PROFILES.includes(argv[i + 1]) ? argv[++i] : 'BALANCED'; }
+    else if (a === '--init') { const p = String(argv[i + 1] || '').toUpperCase(); o.init = PROFILES.includes(p) ? (i++, p) : 'BALANCED'; }
     else if (a === '-h' || a === '--help') { process.stdout.write(fs.readFileSync(__filename, 'utf8').split('\n').slice(2, 12).join('\n').replace(/^ \* ?/gm, '') + '\n'); return 0; }
     else { process.stderr.write(`vz-config: unknown argument ${a}\n`); return 2; }
   }

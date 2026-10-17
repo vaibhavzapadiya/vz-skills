@@ -75,23 +75,26 @@ function topLevel(files) { return files.filter((f) => !f.includes('/')); }
 
 function parseTomlLite(text) {
   // Extremely small TOML reader: sections + simple key = "value" / arrays of strings.
-  const out = {};
+  // Null-prototype objects and a key blocklist: a repository's pyproject.toml is untrusted input.
+  const out = Object.create(null);
+  const unsafe = (k) => k === '__proto__' || k === 'constructor' || k === 'prototype';
   let section = '';
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.replace(/#.*$/, '').trim();
     if (!line) continue;
     const sec = line.match(/^\[([^\]]+)\]$/);
-    if (sec) { section = sec[1].trim(); out[section] = out[section] || {}; continue; }
+    if (sec) { section = sec[1].trim(); if (unsafe(section)) { section = '\u0000ignored'; } out[section] = out[section] || Object.create(null); continue; }
     const kv = line.match(/^([A-Za-z0-9_.-]+)\s*=\s*(.+)$/);
     if (kv) {
       const key = kv[1];
+      if (unsafe(key)) continue;
       let val = kv[2].trim();
       if (val.startsWith('[')) {
         val = val.replace(/^\[|\]$/g, '').split(',').map((x) => x.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
       } else {
         val = val.replace(/^["']|["']$/g, '');
       }
-      (out[section] = out[section] || {})[key] = val;
+      (out[section] = out[section] || Object.create(null))[key] = val;
     }
   }
   return out;
@@ -107,7 +110,10 @@ function which(cmd) {
 function versionOf(cmd, args = ['--version']) {
   const isWin = process.platform === 'win32';
   try {
-    const r = spawnSync(cmd, args, { encoding: 'utf8', timeout: 8000, shell: isWin, windowsHide: true });
+    // cmd and args are fixed tool names and flags from this file. On Windows a shell is needed to run
+    // .cmd shims; pass one command string so Node does not warn about args with shell:true (DEP0190).
+    const opts = { encoding: 'utf8', timeout: 8000, windowsHide: true };
+    const r = isWin ? spawnSync([cmd, ...args].join(' '), Object.assign(opts, { shell: true })) : spawnSync(cmd, args, opts);
     if (r.error) return null;
     const out = `${r.stdout || ''}${r.stderr || ''}`.trim().split(/\r?\n/)[0];
     return r.status === 0 ? out.slice(0, 80) : null;
@@ -133,8 +139,8 @@ function detectNode(root, files, report) {
   if (!has(files, 'package.json')) return;
   const { data: pkg, error } = readJson(pkgPath);
   report.manifests.push({ path: 'package.json', ecosystem: 'node', parsed: !error, error: error || undefined });
-  if (error) {
-    report.warnings.push(`package.json could not be parsed (${error}); Node facts are UNKNOWN`);
+  if (error || !pkg || typeof pkg !== 'object' || Array.isArray(pkg)) {
+    report.warnings.push(`package.json could not be parsed (${error || 'not a JSON object'}); Node facts are UNKNOWN`);
     report.stack.languages.push(fact('javascript', LABEL.INFERRED, ['package.json'], 'manifest present but unparsable'));
     report.commands.test = unknown('package.json unparsable');
     report.commands.build = unknown('package.json unparsable');
@@ -209,7 +215,9 @@ function detectNode(root, files, report) {
   if (typeof scripts.test === 'string' && /node\s+--test/.test(scripts.test)) report.tests.frameworks.push(fact('node:test', LABEL.CONFIRMED, ['package.json#scripts.test']));
 
   // monorepo
-  const ws = pkg.workspaces ? (Array.isArray(pkg.workspaces) ? pkg.workspaces : pkg.workspaces.packages || []) : [];
+  const wsRaw = pkg.workspaces ? (Array.isArray(pkg.workspaces) ? pkg.workspaces : pkg.workspaces.packages || []) : [];
+  // workspace globs come from the repository: keep strings that stay inside it
+  const ws = (Array.isArray(wsRaw) ? wsRaw : []).filter((w) => typeof w === 'string' && w && !w.split(/[\\/]/).includes('..') && !path.isAbsolute(w));
   const monoMarkers = ['pnpm-workspace.yaml', 'lerna.json', 'turbo.json', 'nx.json', 'rush.json'].filter((m) => has(files, m));
   if (ws.length || monoMarkers.length) {
     report.monorepo.detected = fact(true, LABEL.CONFIRMED, [...(ws.length ? ['package.json#workspaces'] : []), ...monoMarkers]);
@@ -224,7 +232,9 @@ function detectNode(root, files, report) {
       const base = pat.replace(/\/?\*+.*$/, '');
       const abs = path.join(root, base);
       if (pat.includes('*') && exists(abs)) {
-        for (const ent of fs.readdirSync(abs, { withFileTypes: true })) {
+        let ents = [];
+        try { ents = fs.readdirSync(abs, { withFileTypes: true }); } catch { /* a file, or unreadable: no packages */ }
+        for (const ent of ents) {
           if (ent.isDirectory() && exists(path.join(abs, ent.name, 'package.json'))) pkgs.add(`${base}/${ent.name}`);
         }
       } else if (exists(path.join(root, pat, 'package.json'))) pkgs.add(pat);
@@ -314,7 +324,8 @@ function detectOthers(root, files, report) {
     for (const p of [...sln, ...csproj].slice(0, 20)) report.manifests.push({ path: p, ecosystem: 'dotnet', parsed: true });
     report.stack.languages.push(fact(csproj.some((f) => f.endsWith('.fsproj')) ? 'fsharp' : 'csharp', LABEL.CONFIRMED, [...sln, ...csproj].slice(0, 3)));
     report.package_managers.push(fact('nuget (dotnet)', LABEL.CONFIRMED, [...sln, ...csproj].slice(0, 1)));
-    const target = sln[0] ? ` ${sln[0]}` : '';
+    // only plain path characters reach a command line (a file name is repository input)
+    const target = sln[0] && /^[\w./-]+$/.test(sln[0]) ? ` ${sln[0]}` : '';
     report.commands.build = report.commands.build || fact(`dotnet build${target}`, LABEL.INFERRED, sln.length ? [sln[0]] : csproj.slice(0, 1), 'dotnet CLI convention');
     const testProjects = csproj.filter((p) => { const t = readText(path.join(root, p)).text || ''; return /Microsoft\.NET\.Test\.Sdk|xunit|nunit|MSTest/i.test(t) || /tests?\b/i.test(p); });
     report.commands.test = report.commands.test || (testProjects.length ? fact(`dotnet test${target}`, LABEL.INFERRED, testProjects.slice(0, 3), 'test project references found') : fact(null, LABEL.CONFIRMED, csproj.slice(0, 3), 'no test project detected'));
@@ -507,7 +518,7 @@ function detectTools(report) {
 
 const BASELINE_ALLOWLIST = [
   /^(npm|pnpm|yarn|bun) (run )?test$/, /^(npm|pnpm|yarn|bun) run (test|test:unit|test:ci)$/, /^(uv run |poetry run |pipenv run )?(pytest|python -m pytest)$/,
-  /^go test \.\/\.\.\.$/, /^cargo test$/, /^dotnet test( [^\s;&|]+\.slnx?)?$/, /^(\.\/mvnw|mvn) test$/, /^(\.\/gradlew|gradle) test$/, /^make (test|tests|check)$/, /^bundle exec (rspec|rake test)$/, /^node --test( [^\s;&|]+)?$/,
+  /^go test \.\/\.\.\.$/, /^cargo test$/, /^dotnet test( [\w./-]+\.slnx?)?$/, /^(\.\/mvnw|mvn) test$/, /^(\.\/gradlew|gradle) test$/, /^make (test|tests|check)$/, /^bundle exec (rspec|rake test)$/, /^node --test( [\w./*-]+)?$/,
 ];
 
 function runBaseline(root, report, opts) {
@@ -668,7 +679,15 @@ function toMarkdown(r, { brief = false } = {}) {
   if (!r.unknowns.length) L.push('- none');
   for (const u of r.unknowns) L.push(`- ${u}`);
   if (r.warnings.length) { L.push(''); L.push('## Warnings'); for (const w of r.warnings) L.push(`- ${w}`); }
-  return L.join('\n');
+  // Every value above can come from the repository (script bodies, branch names, file names). Keep
+  // each entry on its own line so embedded newlines cannot forge headings or "instructions" in the
+  // context this report is injected into, drop control characters, and bound the line length.
+  return L.map(oneLine).join('\n');
+}
+
+function oneLine(s) {
+  const t = String(s).replace(/\r?\n|[\r\u2028\u2029]/g, ' / ').replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, ' ');
+  return t.length > 600 ? t.slice(0, 600) + ' ...' : t;
 }
 
 module.exports = { discover, toMarkdown, scanInstructionText, redact, BASELINE_ALLOWLIST, LABEL, SCHEMA };

@@ -18,13 +18,22 @@
  *   vz-skills:<agent>      -> <agent>
  *
  * Uninstall removes exactly what install created (tracked in <runtime>/manifest.json) and only the hook
- * groups whose commands point into the runtime directory. settings.json is backed up before every write.
+ * groups whose commands point into the runtime directory. settings.json is backed up before every write
+ * (the last three backups are kept).
+ *
+ * Every check (name collisions, a readable settings file) runs before anything is written, so a failed
+ * install or uninstall leaves the previous state intact. Same-named skills or agents that vz-skills did
+ * not create are never replaced without --force, and with --force they are first copied to
+ * <base>/vz-skills-backups/<timestamp>/.
  */
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
 const RENAMES = { status: 'vz-status' };
+const KEEP_BACKUPS = 3;
+// Every shipped agent says this in its body; it identifies agent files vz-skills wrote.
+const AGENT_SIGNATURE = /VZ Skills plugin/;
 const HOOK_EVENTS_ORDER = ['PreToolUse', 'SessionStart'];
 
 function configDir() {
@@ -52,15 +61,28 @@ function rewrite(text, runtimeRef) {
 
 function readJson(file) {
   if (!fs.existsSync(file)) return {};
-  const text = fs.readFileSync(file, 'utf8').replace(/^﻿/, '');
+  const text = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
   if (!text.trim()) return {};
-  return JSON.parse(text);
+  try { return JSON.parse(text); }
+  catch (e) { throw new Error(`${file} is not valid JSON (${e.message}). Fix it by hand; nothing was changed.`); }
 }
+
+const stamp = () => new Date().toISOString().replace(/[:.]/g, '-');
 
 function writeJsonWithBackup(file, data) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  if (fs.existsSync(file)) fs.copyFileSync(file, `${file}.vz-backup-${new Date().toISOString().replace(/[:.]/g, '-')}`);
+  if (fs.existsSync(file)) {
+    fs.copyFileSync(file, `${file}.vz-backup-${stamp()}`);
+    const prefix = `${path.basename(file)}.vz-backup-`;
+    const old = fs.readdirSync(path.dirname(file)).filter((n) => n.startsWith(prefix)).sort();
+    for (const n of old.slice(0, Math.max(0, old.length - KEEP_BACKUPS))) fs.rmSync(path.join(path.dirname(file), n), { force: true });
+  }
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n');
+}
+
+/** Markers that identify our hook handlers: the runtime directory followed by a separator. */
+function hookMarkers(runtimeRef, runtime) {
+  return [...new Set([runtimeRef, runtime.replace(/\\/g, '/')])].map((m) => m.replace(/\/+$/, '') + '/');
 }
 
 function isOurHandler(h, runtimeMarkers) {
@@ -95,7 +117,31 @@ function installFlat(o) {
   const t = targets(o.scope, o.projectDir || process.cwd());
   const runtimeRef = t.runtimeRef || t.runtime.replace(/\\/g, '/');
   const log = o.log || (() => {});
-  // runtime
+
+  // 1. Checks first: nothing is written until all of them pass.
+  const { listSkills } = require(path.join(o.pluginRoot, 'scripts', 'lib', 'skills.js'));
+  const scan = listSkills(o.pluginRoot);
+  if (scan.unreachable.length) throw new Error(`plugin has skills that would not load (group not listed in plugin.json): ${scan.unreachable.map((u) => u.rel).join(', ')}`);
+  const agentFiles = fs.readdirSync(path.join(o.pluginRoot, 'agents')).filter((f) => f.endsWith('.md'));
+  const skillCollisions = scan.skills.map((sk) => flatName(sk.name)).filter((n) => fs.existsSync(path.join(t.skills, n)) && !fs.existsSync(path.join(t.skills, n, '.vz-skills-managed')));
+  const agentCollisions = agentFiles.filter((f) => fs.existsSync(path.join(t.agents, f)) && !AGENT_SIGNATURE.test(fs.readFileSync(path.join(t.agents, f), 'utf8')));
+  if ((skillCollisions.length || agentCollisions.length) && !o.force) {
+    const parts = [];
+    if (skillCollisions.length) parts.push(`skills in ${t.skills}: ${skillCollisions.join(', ')}`);
+    if (agentCollisions.length) parts.push(`agents in ${t.agents}: ${agentCollisions.join(', ')}`);
+    throw new Error(`these already exist and were not created by vz-skills (${parts.join('; ')}). Nothing was changed. Remove or rename them, or re-run with --force to replace them (they are backed up to ${path.join(t.base, 'vz-skills-backups')} first).`);
+  }
+  const existingSettings = readJson(t.settings); // throws with the file name if it is malformed
+
+  // 2. Back up anything --force is about to replace.
+  if (skillCollisions.length || agentCollisions.length) {
+    const dir = path.join(t.base, 'vz-skills-backups', stamp());
+    for (const n of skillCollisions) fs.cpSync(path.join(t.skills, n), path.join(dir, 'skills', n), { recursive: true });
+    for (const f of agentCollisions) { fs.mkdirSync(path.join(dir, 'agents'), { recursive: true }); fs.copyFileSync(path.join(t.agents, f), path.join(dir, 'agents', f)); }
+    log(`Backed up ${skillCollisions.length + agentCollisions.length} replaced item(s) to ${dir}`);
+  }
+
+  // 3. Runtime
   fs.rmSync(t.runtime, { recursive: true, force: true });
   fs.mkdirSync(t.runtime, { recursive: true });
   for (const d of ['scripts', 'references']) fs.cpSync(path.join(o.pluginRoot, d), path.join(t.runtime, d), { recursive: true });
@@ -107,19 +153,8 @@ function installFlat(o) {
     const p = path.join(t.runtime, 'references', f);
     fs.writeFileSync(p, rewrite(fs.readFileSync(p, 'utf8'), runtimeRef));
   }
-  // skills (grouped folders in the plugin flatten to <skills>/<name>; Claude Code does not nest skill names)
-  const { listSkills } = require(path.join(o.pluginRoot, 'scripts', 'lib', 'skills.js'));
-  const scan = listSkills(o.pluginRoot);
-  if (scan.unreachable.length) throw new Error(`plugin has skills that would not load (group not listed in plugin.json): ${scan.unreachable.map((u) => u.rel).join(', ')}`);
+  // 4. Skills (grouped folders in the plugin flatten to <skills>/<name>; Claude Code does not nest skill names)
   const installedSkills = [];
-  const collisions = [];
-  for (const s of scan.skills) {
-    const dest = path.join(t.skills, flatName(s.name));
-    if (fs.existsSync(dest) && !fs.existsSync(path.join(dest, '.vz-skills-managed'))) collisions.push(flatName(s.name));
-  }
-  if (collisions.length && !o.force) {
-    throw new Error(`these skills already exist in ${t.skills} and were not created by vz-skills: ${collisions.join(', ')}. Re-run with --force to replace them, or remove them first.`);
-  }
   for (const s of scan.skills) {
     const name = s.name;
     const target = flatName(name);
@@ -133,17 +168,16 @@ function installFlat(o) {
     fs.writeFileSync(path.join(dest, '.vz-skills-managed'), `installed by vz-skills ${o.version}\n`);
     installedSkills.push(target);
   }
-  // agents
+  // 5. Agents
   fs.mkdirSync(t.agents, { recursive: true });
   const installedAgents = [];
-  for (const f of fs.readdirSync(path.join(o.pluginRoot, 'agents'))) {
+  for (const f of agentFiles) {
     const dest = path.join(t.agents, f);
     fs.writeFileSync(dest, rewrite(fs.readFileSync(path.join(o.pluginRoot, 'agents', f), 'utf8'), runtimeRef));
     installedAgents.push(f);
   }
-  // hooks
-  const markers = [runtimeRef, t.runtime.replace(/\\/g, '/'), t.runtime];
-  const settings = removeOurHooks(readJson(t.settings), markers);
+  // 6. Hooks
+  const settings = removeOurHooks(existingSettings, hookMarkers(runtimeRef, t.runtime));
   const ours = buildHooks(o.pluginRoot, runtimeRef);
   settings.hooks = settings.hooks || {};
   for (const event of HOOK_EVENTS_ORDER) if (ours[event]) settings.hooks[event] = [...(settings.hooks[event] || []), ...ours[event]];
@@ -151,10 +185,10 @@ function installFlat(o) {
   // manifest for uninstall
   const manifest = { version: o.version, scope: o.scope, installed_at: new Date().toISOString(), skills: installedSkills, agents: installedAgents, settings: t.settings, runtimeRef };
   fs.writeFileSync(path.join(t.runtime, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
-  log(`Installed ${installedSkills.length} skills into ${t.skills}`);
-  log(`Installed ${installedAgents.length} agents into ${t.agents}`);
+  log(`${o.updating ? 'Updated' : 'Installed'} ${installedSkills.length} skills in ${t.skills}`);
+  log(`${o.updating ? 'Updated' : 'Installed'} ${installedAgents.length} agents in ${t.agents}`);
   log(`Runtime (scripts, policy, references) at ${t.runtime}`);
-  log(`Hooks merged into ${t.settings} (backup written beside it)`);
+  log(`Hooks merged into ${t.settings} (backup written beside it; the last ${KEEP_BACKUPS} are kept)`);
   return manifest;
 }
 
@@ -164,6 +198,12 @@ function uninstallFlat(o) {
   const manifestPath = path.join(t.runtime, 'manifest.json');
   let manifest = null;
   try { manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); } catch { /* fall back to scanning */ }
+  // A project and a local flat install share .claude/ but keep hooks in different settings files;
+  // uninstalling with the wrong scope would delete the files and strand the hooks.
+  if (manifest && ((manifest.scope && manifest.scope !== o.scope) || (manifest.settings && path.resolve(manifest.settings) !== path.resolve(t.settings)))) {
+    throw new Error(`the flat install here was made with --scope ${manifest.scope} (hooks in ${manifest.settings}); run uninstall --flat --scope ${manifest.scope}. Nothing was changed.`);
+  }
+  const settings = fs.existsSync(t.settings) ? readJson(t.settings) : null; // throws before anything is deleted
   const skillNames = manifest ? manifest.skills : fs.existsSync(t.skills) ? fs.readdirSync(t.skills).filter((n) => fs.existsSync(path.join(t.skills, n, '.vz-skills-managed'))) : [];
   let removed = 0;
   for (const n of skillNames) {
@@ -177,24 +217,30 @@ function uninstallFlat(o) {
     if (fs.existsSync(p) && /VZ Skills plugin/.test(fs.readFileSync(p, 'utf8'))) { fs.rmSync(p, { force: true }); removedAgents++; }
   }
   const runtimeRef = (manifest && manifest.runtimeRef) || t.runtimeRef || t.runtime.replace(/\\/g, '/');
-  const markers = [runtimeRef, t.runtime.replace(/\\/g, '/'), t.runtime];
-  if (fs.existsSync(t.settings)) {
-    const settings = readJson(t.settings);
+  let removedHooks = false;
+  if (settings) {
     const before = JSON.stringify(settings);
-    removeOurHooks(settings, markers);
-    if (JSON.stringify(settings) !== before) writeJsonWithBackup(t.settings, settings);
+    removeOurHooks(settings, hookMarkers(runtimeRef, t.runtime));
+    if (JSON.stringify(settings) !== before) { writeJsonWithBackup(t.settings, settings); removedHooks = true; }
   }
+  const hadRuntime = fs.existsSync(t.runtime);
   fs.rmSync(t.runtime, { recursive: true, force: true });
   for (const d of [t.skills, t.agents]) { try { if (fs.existsSync(d) && fs.readdirSync(d).length === 0) fs.rmdirSync(d); } catch { /* leave it */ } }
-  log(`Removed ${removed} skills, ${removedAgents} agents, the runtime directory, and VZ hook entries from ${t.settings} (settings backups are kept beside it)`);
-  return { removed, removedAgents };
+  const removedAnything = removed > 0 || removedAgents > 0 || removedHooks || hadRuntime;
+  if (removedAnything) log(`Removed ${removed} skills, ${removedAgents} agents, ${hadRuntime ? 'the runtime directory' : 'no runtime directory'}, and ${removedHooks ? 'VZ hook entries from ' + t.settings : 'no hook entries'} (settings backups are kept beside it)`);
+  return { removed, removedAgents, removedHooks, removedAnything };
 }
 
 function flatStatus(scope, projectDir) {
   const t = targets(scope, projectDir || process.cwd());
   const manifestPath = path.join(t.runtime, 'manifest.json');
   if (!fs.existsSync(manifestPath)) return { installed: false, base: t.base };
-  try { const m = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); return { installed: true, base: t.base, version: m.version, skills: m.skills.length, agents: m.agents.length }; } catch { return { installed: true, base: t.base, version: 'unknown' }; }
+  // project and local installs share <project>/.claude/vz-skills, so the manifest's scope decides which one it is
+  try {
+    const m = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    if (m.scope && m.scope !== scope) return { installed: false, base: t.base, otherScope: m.scope };
+    return { installed: true, base: t.base, version: m.version, skills: m.skills.length, agents: m.agents.length };
+  } catch { return { installed: true, base: t.base, version: 'unknown' }; }
 }
 
 module.exports = { installFlat, uninstallFlat, flatStatus, rewrite, targets, RENAMES };

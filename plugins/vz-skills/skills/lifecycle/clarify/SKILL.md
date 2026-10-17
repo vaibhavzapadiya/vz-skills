@@ -22,7 +22,7 @@ Goal: a short, testable definition of done that the user has seen. Not a questio
    - `ambiguity_tolerance: high` -> ask only if two interpretations lead to incompatible changes; otherwise proceed on the default and *state* the assumption.
    - `medium` -> ask when an interpretation affects data, interfaces, or user-visible behaviour; assume the rest.
    - `low` -> ask about every listed ambiguity before continuing.
-   - `ask_before_implementing: always` -> present the criteria and wait for confirmation even if there are no ambiguities. `never` -> never block; record assumptions.
+   - `ask_before_implementing: always` -> present the criteria and wait for confirmation even if there are no ambiguities. `auto` -> wait for an answer only if you asked a question or the risk tier is high; otherwise proceed and state the assumptions. `never` -> never block; record assumptions.
    Ask all questions in one message, each with the default you would take if unanswered.
 4. **Write acceptance criteria**: 3-8 bullets, each observable and checkable (a test, a command, a visible behaviour). Include non-functional criteria when relevant (compatibility, performance budget, security constraint). Mark which criteria will be covered by automated tests and which will be NOT VERIFIED unless the user checks manually.
 5. **Draw the scope boundary**: what is explicitly out of scope, and which existing behaviours must not change (regression guardrails).

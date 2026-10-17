@@ -46,6 +46,20 @@ test('help, path, version, and unknown command', () => {
   assert.equal(r.status, 2);
 });
 
+test('subcommand flags are strict: typos, unknown flags and --help never run an install', () => {
+  for (const args of [['install', '--scop', 'project'], ['install', '--flaat'], ['uninstall', '--purg'], ['update', '--force'], ['install', '--force']]) {
+    const r = cli(args);
+    assert.equal(r.status, 2, `${args.join(' ')} -> ${r.stdout}${r.stderr}`);
+  }
+  let r = cli(['install', '--scope=nowhere']);
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /--scope must be user, project, or local/);
+  r = cli(['uninstall', '--help', '--scope', 'project']);
+  assert.equal(r.status, 0);
+  assert.match(r.stdout, /npx vz-skills install/, '--help prints usage');
+  assert.doesNotMatch(r.stdout, /Uninstalled|Successfully/, '--help does not run the command');
+});
+
 test('doctor reports a broken project config without touching it', () => {
   const dir = tmpDir('doctor');
   try {
@@ -111,9 +125,23 @@ test('flat (unprefixed) install at user scope: skills/agents/runtime/hooks creat
     fs.rmSync(path.join(cfg, 'skills', 'plan', '.vz-skills-managed'));
     r = cli(['install', '--flat'], env, 120000);
     assert.equal(r.status, 1);
-    assert.match(r.stderr, /not created by vz-skills: plan/);
+    assert.match(r.stderr, /not created by vz-skills \(skills in .*: plan\)\. Nothing was changed/);
     r = cli(['install', '--flat', '--force'], env, 120000);
     assert.equal(r.status, 0);
+    assert.ok(fs.readdirSync(path.join(cfg, 'vz-skills-backups')).length === 1, '--force backed up the foreign skill first');
+    // a user's own agent with a shipped agent's name is protected the same way, and survives uninstall
+    const mine = 'my own analyst agent';
+    fs.writeFileSync(path.join(cfg, 'agents', 'repo-analyst.md'), mine);
+    r = cli(['install', '--flat'], env, 120000);
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /agents in .*: repo-analyst\.md/);
+    assert.equal(fs.readFileSync(path.join(cfg, 'agents', 'repo-analyst.md'), 'utf8'), mine, 'user agent untouched');
+    r = cli(['uninstall', '--flat'], env, 120000);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.equal(fs.readFileSync(path.join(cfg, 'agents', 'repo-analyst.md'), 'utf8'), mine, 'uninstall left the user agent alone');
+    fs.rmSync(path.join(cfg, 'agents', 'repo-analyst.md'));
+    r = cli(['install', '--flat'], env, 120000);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
     // uninstall
     r = cli(['uninstall', '--flat'], env, 120000);
     assert.equal(r.status, 0, r.stdout + r.stderr);

@@ -52,7 +52,15 @@ npx vz-skills@latest update          # add --flat for the flat form
 npx vz-skills uninstall              # add --flat for the flat form, --purge to clean up fully
 ```
 
-Your `.vz-skills/config.json` files are never removed.
+Pass the same `--scope` you installed with to `update` and `uninstall`. The default is `user`. `update --flat` finds a user-scope flat install by itself; for a project or local flat install, name the scope. `uninstall --flat` with the wrong scope stops and tells you the right one, without changing anything.
+
+Flags are strict. A typo such as `--scop project` stops with an error instead of installing into the wrong place.
+
+Your `.vz-skills/config.json` files are never removed. After a flat install, the last three `settings.json.vz-backup-*` files stay beside your settings, and `vz-skills-backups/` stays if you ever used `--force`. Delete them by hand when you no longer need them.
+
+<Callout kind="note" title="Your own skills are safe">
+The flat install checks first and writes nothing if a skill or agent of the same name already exists and is not from VZ, or if your `settings.json` is broken. With `--force`, what it replaces is copied to `vz-skills-backups/` first.
+</Callout>
 
 <Callout kind="note" title="Where it is published">
 The installer is the [`vz-skills` package on npm](https://www.npmjs.com/package/vz-skills). The source, issues and releases are on [GitHub](https://github.com/vaibhavzapadiya/vz-skills).

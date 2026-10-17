@@ -10,7 +10,7 @@ The output is a short list of improvements with evidence, each small enough to d
 
 ## Inputs
 
-- This conversation's history for the task: discovery report (UNKNOWNs, CONFLICTING facts, missing tools), checks that were BLOCKED, tests that were missing or flaky, questions that had to be asked, guard prompts that fired, review findings that recurred.
+- This conversation's history for the task: discovery report (UNKNOWNs, CONFLICTING facts, missing tools), checks that were BLOCKED, tests that were missing or flaky, questions that had to be asked, guard prompts visible in this conversation (do not estimate ones you did not see), review findings that recurred.
 - The checkpoint and `verify` report if present; `git log` for the task's commits.
 - Profile and `.vz-skills/config.json` (to suggest configuration changes rather than code changes where that is the right fix).
 

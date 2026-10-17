@@ -13,4 +13,5 @@ Signals that force **high** regardless of size: file paths matching `auth|login|
 Profile interaction:
 
 - `planning.plan_when`: `risk>=high` (FAST), `risk>=medium` (BALANCED), `always` (PRODUCTION).
-- `security.review_trigger`: `sensitive-paths` only runs the security review for high-tier paths; `material-changes` adds every medium/high change; `always` runs it for every change.
+- `security.review_trigger`: `sensitive-paths` only runs the security review for high-tier paths; `material-changes` adds every medium/high change; `always` runs it for every change. An explicit user request for a security review always runs it on the requested target, whatever the trigger.
+- `agents.delegation`: `auto` delegates whenever the calling skill's own condition holds; `minimal` delegates only when the risk tier is high; `never` does not delegate (do the work in context and say the review was not independent). Always pass an agent the absolute path `${CLAUDE_PLUGIN_ROOT}/references/<checklist>.md`, never a relative one.

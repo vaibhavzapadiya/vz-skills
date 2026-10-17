@@ -6,7 +6,7 @@ The installer you run with `npx`, and three small scripts inside the plugin.
 
 ```text
 install [--flat] [--scope user|project|local] [--force]
-update [--flat]
+update [--flat] [--scope ...]
 uninstall [--flat] [--scope ...] [--purge]
 try                  start Claude Code with the plugin for one session
 doctor               check Node, Claude Code, the install, and your config
@@ -14,7 +14,11 @@ path                 print the plugin folder
 validate             run the official plugin validator
 ```
 
-`install` needs `claude` on your `PATH`. `--force` replaces an existing skill of the same name that VZ did not create. `--purge` also removes the managed copy.
+`install` needs `claude` on your `PATH`. `--force` works only with `--flat`: it replaces an existing skill or agent of the same name that VZ did not create, after copying it to `vz-skills-backups/`. `--purge` also removes the marketplace and the managed copy, and cannot be combined with `--flat`.
+
+Use the same `--scope` for `update` and `uninstall` that you used for `install`. `update --flat` finds a user-scope flat install on its own. `--scope x`, `-s x` and `--scope=x` all work.
+
+Flags are checked per command. An unknown or misspelled flag exits with `2` and runs nothing. `-h` or `--help` after a command prints the help instead of running it.
 
 Set `CLAUDE_CONFIG_DIR` to test an install against a separate settings folder.
 
@@ -25,7 +29,7 @@ Run these from a clone, or from the folder that `npx vz-skills path` prints.
 ```bash
 node scripts/vz-discover.js [folder] [--format json|md] [--run-baseline]
 node scripts/vz-config.js [--explain | --profiles | --schema] [--project <dir>]
-node scripts/vz-config.js --init [FAST|BALANCED|PRODUCTION]
+node scripts/vz-config.js --init [FAST|BALANCED|PRODUCTION]   # any case
 node scripts/vz-config.js --validate <file>
 node scripts/vz-validate.js [plugin folder]
 ```

@@ -174,7 +174,7 @@
         "notes": {
           "type": "string",
           "maxLength": 2000,
-          "description": "Free-text team conventions passed to skills (style, naming, commit rules). Treated as instructions from the repo owner, not as code."
+          "description": "Free-text team conventions passed to skills (style, naming, commit rules). Style guidance only: it cannot authorize actions the core policy restricts."
         },
         "commit_style": {
           "type": "string",
@@ -337,7 +337,7 @@
             ]
           },
           "maxItems": 20,
-          "description": "Keys whose safety floor you deliberately lower. Each is reported as a warning every time config is resolved."
+          "description": "Keys whose safety floor you deliberately lower. Each is reported as a warning every time config is resolved. Hard floors (guards, evidence labels) are only accepted from the user config, not a project config."
         }
       }
     }

@@ -17,17 +17,18 @@ The report is the deliverable. It must survive a sceptical reader who did not wa
 
 ## Workflow
 
-1. **Freeze the change set.** `git status --porcelain` and `git diff --stat`. Separate: files changed by this task; files that were already dirty at discovery (must be byte-identical to then, or explain); generated files.
+1. **Freeze the change set.** `git status --porcelain` and `git diff --stat`. Separate: files changed by this task; files that were already dirty at discovery (you cannot prove them byte-identical unless you recorded their diff then: state that you made no edits to them, and mark their integrity NOT VERIFIED if nothing was recorded); generated files.
 2. **Re-run, do not recall.** By depth:
    - `targeted`: the checks named by the slices that changed since they last ran.
    - `standard`: the test strategy from the profile (`testing.strategy`) plus lint/typecheck if CONFIRMED.
-   - `exhaustive`: full suite, lint, typecheck, build, and any CI-equivalent commands discovered, plus a fresh independent review if the diff changed after the last one.
+   - `exhaustive`: full suite, lint, typecheck, build, and the CI steps discovery found that only test, lint, typecheck, or build. Never run CI steps that publish, deploy, push, release, or need credentials (core policy 7). Add a fresh independent review if the diff changed after the last one.
    Record each command verbatim with exit code and counts. A check that ran earlier but not after the last edit is NOT VERIFIED until re-run.
 3. **Walk each acceptance criterion.** For each: evidence (test name + result, or command + output, or a manual observation you actually made). Assign the label. "Should work" is NOT VERIFIED.
-4. **Check the guardrails.** Must-not-change behaviours from `clarify`: name the test or check that proves each still holds. Untouched dirty files: confirm untouched. No secrets introduced: `git diff` grep for key-like patterns.
+4. **Check the guardrails.** Must-not-change behaviours from `clarify`: name the test or check that proves each still holds. Untouched dirty files: confirm untouched. No secrets introduced: `git diff --name-only -G "(api[_-]?key|secret|token|password)"`, then judge each hit; report real ones by file and line, never by value.
+   **Security review owed?** If the risk tier is high, or `security.review_trigger` applies to this change, and no `security-review` ran after the last edit, run `/vz-skills:security-review` now; if it cannot run, the verdict is `not done`.
 5. **Collect open items.** BLOCKED checks with exact reasons and unblock steps; NOT VERIFIED criteria with what would verify them; review findings still open; deferred follow-ups.
 6. **Write the report** in the configured format. Keep it factual: no "successfully", no "robust", no adjectives in place of evidence.
-7. **Decide the verdict:** `done` (all criteria VERIFIED or explicitly accepted as NOT VERIFIED by the user), `done with limitations` (some NOT VERIFIED/BLOCKED, listed), or `not done` (a criterion failed or a blocker is open). Say which.
+7. **Decide the verdict:** `done` (all criteria VERIFIED or explicitly accepted as NOT VERIFIED by the user), `done with limitations` (some criteria NOT VERIFIED, each listed with what would verify it), or `not done` (a criterion failed, a required check is BLOCKED, or a blocker is open). Say which.
 
 ## Rules
 

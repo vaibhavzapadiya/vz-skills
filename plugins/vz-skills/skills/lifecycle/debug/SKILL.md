@@ -22,14 +22,14 @@ Fixing symptoms creates more bugs. This skill ends with a root cause and a minim
    - bisect in time: `git log` for recent changes to the files involved; if a known-good commit exists, say which;
    - bisect in space: add a temporary assertion or log at the midpoint of the suspect path, run, observe, move; remove temporaries afterwards;
    - compare: a passing sibling test or input vs the failing one, diff the difference.
-4. **Form hypotheses** (max three), each with a prediction: "if H1, then running X shows Y". Run X. Discard hypotheses the evidence contradicts. Do not change production code while testing hypotheses; use tests, REPL calls, or logs.
+4. **Form hypotheses** (max three), each with a prediction: "if H1, then running X shows Y". Run X. Discard hypotheses the evidence contradicts. Do not change production logic while testing hypotheses; use tests, REPL calls, and temporary logs or assertions only.
 5. **Confirm the root cause** with a test that fails for exactly that reason (or a reproducible command when a test is impractical). This test becomes the regression test.
 6. **Propose the minimal fix** and its blast radius: files, callers, data compatibility. If the fix is in shared code or at a trust boundary, raise the risk tier.
 7. **Hand off** to `implement` with: root cause (one sentence, with file:line), evidence (commands and outputs), regression test, fix plan, and anything still uncertain.
 
 ## Rules
 
-- No "try this and see" edits to the codebase; every change during debugging is temporary and reverted, or is the regression test.
+- No "try this and see" edits to the codebase; every change during debugging is temporary and removed by editing it back before handoff (never with `git checkout --` or `git restore`; core policy 3), or is the regression test.
 - Pre-existing failures found during debugging are reported as baseline, not folded into this fix.
 - Do not suppress the error (catch-and-ignore, skip the test, widen a type) and call it fixed.
 - Never paste secrets from logs or environment into the conversation; redact tokens, keys, and connection strings.

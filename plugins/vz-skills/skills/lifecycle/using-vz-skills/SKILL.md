@@ -9,7 +9,7 @@ VZ Skills is a set of small workflows. This skill picks the path; it does not do
 
 ## 1. Establish context (30 seconds)
 
-- Read the session-start brief (profile summary and repository brief injected by the plugin). If it is missing, run `/vz-skills:status`.
+- Read the session-start brief (profile summary and repository brief injected by the plugin). If it is missing (for example `hooks.session_context: false`), run `node "${CLAUDE_PLUGIN_ROOT}/scripts/vz-config.js" --summary --project .` to get the profile; `/vz-skills:status` is user-run, so suggest it rather than invoking it.
 - If the repository brief is missing or stale, or the task depends on build/test commands, run `/vz-skills:discover` first.
 - Note the effective profile: **FAST**, **BALANCED**, or **PRODUCTION**. Every downstream skill reads the resolved fields (planning, testing, review, security, response) from that summary.
 
@@ -19,7 +19,7 @@ VZ Skills is a set of small workflows. This skill picks the path; it does not do
 |---|---|---|
 | "What is this repo / how do I run it" | `discover` | Read-only. |
 | Vague feature or change request | `clarify` -> `plan` -> `implement` -> `test` -> `review` -> `verify` | The core lifecycle. Skip `clarify` only when criteria are already explicit and `clarification.ambiguity_tolerance` is `high`. |
-| Clear, small change (risk tier low) | `implement` -> `test` -> `verify` | No plan needed unless `planning.plan_when` says `always`. |
+| Clear, small change (risk tier low) | `implement` -> `test` -> `verify` | No plan needed unless `planning.plan_when` is `always` or `risk>=low`. |
 | Bug report / failing test / error | `debug` -> `implement` -> `test` -> `verify` | Root cause before fix. |
 | "Review this diff/PR" | `review` (+ `security-review` if the trigger applies) | Read-only unless asked to fix. |
 | Anything touching auth, payments, migrations, infra, secrets | add `security-review`; treat as **high** risk | See `${CLAUDE_PLUGIN_ROOT}/references/risk-tiers.md`. |

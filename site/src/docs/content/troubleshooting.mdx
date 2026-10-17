@@ -8,7 +8,15 @@ Start with `npx vz-skills doctor`. It checks Node, Claude Code, the install, and
 | `/vz-skills:` does not autocomplete | The plugin is not loaded | Run `claude plugin list`, then `/reload-plugins` |
 | "Claude Code CLI not found" | `claude` is not on `PATH` in that shell | Open a shell where `claude --version` works |
 | Install cannot register the marketplace | A `vz-skills-marketplace` already exists from another path | `claude plugin marketplace remove vz-skills-marketplace`, then install again |
-| Flat install stops: "not created by vz-skills" | You have your own skill with the same name | Rename yours, or pass `--force` |
+| Flat install stops: "not created by vz-skills" | You have your own skill or agent with the same name. Nothing was changed. | Rename yours, or pass `--force` (yours is backed up to `vz-skills-backups/` first) |
+| Flat install says `settings.json` is not valid JSON | The file named in the message has a syntax error. Nothing was changed. | Fix the file, then run it again |
+| `update` or `uninstall` says it is not installed | You installed with `--scope project` or `local`, and the default is `user` | Pass the same `--scope` you installed with |
+| `update --flat` says flat installs exist in several scopes | You have a flat install at user scope and another in this project | Pass `--scope` for the one to update |
+| A `vz-skills` command exits with "unknown option" | A misspelled flag. Flags are strict. | Check `npx vz-skills help`. Nothing ran. |
+| `git push` or `gh pr create` asks first | Expected: anything that leaves your machine asks | Confirm, or set `approvals.external_actions: "refuse"` to deny |
+| `find . -delete` is denied | A `find -delete` with no filter, starting at `.` or another root, deletes everything under it | Add a filter such as `-name '*.tmp'` (then it asks) |
+| A guard asks "too large to inspect" | The command is over 32 KB, or the input over 2 MB | Confirm it, or split it up |
+| Turning a guard off in the project config does nothing | Only your own `~/.vz-skills/config.json` can acknowledge that | Acknowledge it there, if you mean it |
 | `/status` shows Claude's status, not VZ's | Expected after a flat install | Use `/vz-status` |
 | Every command asks for confirmation | The command guard matched something, such as `sudo` or `rm -r` | Read the prompt; it names the reason. Change the command or your settings. |
 | A command is denied | It matched a catastrophic pattern | Run it yourself in a terminal if you are sure |
@@ -27,4 +35,4 @@ node plugins/vz-skills/scripts/vz-discover.js . --format md
 
 ## Reporting an issue
 
-Include your Claude Code version, your OS, what you ran, what you expected, and the `--explain` output with secrets removed.
+[Open an issue on GitHub](https://github.com/vaibhavzapadiya/vz-skills/issues). Include your Claude Code version, your OS, what you ran, what you expected, and the `--explain` output with secrets removed.

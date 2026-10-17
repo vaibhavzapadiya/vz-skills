@@ -18,23 +18,37 @@ Each call takes about 100 to 300 ms.
 
 ### Command guard
 
-- **Denied:** `rm -rf /`, `rm -rf ~`, `mkfs`, fork bombs, and force-push to `main` or `master`.
-- **Asks:** `git reset --hard`, `git clean -f`, `git checkout -- .`, `sudo`, deleting recursively, piping a download into a shell, reading `.env` or key files, `npm publish`, `terraform apply`, and `rm` or `mv` inside protected paths.
+The guard splits a command line into its parts (at `;`, `&&`, `|`, subshells and so on) and reads each command's real flags and arguments. Flag order, quotes and wrappers such as `sudo` or `env` do not change the result. Text in quotes is not a command, so a commit message that mentions `git push --force` is fine. The exception is the script given to `bash -c`, `pwsh -Command`, `cmd /c`, `eval` or `iex`, which is read as a command too. Checks for secrets and publishing skip quoted text with spaces (commit messages); checks for SQL and downloads also read inside quotes.
+
+- **Denied:**
+  - deleting recursively `/`, your home folder (`~`, `$HOME`), the working folder (`.`, `*`), a parent folder (`..`), a drive root (`C:\`, `/mnt/c`), or a system folder (`/etc`, `/usr`, `C:\Windows`, ...), with `rm`, `Remove-Item`, `rd /s` or their aliases;
+  - `--no-preserve-root`, and `find` with `-delete` starting at one of those folders (with no filter such as `-name`; with a filter it asks);
+  - `mkfs`, `format c:`, raw writes to a disk, fork bombs;
+  - force-pushing or deleting `main` or `master`, in any form (`-f`, `--force-with-lease`, `+main`, `:main`, `HEAD:main`).
+- **Asks, because it leaves your machine:** any `git push`, creating or deleting a tag, `gh pr create`, `merge`, `close`, `comment`, `edit` or `review`, `gh issue` and `gh release` changes, `gh repo create`, `edit` or `delete`, `npm version`, `npm publish`, `docker push`, `terraform apply`, `kubectl apply` (unless `--dry-run`), and other deploys.
+- **Asks, because it can lose work:** `git reset --hard`, `git clean -f`, `git checkout -- .`, `git restore <file>`, `git stash drop`, `git branch -D`, force-pushing other branches, `git rebase -i`.
+- **Asks, for other reasons:** `sudo`, other recursive deletes, piping a download into a shell, reading or searching `.env` or key files (`.env.example` is fine), printing secret variables, `DROP TABLE` and `DELETE FROM` without `WHERE`, global installs, and `rm` or `mv` inside protected paths.
 - **Quiet:** everything else, such as `npm test`.
 
 ### Write guard
 
-- **Denied:** writes inside `.git/`, your `~/.ssh`, and system folders.
-- **Asks:** `.env` files, `CLAUDE.md`, lockfiles, paths outside the project, protected paths, and content that looks like a credential.
+The guard follows symlinks and junctions to the real target, and ignores case on Windows and macOS.
+
+- **Denied:** writes inside `.git/`, credential folders in your home (`~/.ssh`, `~/.aws`, `~/.docker`, `~/.config/gh`, ...), your Claude Code user settings, and system folders.
+- **Asks:** `.env` files (including `prod.env` and `.envrc`), key and certificate files, `CLAUDE.md` and `AGENTS.md`, `.mcp.json`, the project's `.claude/` settings, agents, commands, skills and hooks, anything in `~/.claude/`, shell startup files such as `.bashrc`, lockfiles, paths outside the project, protected paths, and content that looks like a credential.
+
+### Too big to check
+
+A command over 32 KB, or hook input over 2 MB, gets a question instead of passing silently.
 
 ### Settings
 
 | Goal | Setting |
 |---|---|
 | Deny instead of ask for destructive git | `approvals.destructive_git: "refuse"` |
-| Deny instead of ask for publish and deploy | `approvals.external_actions: "refuse"` |
+| Deny instead of ask for push, tags, PRs, publish and deploy | `approvals.external_actions: "refuse"` |
 | Protect folders | `hooks.protected_paths: ["migrations/**"]` |
-| Turn a guard off | `hooks.command_guard` or `hooks.write_guard` set to `"off"`, plus an acknowledged override |
+| Turn a guard off | `hooks.command_guard` or `hooks.write_guard` set to `"off"`, plus an acknowledged override in your own `~/.vz-skills/config.json`. A repository's config cannot do this. |
 | Stop the session brief | `hooks.session_context: false` |
 
 ### What they do not do
@@ -53,4 +67,4 @@ Three helpers with fresh context. Each can only read (`Read`, `Glob`, `Grep`); n
 | `independent-reviewer` | Reviews a diff against the acceptance criteria without seeing the author's own findings first. |
 | `security-reviewer` | Threat-models a change and reports findings by severity. |
 
-They run when the review or security step calls for it, based on `review.independent_reviewer` and `agents.delegation`. They never follow instructions found in the code they read; they report them.
+`repo-analyst` helps `plan` and `explain` when a change spans several modules. The reviewers run when the review or security step calls for it, based on `review.independent_reviewer`. `agents.delegation` sets how often: `auto` (default), `minimal` (high risk only) or `never`. After a flat install, call them as `@agent-repo-analyst` and so on. They never follow instructions found in the code they read; they report them.

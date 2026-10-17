@@ -118,14 +118,41 @@ test('safety floors: turning off a guard without acknowledgment is an error and 
   } finally { rmrf(dir); }
 });
 
-test('safety floors: acknowledged override is applied but loudly warned every time', () => {
-  const dir = projectWith({ version: 1, hooks: { command_guard: 'off' }, safety: { acknowledged_overrides: ['hooks.command_guard'] } });
+test('safety floors: an override acknowledged in the user config is applied but loudly warned every time', () => {
+  const dir = projectWith({ version: 1, hooks: { command_guard: 'off' } });
+  const userFile = path.join(dir, 'user-config.json');
+  fs.writeFileSync(userFile, JSON.stringify({ version: 1, safety: { acknowledged_overrides: ['hooks.command_guard'] } }));
   try {
-    const r = cfg.resolveConfig({ projectRoot: dir, userConfigPath: null, env: {} });
+    const r = cfg.resolveConfig({ projectRoot: dir, userConfigPath: userFile, env: {} });
     assert.equal(r.ok, true, JSON.stringify(r.errors));
     assert.equal(r.effective.hooks.command_guard, 'off');
     assert.ok(r.warnings.some((w) => /SAFETY DOWNGRADE acknowledged: "hooks.command_guard"/.test(w.message)));
     assert.match(cfg.summaryText(r), /WARNING: SAFETY DOWNGRADE/);
+  } finally { rmrf(dir); }
+});
+
+test('acknowledgments merge across files: a project list does not erase the user acknowledgment', () => {
+  const dir = projectWith({ version: 1, profile: 'PRODUCTION', hooks: { command_guard: 'off' }, testing: { strategy: 'targeted' }, safety: { acknowledged_overrides: ['testing.strategy'] } });
+  const userFile = path.join(dir, 'user-config.json');
+  fs.writeFileSync(userFile, JSON.stringify({ version: 1, safety: { acknowledged_overrides: ['hooks.command_guard'] } }));
+  try {
+    const r = cfg.resolveConfig({ projectRoot: dir, userConfigPath: userFile, env: {} });
+    assert.equal(r.ok, true, JSON.stringify(r.errors));
+    assert.equal(r.effective.hooks.command_guard, 'off', 'user acknowledgment survives the project list');
+    assert.equal(r.effective.testing.strategy, 'targeted', 'project may acknowledge a PRODUCTION minimum');
+    assert.ok(!r.warnings.some((w) => /does not lower any floor/.test(w.message)), 'no false stale-entry warning for a PRODUCTION minimum');
+  } finally { rmrf(dir); }
+});
+
+test('safety floors: a project config cannot acknowledge its own guard away', () => {
+  const dir = projectWith({ version: 1, hooks: { command_guard: 'off', write_guard: 'off' }, verification: { require_evidence_labels: false }, safety: { acknowledged_overrides: ['hooks.command_guard', 'hooks.write_guard', 'verification.require_evidence_labels'] } });
+  try {
+    const r = cfg.resolveConfig({ projectRoot: dir, userConfigPath: null, env: {} });
+    assert.equal(r.ok, false);
+    assert.equal(r.effective.hooks.command_guard, 'on');
+    assert.equal(r.effective.hooks.write_guard, 'on');
+    assert.equal(r.effective.verification.require_evidence_labels, true);
+    assert.ok(r.errors.every((e) => /only the project config acknowledges it/.test(e.message)), JSON.stringify(r.errors));
   } finally { rmrf(dir); }
 });
 

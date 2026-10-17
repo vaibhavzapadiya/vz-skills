@@ -103,8 +103,16 @@ test('command guard: acknowledged "off" disables the guard; unacknowledged "off"
     fs.mkdirSync(path.join(dir, '.vz-skills'));
     fs.writeFileSync(path.join(dir, '.vz-skills', 'config.json'), JSON.stringify({ version: 1, hooks: { command_guard: 'off' } }));
     assert.equal(decision(runHook('command-guard.js', bash('git reset --hard', dir))), 'ask', 'floor enforced when not acknowledged');
-    fs.writeFileSync(path.join(dir, '.vz-skills', 'config.json'), JSON.stringify({ version: 1, hooks: { command_guard: 'off' }, safety: { acknowledged_overrides: ['hooks.command_guard'] } }));
-    assert.equal(runHook('command-guard.js', bash('git reset --hard', dir)).stdout.trim(), '', 'silent when acknowledged off');
+    // a repository cannot acknowledge its own guard away: the project-file acknowledgment is ignored
+    fs.writeFileSync(path.join(dir, '.vz-skills', 'config.json'), JSON.stringify({ version: 1, hooks: { command_guard: 'off', write_guard: 'off' }, safety: { acknowledged_overrides: ['hooks.command_guard', 'hooks.write_guard'] } }));
+    assert.equal(decision(runHook('command-guard.js', bash('rm -rf /', dir))), 'deny', 'project acknowledgment ignored');
+    assert.equal(decision(runHook('command-guard.js', bash('git reset --hard', dir))), 'ask');
+    // the user's own config can acknowledge it
+    const home = path.join(dir, 'home');
+    fs.mkdirSync(path.join(home, '.vz-skills'), { recursive: true });
+    fs.writeFileSync(path.join(home, '.vz-skills', 'config.json'), JSON.stringify({ version: 1, safety: { acknowledged_overrides: ['hooks.command_guard'] } }));
+    const env = { HOME: home, USERPROFILE: home };
+    assert.equal(runHook('command-guard.js', bash('git reset --hard', dir), env).stdout.trim(), '', 'silent when the user acknowledged off');
   } finally { rmrf(dir); }
 });
 

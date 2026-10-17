@@ -38,8 +38,16 @@ const version = () => JSON.parse(fs.readFileSync(path.join(PLUGIN_SRC, '.claude-
 const log = (s) => process.stdout.write(s + '\n');
 const fail = (s, code = 1) => { process.stderr.write(`vz-skills: ${s}\n`); process.exit(code); };
 
+// On Windows, `claude` may be a .cmd shim that only a shell can run. A shell joins arguments
+// unquoted, so quote each one here (paths under "C:\Users\First Last" contain spaces) and pass
+// a single command string; that also avoids Node's DEP0190 warning about args with shell:true.
+const winQuote = (a) => (a === '' || /[\s"&|<>^()%!]/.test(a) ? '"' + String(a).replace(/(\\*)"/g, '$1$1\\"').replace(/(\\+)$/, '$1$1') + '"' : a);
+function spawnClaude(args, opts) {
+  return IS_WIN ? spawnSync(['claude', ...args].map(winQuote).join(' '), Object.assign({}, opts, { shell: true })) : spawnSync('claude', args, opts);
+}
+
 function claude(args, opts = {}) {
-  const r = spawnSync('claude', args, Object.assign({ encoding: 'utf8', shell: IS_WIN, windowsHide: true, timeout: opts.timeout || 180000, stdio: opts.inherit ? 'inherit' : 'pipe' }, opts.spawn || {}));
+  const r = spawnClaude(args, Object.assign({ encoding: 'utf8', windowsHide: true, timeout: opts.timeout || 180000, stdio: opts.inherit ? 'inherit' : 'pipe' }, opts.spawn || {}));
   return { status: r.status, stdout: r.stdout || '', stderr: r.stderr || '', error: r.error };
 }
 
@@ -49,12 +57,29 @@ function requireClaude() {
   return r.stdout.trim();
 }
 
-function parseScope(argv) {
-  const i = argv.findIndex((a) => a === '--scope' || a === '-s');
-  if (i === -1) return 'user';
-  const v = argv[i + 1];
-  if (!['user', 'project', 'local'].includes(v)) fail('--scope must be user, project, or local', 2);
-  return v;
+const SCOPES = ['user', 'project', 'local'];
+
+/**
+ * Parse a subcommand's flags strictly: unknown flags and typos exit 2 instead of being ignored
+ * (a silently ignored "--scop project" would install at user scope). Accepts "--scope x",
+ * "-s x" and "--scope=x". Returns { scope, scopeGiven, flags: Set, help }.
+ */
+function parseArgs(argv, allowed) {
+  const out = { scope: 'user', scopeGiven: false, flags: new Set(), help: false };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '-h' || a === '--help') { out.help = true; continue; }
+    let v = null;
+    if (a === '--scope' || a === '-s') v = argv[++i];
+    else if (a.startsWith('--scope=')) v = a.slice('--scope='.length);
+    if (v !== null) {
+      if (!SCOPES.includes(v)) fail('--scope must be user, project, or local', 2);
+      out.scope = v; out.scopeGiven = true; continue;
+    }
+    if (!allowed.includes(a)) fail(`unknown option "${a}". Run "npx vz-skills help" for usage.`, 2);
+    out.flags.add(a);
+  }
+  return out;
 }
 
 function copyPlugin() {
@@ -76,22 +101,22 @@ function marketplaceRegistered() {
   if (idx === -1) return { listed: false, raw: text };
   const block = text.slice(idx, idx + 400);
   const m = block.match(/(?:Source|Path|path):?\s*(\S.*)/i);
-  return { listed: true, source: m ? m[1].trim() : null, raw: text };
+  return { listed: true, source: m ? m[1].trim().replace(/^Directory\s*\((.*)\)$/i, '$1') : null, raw: text };
 }
 
 function pluginInstalled() {
   const r = claude(['plugin', 'list']);
   if (r.status !== 0) return { installed: false, raw: r.stdout + r.stderr };
   const text = r.stdout;
-  return { installed: text.includes(PLUGIN_ID), loaded: /vz-skills@vz-skills-marketplace[\s\S]{0,300}?Status:\s*\S*\s*loaded/.test(text), raw: text };
+  return { installed: text.includes(PLUGIN_ID), loaded: /vz-skills@vz-skills-marketplace[\s\S]{0,300}?Status:\s*\S*\s*(loaded|enabled)/.test(text), raw: text };
 }
 
-function cmdInstallFlat(argv) {
-  const scope = parseScope(argv);
+function cmdInstallFlat(opts, { updating = false } = {}) {
+  const scope = opts.scope;
   const cv = requireClaude();
   log(`Claude Code ${cv}`);
   let manifest;
-  try { manifest = flat.installFlat({ pluginRoot: PLUGIN_SRC, scope, projectDir: process.cwd(), version: version(), force: argv.includes('--force'), log }); }
+  try { manifest = flat.installFlat({ pluginRoot: PLUGIN_SRC, scope, projectDir: process.cwd(), version: version(), force: opts.flags.has('--force'), updating, log }); }
   catch (e) { fail(e.message); }
   log('');
   log(`Done. Commands are unprefixed: /${manifest.skills.filter((s) => s !== 'vz-status').slice(0, 4).join(', /')}, ... and /vz-status (renamed so Claude Code's own /status stays available).`);
@@ -102,8 +127,11 @@ function cmdInstallFlat(argv) {
 }
 
 function cmdInstall(argv) {
-  if (argv.includes('--flat')) return cmdInstallFlat(argv);
-  const scope = parseScope(argv);
+  const opts = parseArgs(argv, ['--flat', '--force']);
+  if (opts.help) return help();
+  if (opts.flags.has('--flat')) return cmdInstallFlat(opts);
+  if (opts.flags.has('--force')) fail('--force only applies to --flat installs', 2);
+  const scope = opts.scope;
   const cv = requireClaude();
   log(`Claude Code ${cv}`);
   const dest = copyPlugin();
@@ -133,43 +161,60 @@ function cmdInstall(argv) {
 }
 
 function cmdUpdate(argv = []) {
-  if (argv.includes('--flat')) return cmdInstallFlat([...argv, '--force']);
+  const opts = parseArgs(argv, ['--flat']);
+  if (opts.help) return help();
+  if (opts.flags.has('--flat')) {
+    // Update in the scope the flat install was made in, unless the user named one.
+    if (!opts.scopeGiven) {
+      const found = SCOPES.filter((sc) => flat.flatStatus(sc, process.cwd()).installed);
+      if (found.length > 1) fail(`flat installs exist in several scopes (${found.join(', ')}); run "update --flat --scope <scope>" for each`, 2);
+      if (found.length === 0) fail('no flat install found here; run "npx vz-skills install --flat" first');
+      opts.scope = found[0];
+    }
+    return cmdInstallFlat(opts, { updating: true });
+  }
   requireClaude();
   copyPlugin();
   log(`Copied plugin ${version()} to ${MARKET_DIR}`);
   const u1 = claude(['plugin', 'marketplace', 'update', MARKETPLACE_NAME]);
   if (u1.status !== 0) { process.stderr.write(u1.stdout + u1.stderr); fail('marketplace update failed; run "npx vz-skills install" if it was never installed'); }
-  const u2 = claude(['plugin', 'update', PLUGIN_ID]);
+  const u2 = claude(['plugin', 'update', PLUGIN_ID, '--scope', opts.scope]);
   process.stdout.write(u2.stdout + u2.stderr);
-  if (u2.status !== 0) fail('plugin update failed');
+  if (u2.status !== 0) fail(`plugin update failed${opts.scopeGiven ? '' : '; if you installed with --scope project or local, pass the same --scope here'}`);
   log('Updated. Restart Claude Code or run /reload-plugins to apply.');
 }
 
 function cmdUninstall(argv) {
-  const scope = parseScope(argv);
-  const purge = argv.includes('--purge');
-  if (argv.includes('--flat')) {
-    flat.uninstallFlat({ scope, projectDir: process.cwd(), log });
-    log('Uninstalled the unprefixed skills. Project files (.vz-skills/config.json) were left untouched.');
+  const opts = parseArgs(argv, ['--flat', '--purge']);
+  if (opts.help) return help();
+  const scope = opts.scope;
+  const purge = opts.flags.has('--purge');
+  if (opts.flags.has('--flat')) {
+    if (purge) fail('--purge applies to the plugin install, not --flat', 2);
+    let res;
+    try { res = flat.uninstallFlat({ scope, projectDir: process.cwd(), log }); }
+    catch (e) { fail(e.message); }
+    log(res.removedAnything ? 'Uninstalled the unprefixed skills. Project files (.vz-skills/config.json) were left untouched.' : `Nothing to uninstall: no flat install at scope ${scope}.`);
     return;
   }
   requireClaude();
   const r = claude(['plugin', 'uninstall', PLUGIN_ID, '--scope', scope]);
-  process.stdout.write(r.stdout + r.stderr);
-  if (r.status !== 0 && !/not installed|not found/i.test(r.stdout + r.stderr)) fail('plugin uninstall failed');
+  const notInstalled = r.status !== 0 && /not installed|not found/i.test(r.stdout + r.stderr);
+  if (r.status !== 0 && !notInstalled) { process.stdout.write(r.stdout + r.stderr); fail('plugin uninstall failed'); }
+  log(notInstalled ? `Plugin ${PLUGIN_ID} is not installed at scope ${scope}.` : (r.stdout + r.stderr).trim());
   if (purge) {
     const m = claude(['plugin', 'marketplace', 'remove', MARKETPLACE_NAME]);
     process.stdout.write(m.stdout + m.stderr);
     fs.rmSync(MARKET_DIR, { recursive: true, force: true });
     log(`Removed ${MARKET_DIR}`);
   }
-  log('Uninstalled. Project files (.vz-skills/config.json) were left untouched.');
+  if (!notInstalled || purge) log('Uninstalled. Project files (.vz-skills/config.json) were left untouched.');
 }
 
 function cmdTry(argv) {
   requireClaude();
   log(`Starting Claude Code with --plugin-dir ${PLUGIN_SRC} (session-only, nothing installed)`);
-  const r = spawnSync('claude', ['--plugin-dir', PLUGIN_SRC, ...argv], { stdio: 'inherit', shell: IS_WIN });
+  const r = spawnClaude(['--plugin-dir', PLUGIN_SRC, ...argv], { stdio: 'inherit' });
   process.exit(r.status == null ? 1 : r.status);
 }
 

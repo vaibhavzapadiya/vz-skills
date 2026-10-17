@@ -69,9 +69,9 @@ node plugins/vz-skills/scripts/vz-config.js --profiles
 
 ## Safety floors
 
-Three keys cannot be lowered by accident: `hooks.command_guard`, `hooks.write_guard` and `verification.require_evidence_labels`. Setting one lower is an error. To lower it on purpose, name it in `safety.acknowledged_overrides`:
+Three keys cannot be lowered by accident: `hooks.command_guard`, `hooks.write_guard` and `verification.require_evidence_labels`. Setting one lower is an error. To lower it on purpose, name it in `safety.acknowledged_overrides` in your own user file:
 
-```json
+```json title="~/.vz-skills/config.json"
 {
   "version": 1,
   "hooks": { "command_guard": "off" },
@@ -79,7 +79,15 @@ Three keys cannot be lowered by accident: `hooks.command_guard`, `hooks.write_gu
 }
 ```
 
-It is then applied, and every session start prints a `SAFETY DOWNGRADE` warning. PRODUCTION also refuses values below its own minimums, unless acknowledged the same way.
+It is then applied, and every session start prints a `SAFETY DOWNGRADE` warning.
+
+<Callout kind="warning" title="Only you can turn a guard off">
+An acknowledgment in a repository's `.vz-skills/config.json` is ignored with an error, and the guard stays on. A repository you cloned must not be able to switch off the checks that protect you from it. If a project file has its own `safety.acknowledged_overrides` list, it replaces yours, so the key must be in both.
+</Callout>
+
+PRODUCTION also refuses values below its own minimums, unless acknowledged the same way. Those can be acknowledged in the project file too.
+
+`conventions.notes` and `conventions.extra_instructions_file` are style guidance. They cannot allow anything the core policy restricts.
 
 ## A typo, as you will see it
 
@@ -90,4 +98,4 @@ ERROR: ... "review.depth" = "Thorough" is not allowed; use one of "quick", "stan
 
 ## Editor help
 
-A JSON Schema ships at `plugins/vz-skills/schema/config.v1.schema.json`. Point `$schema` at it for completion and error markers in your editor. The resolver ignores `$schema`. Examples are in `docs/examples/` in the repository.
+A JSON Schema ships at `plugins/vz-skills/schema/config.v1.schema.json`. Point `$schema` at it for completion and error markers in your editor. Without a local copy, use `https://raw.githubusercontent.com/vaibhavzapadiya/vz-skills/main/plugins/vz-skills/schema/config.v1.schema.json`, which follows `main`. The resolver ignores `$schema`. Examples are in `docs/examples/` in the repository.

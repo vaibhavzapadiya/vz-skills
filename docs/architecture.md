@@ -3,8 +3,10 @@
 ```
 VZ-skills/                         repository = local marketplace root
 ├── .claude-plugin/marketplace.json  marketplace "vz-skills-marketplace" -> ./plugins/vz-skills
-├── bin/vz-skills.js                 npm CLI: install/update/uninstall/try/doctor (DEC-014)
-├── package.json                     publishable as `vz-skills`; `files` ships bin + plugin + manifest only
+├── bin/
+│   ├── vz-skills.js                 npm CLI: install/update/uninstall/try/doctor/path/validate, strict flags (DEC-014)
+│   └── lib/flat.js                  unprefixed (--flat) install and uninstall: checks first, backups, manifest (DEC-015)
+├── package.json                     published as `vz-skills`; `files` ships bin + plugin + manifest only
 ├── plugins/vz-skills/               the installable plugin (everything a user receives)
 │   ├── .claude-plugin/plugin.json   manifest (name, version, description, author, keywords)
 │   ├── skills/<group>/<name>/SKILL.md   24 skills in entry/, lifecycle/, specialists/, productivity/ (see docs/skills-catalog.md);
@@ -18,12 +20,28 @@ VZ-skills/                         repository = local marketplace root
 │   │   ├── vz-config.js             CLI: config resolve/validate/init/explain
 │   │   ├── vz-validate.js           CLI: structural validation of this plugin
 │   │   ├── hooks/*.js               command-guard, write-guard, session-context
-│   │   └── lib/                     discover, config, frontmatter, fsutil, hookio
+│   │   └── lib/                     discover, config, frontmatter, fsutil, hookio, skills
+│   ├── schema/config.v1.schema.json JSON Schema for .vz-skills/config.json (generated)
 │   └── evals/                       `claude plugin eval` cases (results/ ignored)
-├── fixtures/                        13 repositories for discovery tests
-├── tests/*.test.js                  node:test suites (structure, config, discovery, hooks, platform)
-├── scripts/                         workspace tooling (catalog generator, release packager)
+├── fixtures/                        17 repositories for discovery tests
+├── tests/                           node:test suites, 102 tests
+│   ├── helpers.js                   shared paths and runners
+│   ├── structure.test.js            manifests, frontmatter, skill groups, vz-validate
+│   ├── config.test.js               schema, presets, precedence, floors, JSON Schema
+│   ├── discovery.test.js            fixture matrix, baseline allowlist, redaction
+│   ├── hooks.test.js                guard decisions, fail-open, session brief, latency
+│   ├── guard-hardening.test.js      bypass attempts against the guards and the discovery brief
+│   ├── cli.test.js                  npm CLI: flags, doctor, flat and plugin install cycles
+│   ├── platform.test.js             the real `claude` CLI: validate, --plugin-dir load
+│   ├── docs.test.js                 documentation agrees with the code
+│   └── package.test.js              release archive integrity
+├── scripts/
+│   ├── run-tests.js                 `npm test`: passes every tests/*.test.js to node --test (Node 18 has no glob)
+│   ├── gen-catalog.js               generates docs/skills-catalog.md (--check in tests)
+│   ├── gen-config-schema.js         generates the config JSON Schema (--check in tests)
+│   └── package-release.js           release packager with integrity check
 ├── docs/                            user and maintainer documentation, decisions, examples
+├── site/                            documentation website (Vite, React, MDX); not part of the npm package
 └── .github/workflows/ci.yml         CI: npm test, catalog check, structural validation
 ```
 
@@ -35,7 +53,7 @@ VZ-skills/                         repository = local marketplace root
 | Shared policy | `policy/core-policy.md`, injected by the SessionStart hook | hook tests; eval cases |
 | Configuration | `lib/config.js`: schema, presets, precedence, floors; `vz-config.js` | `tests/config.test.js` |
 | Repository intelligence | `lib/discover.js`: detectors, labels, injection scan, allowlisted baseline, cache | `tests/discovery.test.js` fixture matrix |
-| Skills | `skills/*/SKILL.md`, grouped: user-run, lifecycle, specialists; `references/` for progressive disclosure | `vz-validate.js`, structure tests, catalog check, evals |
+| Skills | `skills/<group>/<name>/SKILL.md`, grouped: entry, lifecycle, specialists, productivity; `references/` for progressive disclosure | `vz-validate.js`, structure tests, catalog check, evals |
 | Commands | user-run skills (`setup`, `status`) with `disable-model-invocation: true` (DEC-006) | same |
 | Hooks | `hooks/hooks.json` + `scripts/hooks/*.js` + `lib/hookio.js` | `tests/hooks.test.js` |
 | Agents | `agents/*.md`, read-only tools | structure tests, official validator |
@@ -59,6 +77,6 @@ VZ-skills/                         repository = local marketplace root
 
 ## Extending
 
-- Add a skill: `skills/<kebab-name>/SKILL.md` with `description`; run `npm test` (structure checks and catalog freshness) and `claude plugin validate --strict`.
+- Add a skill: `skills/<group>/<name>/SKILL.md` (groups: `entry`, `lifecycle`, `specialists`, `productivity`; a new group must be listed in `plugin.json` `skills`) with `name` and `description`; run `npm test` (structure checks and catalog freshness) and `claude plugin validate --strict`.
 - Add a config key: extend `SCHEMA` and, if it should have a floor, `floor`; add a row to `docs/configuration.md`; run `node scripts/gen-config-schema.js`; the config test asserts presets are schema-valid and the docs test asserts every key is documented.
 - Add a hook: declare it in `hooks.json`, implement with `lib/hookio.js`, add fail-open and decision tests.

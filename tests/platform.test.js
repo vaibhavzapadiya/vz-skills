@@ -11,13 +11,16 @@ const { REPO_ROOT, PLUGIN_ROOT, hasClaude } = require('./helpers');
 
 const claudeVersion = hasClaude();
 const skip = claudeVersion ? false : 'claude CLI not found on PATH';
+// `plugin validate --json` arrived in Claude Code 2.1.259; older CLIs still run the non-JSON checks below.
+const atLeast = (v, min) => { const a = (v.match(/d+(.d+)*/) || ['0'])[0].split('.').map(Number); const b = min.split('.').map(Number); for (let i = 0; i < 3; i++) if ((a[i] || 0) !== b[i]) return (a[i] || 0) > b[i]; return true; };
+const skipJson = skip || (atLeast(claudeVersion, '2.1.259') ? false : `claude ${claudeVersion} predates validate --json (2.1.259)`);
 
 function claude(args, opts = {}) {
   const r = spawnSync('claude', args, { encoding: 'utf8', shell: process.platform === 'win32', cwd: opts.cwd || REPO_ROOT, timeout: opts.timeout || 120000, windowsHide: true, env: Object.assign({}, process.env, { CLAUDE_CODE_SIMPLE: '1' }) });
   return { status: r.status, stdout: r.stdout || '', stderr: r.stderr || '' };
 }
 
-test('claude plugin validate --strict --json passes for the plugin', { skip }, () => {
+test('claude plugin validate --strict --json passes for the plugin', { skip: skipJson }, () => {
   const r = claude(['plugin', 'validate', PLUGIN_ROOT, '--strict', '--json']);
   assert.equal(r.status, 0, r.stdout + r.stderr);
   const report = JSON.parse(r.stdout);

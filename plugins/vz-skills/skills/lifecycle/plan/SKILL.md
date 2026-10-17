@@ -16,7 +16,7 @@ A plan is a sequence of thin vertical slices, each independently verifiable. It 
 
 ## Workflow
 
-1. **Locate the change surface.** Grep/Read the modules, tests, and call sites involved. Record the exact files (existing and new). If a needed fact is unknown (framework behaviour, runtime version), say so and plan a spike slice to find out instead of guessing.
+1. **Locate the change surface.** Grep/Read the modules, tests, and call sites involved. Record the exact files (existing and new). If a needed fact is unknown (framework behaviour, runtime version), say so and plan a spike slice to find out instead of guessing. If the surface spans more than one module or you cannot find it with two or three searches, and `agents.delegation` allows it (see `${CLAUDE_PLUGIN_ROOT}/references/risk-tiers.md`), invoke the `vz-skills:repo-analyst` agent with the question and the discovery brief, and use its cited map instead of reading everything into this context.
 2. **Choose the approach.** Prefer the pattern the repository already uses. Note one rejected alternative and why (one line) when `planning.depth` is `standard` or `detailed`.
 3. **Slice the work.** Each slice: 1-3 files, one behaviour, its own test, its own verification command, and a clear stop point. Order so that each slice leaves the tree green. Put the riskiest or most uncertain slice first.
 4. **Attach verification** to every slice using only CONFIRMED/INFERRED commands from discovery. If the project has no tests, each slice gets a manual check written as a concrete command or observation, flagged NOT VERIFIED until performed.

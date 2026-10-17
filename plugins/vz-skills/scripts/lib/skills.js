@@ -15,7 +15,8 @@ const GROUP_TITLES = { entry: 'Entry points', lifecycle: 'Lifecycle', specialist
 const GROUP_ORDER = ['entry', 'lifecycle', 'specialists', 'productivity'];
 
 function isDir(p) { try { return fs.statSync(p).isDirectory(); } catch { return false; } }
-function hasSkillFile(dir) { return fs.existsSync(path.join(dir, 'SKILL.md')); }
+// Exact-case check: existsSync ignores case on Windows and macOS, but Linux loads only "SKILL.md".
+function hasSkillFile(dir) { try { return fs.readdirSync(dir).includes('SKILL.md'); } catch { return false; } }
 function norm(rel) { return rel.replace(/\\/g, '/').replace(/^\.\//, '').replace(/\/+$/, ''); }
 
 function manifestSkillDirs(pluginRoot) {
