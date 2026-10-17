@@ -153,13 +153,13 @@ function validateDocument(doc, { source = 'config', projectRoot = null } = {}) {
       if (!Array.isArray(value) || value.some((v) => typeof v !== 'string')) { errors.push({ key, message: `${source}: "${key}" must be an array of strings` }); continue; }
       if (spec.maxItems && value.length > spec.maxItems) errors.push({ key, message: `${source}: "${key}" has ${value.length} items; max ${spec.maxItems}` });
       if (key === 'safety.acknowledged_overrides') for (const v of value) if (!SCHEMA[v] || !SCHEMA[v].floor) errors.push({ key, message: `${source}: "${key}" lists "${v}", which is not a safety-floored key` });
-      if (key === 'hooks.protected_paths') for (const v of value) if (v.includes('..') || path.isAbsolute(v)) errors.push({ key, message: `${source}: "${key}" entry "${v}" must be a project-relative glob without ".."` });
+      if (key === 'hooks.protected_paths') for (const v of value) if (v.includes('..') || path.win32.isAbsolute(v)) errors.push({ key, message: `${source}: "${key}" entry "${v}" must be a project-relative glob without ".."` });
       continue;
     }
     if (t === 'path') {
       if (typeof value !== 'string') { errors.push({ key, message: `${source}: "${key}" must be a string path` }); continue; }
       if (value === '') continue;
-      if (path.isAbsolute(value) || value.split(/[\\/]/).includes('..') || /^[A-Za-z]:/.test(value) || value.startsWith('~')) {
+      if (path.win32.isAbsolute(value) || value.split(/[\\/]/).includes('..') || /^[A-Za-z]:/.test(value) || value.startsWith('~')) {
         errors.push({ key, message: `${source}: "${key}" must be a relative path inside the project without ".." (got "${value}")` });
         continue;
       }

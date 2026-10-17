@@ -20,7 +20,7 @@ Everything below was executed on 2026-10-16 on the build machine (Windows 11 Pro
 ## Observed results
 
 ```
-> npm test            (node --test tests/*.test.js)
+> npm test            (node scripts/run-tests.js: node --test over tests/*.test.js)
 # tests 84
 # pass 84
 # fail 0
