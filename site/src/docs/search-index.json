@@ -522,6 +522,14 @@
  {
   "slug": "contributing",
   "page": "Contributing",
+  "heading": "Submitting changes",
+  "anchor": "submitting-changes",
+  "text": "main is protected: nobody pushes to it directly except the maintainer. Every other change goes through a pull request: 1. Fork the repository on GitHub, clone your fork, and create a branch for your change: git clone https://github.com/ /vz-skills.git && cd vz-skills git checkout -b fix/short-description 2. Make the change with its test, then run npm test and claude plugin validate ./plugins/vz-skills --strict . 3. Push the branch to your fork and open a pull request against main in vaibhavzapadiya/vz-skills. A pull request can merge when all four CI jobs pass (Ubuntu and Windows, Node 18 and 22) and the maintainer has approved it. Pushing new commits to the branch clears an earlier approval. Force-pushing to main and deleting it are blocked for everyone.",
+  "to": "/docs/contributing#submitting-changes"
+ },
+ {
+  "slug": "contributing",
+  "page": "Contributing",
   "heading": "Layout",
   "anchor": "layout",
   "text": "plugins/vz-skills/ the installable plugin skills/ / /SKILL.md groups: entry, lifecycle, specialists, productivity agents/ hooks/ policy/ references/ schema/ scripts/ evals/ bin/ the npx installer tests/ fixtures/ the test suites and sample repositories docs/ documentation, decision log, config examples site/ this website",

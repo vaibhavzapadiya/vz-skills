@@ -11,6 +11,22 @@ claude plugin validate ./plugins/vz-skills --strict
 claude --plugin-dir ./plugins/vz-skills      # try it in a session
 ```
 
+## Submitting changes
+
+`main` is protected: nobody pushes to it directly except the maintainer. Every other change goes through a pull request:
+
+1. Fork the repository on GitHub, clone your fork, and create a branch for your change:
+
+   ```bash
+   git clone https://github.com/<your-user>/vz-skills.git && cd vz-skills
+   git checkout -b fix/short-description
+   ```
+
+2. Make the change with its test, then run `npm test` and `claude plugin validate ./plugins/vz-skills --strict`.
+3. Push the branch to your fork and open a pull request against `main` in [vaibhavzapadiya/vz-skills](https://github.com/vaibhavzapadiya/vz-skills).
+
+A pull request can merge when all four CI jobs pass (Ubuntu and Windows, Node 18 and 22) and the maintainer has approved it. Pushing new commits to the branch clears an earlier approval. Force-pushing to `main` and deleting it are blocked for everyone.
+
 ## Layout
 
 ```text
