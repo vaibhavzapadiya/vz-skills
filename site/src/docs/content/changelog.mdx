@@ -4,6 +4,12 @@ All notable changes to VZ Skills are recorded here. The format follows Keep a Ch
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-17
+
+### Changed
+- README shortened and simplified (226 to 139 lines): quick start, how it works, install options, profiles, skills, safety, and status, with reference detail moved to the linked docs. Links the website at https://vz-skills.vaibhavzapadiya.workers.dev.
+- The website is deployed to Cloudflare Workers (`site/wrangler.jsonc`, `npm run deploy` in `site/`).
+
 ## [0.1.1] - 2026-10-17
 
 ### Security
