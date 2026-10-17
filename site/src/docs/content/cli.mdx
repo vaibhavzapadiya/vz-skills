@@ -42,6 +42,6 @@ node scripts/vz-dashboard.js [--project <dir>] [--out <file> | --out -] [--no-gi
 | `vz-config.js` | Show settings and where they come from, create a config file, or validate one. |
 | `vz-validate.js` | Check the plugin's own structure. |
 | `vz-ledger.js` | Show the activity ledger: files edited, commands run, and checks with pass or fail, per session. Shows the last 200 entries by default. `--path` prints where the ledger file is. |
-| `vz-dashboard.js` | Write the project dashboard to `.vz-skills/dashboard.html`, or to the file after `--out` (`--out -` prints it). `--no-git` skips the git sections. |
+| `vz-dashboard.js` | Write the project dashboard to `.vz-skills/dashboard.html`, or to the file after `--out`, which must be inside the project (`--out -` prints it). `--no-git` skips the git sections. |
 
 Exit codes: `0` is fine, `1` means a configuration error (or a failed step), `2` means a usage error.

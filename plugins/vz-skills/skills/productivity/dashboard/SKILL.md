@@ -13,7 +13,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/scripts/vz-dashboard.js" *)
 node "${CLAUDE_PLUGIN_ROOT}/scripts/vz-dashboard.js" --project . --out .vz-skills/dashboard.html
 ```
 
-- `$0`, if given, replaces the output path. `--no-git` skips the git sections (for example outside a repository).
+- `$0`, if given, replaces the output path; it must be inside the project (the script refuses anything outside). `--no-git` skips the git sections (for example outside a repository).
 - The page is one HTML file with no scripts and no network requests; open it in any browser. Tell the user the path. Offer to open it, using the platform's opener (`start "" <file>` on Windows, `open` on macOS, `xdg-open` on Linux) only when they say yes.
 
 ## Summarize in chat

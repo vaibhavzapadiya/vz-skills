@@ -129,6 +129,9 @@ test('dashboard: one self-contained page from the real state, with repository te
     assert.equal(out.status, 0);
     assert.match(out.stdout, /^<!doctype html>/);
     assert.equal(runNode(path.join(SCRIPTS, 'vz-dashboard.js'), ['--bogus']).status, 2);
+    const outside = runNode(path.join(SCRIPTS, 'vz-dashboard.js'), ['--project', p, '--out', '../outside.html', '--no-git'], { env: s.env });
+    assert.equal(outside.status, 2, 'refuses to write outside the project');
+    assert.ok(!fs.existsSync(path.join(p, '..', 'outside.html')));
   } finally { s.cleanup(); }
 });
 

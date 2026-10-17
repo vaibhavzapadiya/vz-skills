@@ -5,7 +5,8 @@
  *
  *   node vz-dashboard.js [--project <dir>] [--out <file> | --out -] [--no-git]
  *
- * Default output: <project>/.vz-skills/dashboard.html (--out - prints to stdout).
+ * Default output: <project>/.vz-skills/dashboard.html (--out - prints to stdout). --out must stay inside
+ * the project; a path outside it is refused (exit 2).
  * Sections: settings and profile, repository discovery, git state and recent commits, architecture
  * decision records, the saved checkpoint, the activity ledger, documentation, and the changelog.
  *
@@ -231,7 +232,10 @@ function main() {
   if (o.help) { process.stdout.write(fs.readFileSync(__filename, 'utf8').split('\n').slice(3, 15).join('\n').replace(/^ \* ?/gm, '') + '\n'); return; }
   const html = render(build(o.project, { useGit: o.git }));
   if (o.out === '-') { process.stdout.write(html); return; }
-  const out = path.resolve(o.out || path.join(o.project, '.vz-skills', 'dashboard.html'));
+  const root = path.resolve(o.project);
+  const out = path.resolve(root, o.out || path.join('.vz-skills', 'dashboard.html'));
+  const rel = path.relative(root, out);
+  if (rel.startsWith('..') || path.isAbsolute(rel)) { process.stderr.write(`vz-dashboard: refusing to write outside the project root: ${out}\n`); process.exit(2); }
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, html);
   process.stdout.write(`wrote ${out}\n`);
