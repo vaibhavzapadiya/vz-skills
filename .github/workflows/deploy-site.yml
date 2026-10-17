@@ -1,0 +1,74 @@
+name: deploy-site
+
+# Deploy the website (site/) to Cloudflare Workers after CI passes on main, using the exact commit CI
+# tested. Also runnable by hand from the Actions tab.
+#
+# Needs, in the repository settings:
+#   secret   CLOUDFLARE_API_TOKEN   a Cloudflare API token with the "Edit Cloudflare Workers" template
+#   variable CLOUDFLARE_ACCOUNT_ID  the Cloudflare account id
+# Without the token the job skips the deploy and says why, instead of failing.
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that deploy credentials are configured
+        id: creds
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$ACCOUNT" ]; then
+            echo "::notice::Skipping the deploy: set the CLOUDFLARE_API_TOKEN secret and the CLOUDFLARE_ACCOUNT_ID variable to enable it."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.creds.outputs.ready == 'true'
+        with:
+          # deploy exactly what CI tested (for a manual run, the current main)
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v4
+        if: steps.creds.outputs.ready == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install site dependencies
+        if: steps.creds.outputs.ready == 'true'
+        working-directory: site
+        run: npm ci
+
+      - name: Verify and build (changelog and search index, typecheck, content checks, build)
+        if: steps.creds.outputs.ready == 'true'
+        working-directory: site
+        run: npm run verify
+
+      - name: Deploy to Cloudflare Workers
+        if: steps.creds.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: site
+          wranglerVersion: '4.136.1'
+          command: deploy

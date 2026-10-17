@@ -53,3 +53,5 @@ The site is deployed to Cloudflare Workers as an assets-only Worker named `vz-sk
 npx wrangler login   # once, in a browser
 npm run deploy       # build, then wrangler deploy
 ```
+
+Deploys also happen automatically: `.github/workflows/deploy-site.yml` runs after the `ci` workflow passes on `main`, checks out the exact commit CI tested, runs `npm run verify`, and deploys with `cloudflare/wrangler-action` (wrangler 4.136.1). It can also be started by hand from the Actions tab. It needs a repository secret `CLOUDFLARE_API_TOKEN` (a Cloudflare API token made from the "Edit Cloudflare Workers" template) and a repository variable `CLOUDFLARE_ACCOUNT_ID`; without the token it skips the deploy with a notice.
