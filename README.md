@@ -124,7 +124,7 @@ Every key is checked; a typo or a bad value is reported with a suggested fix ins
 
 ## Status
 
-Version 0.1.2, published on npm as [`vz-skills`](https://www.npmjs.com/package/vz-skills).
+Version 0.2.0, published on npm as [`vz-skills`](https://www.npmjs.com/package/vz-skills).
 
 - **Tested:** 107 automated tests cover the plugin structure, discovery on 17 sample repositories, configuration, the guards (including attempts to get past them), the activity ledger and claim check, both install methods, and packaging.
 - **Not yet measured:** how much better the skills make Claude in real sessions. An eval suite is included, but no results are claimed yet.

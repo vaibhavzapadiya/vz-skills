@@ -33,7 +33,7 @@ export const SITE = {
   packageName: 'vz-skills',
   title: 'VZ Toolkit: skills, agents and guardrails for Claude Code',
   tagline: 'Skills, agents and guardrails for Claude Code.',
-  version: '0.1.2',
+  version: '0.2.0',
   install: 'npx vz-skills install --flat',
   repo: 'https://github.com/vaibhavzapadiya/vz-skills',
   repoSlug: 'vaibhavzapadiya/vz-skills',

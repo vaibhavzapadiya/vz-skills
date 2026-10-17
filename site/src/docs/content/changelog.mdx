@@ -4,6 +4,8 @@ All notable changes to VZ Skills are recorded here. The format follows Keep a Ch
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-17
+
 ### Added
 - `commit` skill: stages only the task's files by name (never `git add -A`), checks the staged diff for secrets and stray files, writes the message in the repository's commit style, never skips git hooks, and asks before committing straight to the default branch of a pull-request repository. `implement` and `pr` hand off to it.
 - `adr` skill: architecture decision records in the repository's existing format and numbering; new, supersede or deprecate (never rewriting history), and list. `plan` proposes one for lasting decisions; `docs` defers to it.
