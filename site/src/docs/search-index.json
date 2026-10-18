@@ -610,6 +610,14 @@
  {
   "slug": "changelog",
   "page": "Changelog",
+  "heading": "Changed",
+  "anchor": "changed",
+  "text": "- The website moved to https://vz-skills.vaibhavzapadiya.space. The old vz-skills.vaibhavzapadiya.workers.dev address still works.",
+  "to": "/docs/changelog#changed"
+ },
+ {
+  "slug": "changelog",
+  "page": "Changelog",
   "heading": "[0.2.1] - 2026-10-17",
   "anchor": "021-2026-10-17",
   "text": "The plugin and the CLI are unchanged from 0.2.0. This is the first release built by the release workflow.",

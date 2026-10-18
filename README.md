@@ -4,7 +4,7 @@
 
 **A disciplined development lifecycle for Claude Code.** VZ Skills makes Claude look at a repository before changing it, work in small tested steps, and finish with a report that says exactly what was checked and what was not.
 
-Website and documentation: **[vz-skills.vaibhavzapadiya.workers.dev](https://vz-skills.vaibhavzapadiya.workers.dev)**
+Website and documentation: **[vz-skills.vaibhavzapadiya.space](https://vz-skills.vaibhavzapadiya.space)**
 
 <p align="center"><img src="docs/assets/claim-check-demo.svg" width="820" alt="Animated illustration: Claude says 'Fixed the parser. All tests pass.' without running a test; the vz-skills claim check sends it back; Claude runs npm test, 14 tests pass, and the reply is labelled TESTED."></p>
 

@@ -4,6 +4,9 @@ All notable changes to VZ Skills are recorded here. The format follows Keep a Ch
 
 ## [Unreleased]
 
+### Changed
+- The website moved to https://vz-skills.vaibhavzapadiya.space. The old vz-skills.vaibhavzapadiya.workers.dev address still works.
+
 ## [0.2.1] - 2026-10-17
 
 The plugin and the CLI are unchanged from 0.2.0. This is the first release built by the release workflow.
