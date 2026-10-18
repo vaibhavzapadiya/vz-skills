@@ -9,6 +9,10 @@
     // React Router uses real paths (/docs/guards); unknown paths get index.html and the app routes them.
     "not_found_handling": "single-page-application"
   },
+  // Custom domain on Vaibhav's zone; Cloudflare creates the DNS record and certificate.
+  // The vz-skills.vaibhavzapadiya.workers.dev address keeps working too.
+  "routes": [{ "pattern": "vz-skills.vaibhavzapadiya.space", "custom_domain": true }],
+  "workers_dev": true,
   // Matches the observability settings in the Cloudflare dashboard, so a deploy does not reset them.
   "observability": {
     "logs": {
